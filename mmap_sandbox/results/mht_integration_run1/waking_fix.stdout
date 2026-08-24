@@ -1,0 +1,5 @@
+{"t": 0.001, "state": "SLEEPING", "event": "listening", "sock": "fire_watcher/watcher.sock", "wake_mode": "compose"}
+{"t": 1.947, "state": "SLEEPING", "event": "confidence", "value": 0.9, "smoothed": 0.9}
+{"t": 1.948, "state": "WAKING", "event": "wake_start", "confidence": 0.9, "from_state": "SLEEPING"}
+{"t": 12.097, "state": "WAKING", "event": "shutdown", "signal": 15}
+{"t": 22.548, "state": "WAKING", "event": "stack_stopped", "seconds": 10.45}

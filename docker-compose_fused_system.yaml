@@ -1,0 +1,273 @@
+# Fire-watcher-managed variant of docker-compose_complete_system.yaml.
+# The fire_watcher daemon starts/stops this stack on MHT confidence; run it
+# manually with:  docker compose -f docker-compose_fused_system.yaml up -d
+# The original complete-system file remains independent and unchanged.
+#
+# 2026-08-24 12:08 IDT - ori: added the MHT_TOP/MHT1 services (mht_watch,
+# mht_train, mht_test, mht_gui). Every one of them is behind a compose
+# profile, so the plain `up -d` that fire_watcher runs on wake still starts
+# only the classifier + detection pair and the WATCH/ACTIVE exclusion holds.
+# All four build Dockerfile.mht (base image + apt python3-pyqt5 + cupy-cuda13x)
+# as wildfire/mht:r39.2.
+#
+# 2026-08-24 16:02 IDT - kfir: added the fire_watcher service (profile `watcher`), so the
+# watcher daemon itself now runs in docker and nothing needs host python/.venv.
+# It talks to the host docker via the mounted socket + CLI (docker-out-of-docker),
+# which is why the project is bind-mounted at its IDENTICAL host path: compose
+# expands ./data in the container but the daemon resolves it on the host.
+# Deliberately has NO mem_limit - cgroup v2 charges mmap page cache to the
+# container that faults it in, so a cap would evict the ~2.8GB pre-warm.
+# Also: fire_watcher.py now scopes its compose up/stop to the two stack services;
+# a bare `--profile watcher stop` would otherwise stop the watcher itself.
+name: wildfire-fused
+
+services:
+
+  wildfire_classifier:
+    image: harel314/orin-r39.2:cu132-nano_llm
+    container_name: wildfire_classifier_fused
+    runtime: nvidia
+    network_mode: host
+    shm_size: "2g"
+    mem_limit: 1g
+    memswap_limit: 2g
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - INPUT_FILE=/data/out_txt
+      - OUTPUT_FILE=/out/classifier_results.jsonl
+      - THRESHOLD=0.4
+      - POLL_MS=200
+      - HF_HOME=/hf-cache
+      - HF_HUB_CACHE=/hf-cache
+      - TRANSFORMERS_CACHE=/hf-cache
+      - HF_HUB_OFFLINE=1
+      - PYTHONUNBUFFERED=1
+      - PYTHONFAULTHANDLER=1
+      - PIP_INDEX_URL=https://pypi.org/simple
+      - PIP_DEFAULT_TIMEOUT=120
+    volumes:
+      - ./data:/data:ro
+      - ./data/classifier_out:/out
+      - ./hf-cache:/hf-cache
+      - ./classifier:/app
+    working_dir: /app
+    command: >
+      bash -lc "python3 -u classifier.py"
+    restart: "no"
+
+  wildfire_detection:
+    image: harel314/orin-r39.2:cu132-nano_llm
+    container_name: wildfire_detection_fused
+    runtime: nvidia
+    network_mode: host
+    shm_size: "4g"
+    mem_limit: 6g
+    memswap_limit: 12g
+    restart: "no"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,video
+      - DISPLAY=:1
+      - XAUTHORITY=/tmp/.docker.xauth
+      - PULSE_SERVER=unix:/run/user/1000/pulse/native
+      - TEXT_OUT_PATH=/data/out_txt
+      - HF_HOME=/hf-cache
+      - HF_HUB_CACHE=/hf-cache
+      - TRANSFORMERS_CACHE=/hf-cache
+      - HF_HUB_OFFLINE=1
+      - CUDA_CACHE_PATH=/hf-cache/.nv-compute-cache
+      - LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libcudnn.so.9
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+      - VIDEO_ALERT_UDP_IP=0.0.0.0
+      - VIDEO_ALERT_UDP_PORT=5006
+      - VIDEO_CLIP_DIR=/out/clips
+      - VIDEO_CLIP_SECONDS=0
+      - VIDEO_CLIP_MIN_INTERVAL=1
+      - VIDEO_INPUT=/dev/video0
+      - VIDEO_OUTPUT=display://0
+      - CLASSIFIER_SEND_INTERVAL=0.000001
+    volumes:
+      - /tmp/argus_socket:/tmp/argus_socket
+      - /etc/enctune.conf:/etc/enctune.conf
+      - /etc/nv_tegra_release:/etc/nv_tegra_release
+      - /tmp/nv_jetson_model:/tmp/nv_jetson_model
+      - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/data
+      - ./nano_llm/vision/video.py:/opt/NanoLLM/nano_llm/vision/video.py
+      - ./nano_llm/models/__init__.py:/opt/NanoLLM/nano_llm/models/__init__.py
+      - ./nano_llm/models/awq.py:/opt/NanoLLM/nano_llm/models/awq.py
+      - ./data/classifier_out:/out
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /run/user/1000/pulse:/run/user/1000/pulse
+      - /tmp/.X11-unix/:/tmp/.X11-unix
+      - /tmp/.docker.xauth:/tmp/.docker.xauth
+      - ./hf-cache:/hf-cache
+    devices:
+      - /dev/snd
+      - /dev/bus/usb
+      - /dev/i2c-0
+      - /dev/i2c-1
+      - /dev/i2c-2
+      - /dev/i2c-4
+      - /dev/i2c-5
+      - /dev/i2c-7
+      - /dev/video0
+      - /dev/video1
+    stdin_open: true
+    tty: true
+    command:
+      - bash
+      - -lc
+      - >
+        QPATH=$$(python3 -c "from huggingface_hub import hf_hub_download; print(hf_hub_download('Efficient-Large-Model/VILA1.5-3b-AWQ','llm/vila-1.5-3b-w4-g128-awq-v2.pt'))") &&
+        python3 -m nano_llm.vision.video
+        --model Efficient-Large-Model/VILA1.5-3b-AWQ
+        --api awq
+        --vision-api hf
+        --quantization "$$QPATH"
+        --max-images 15
+        --max-new-tokens 40
+        --video-input "$$VIDEO_INPUT"
+        --video-input-codec mjpeg
+        --video-input-width 1920
+        --video-input-height 1080
+        --video-output "$$VIDEO_OUTPUT"
+        --prompt "describe the scene in detail, and what is happening in it. do you see any signs of smoke? is smoke present?"
+
+  mht_watch:
+    profiles: ["watch"]
+    build:
+      context: .
+      dockerfile: Dockerfile.mht
+    image: wildfire/mht:r39.2
+    container_name: mht_watch_fused
+    runtime: nvidia
+    network_mode: host
+    mem_limit: 1g
+    restart: "no"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./MHT_TOP:/MHT_TOP:ro
+      - ./fire_watcher:/fire_watcher
+      - /etc/localtime:/etc/localtime:ro
+    devices:
+      - /dev/video0
+    command:
+      - python3
+      - -u
+      - /fire_watcher/mht_live.py
+      - --sock
+      - /fire_watcher/watcher.sock
+      - --source
+      - /dev/video0
+
+  mht_train:
+    profiles: ["train"]
+    build:
+      context: .
+      dockerfile: Dockerfile.mht
+    image: wildfire/mht:r39.2
+    container_name: mht_train_fused
+    runtime: nvidia
+    network_mode: host
+    mem_limit: 4g
+    restart: "no"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./MHT_TOP:/MHT_TOP
+      - /etc/localtime:/etc/localtime:ro
+    working_dir: /MHT_TOP/MHT1
+    entrypoint: ["python3", "-u", "train_motion_classifier.py"]
+    command: ["--folder", "/MHT_TOP/val_videos", "--iir-auto", "--min-spec", "0.75"]
+
+  mht_test:
+    profiles: ["test"]
+    build:
+      context: .
+      dockerfile: Dockerfile.mht
+    image: wildfire/mht:r39.2
+    container_name: mht_test_fused
+    runtime: nvidia
+    network_mode: host
+    mem_limit: 4g
+    restart: "no"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./MHT_TOP:/MHT_TOP
+      - /etc/localtime:/etc/localtime:ro
+    working_dir: /MHT_TOP/MHT1
+    entrypoint: ["python3", "-u", "test_motion_classifier.py"]
+    command: ["--folder", "/MHT_TOP/val_videos"]
+
+  mht_gui:
+    profiles: ["gui"]
+    build:
+      context: .
+      dockerfile: Dockerfile.mht
+    image: wildfire/mht:r39.2
+    container_name: mht_gui_fused
+    runtime: nvidia
+    network_mode: host
+    mem_limit: 2g
+    restart: "no"
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,video
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/usr/lib/python3/dist-packages
+      - DISPLAY=:1
+      - XAUTHORITY=/tmp/.docker.xauth
+      - QT_X11_NO_MITSHM=1
+    volumes:
+      - ./MHT_TOP:/MHT_TOP
+      - /tmp/.X11-unix/:/tmp/.X11-unix
+      - /tmp/.docker.xauth:/tmp/.docker.xauth
+      - /etc/localtime:/etc/localtime:ro
+    devices:
+      - /dev/video0
+    working_dir: /MHT_TOP/MHT1
+    command:
+      - python3
+      - -u
+      - wildefire_gui.py
+      - --folder
+      - /MHT_TOP/val_videos
+
+  fire_watcher:
+    profiles: ["watcher"]
+    image: harel314/orin-r39.2:cu132-nano_llm
+    container_name: fire_watcher_fused
+    network_mode: host
+    restart: unless-stopped
+    stop_grace_period: 60s
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker:ro
+      - /usr/libexec/docker/cli-plugins:/usr/libexec/docker/cli-plugins:ro
+      - /home/student/Documents/projects/wildfire_detection:/home/student/Documents/projects/wildfire_detection
+      - /etc/localtime:/etc/localtime:ro
+    working_dir: /home/student/Documents/projects/wildfire_detection
+    command:
+      - python3
+      - -u
+      - fire_watcher/fire_watcher.py
+      - --sock
+      - /home/student/Documents/projects/wildfire_detection/fire_watcher/watcher.sock
+      - --wake-mode
+      - compose
+      - --log
+      - /home/student/Documents/projects/wildfire_detection/fire_watcher/watch.jsonl

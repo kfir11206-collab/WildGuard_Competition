@@ -1,0 +1,136 @@
+# docker-compose.yml
+version: "3.8"
+
+services:
+
+  wildfire_classifier:
+    image: harel314/orin-r39.2:cu132-nano_llm
+    container_name: wildfire_classifier
+    runtime: nvidia
+    network_mode: host
+    shm_size: "2g"
+    mem_limit: 1g
+    memswap_limit: 2g
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - INPUT_FILE=/data/out_txt
+      - OUTPUT_FILE=/out/classifier_results.jsonl
+      - THRESHOLD=0.4
+      - POLL_MS=200
+      - HF_HOME=/hf-cache
+      - HF_HUB_CACHE=/hf-cache
+      - TRANSFORMERS_CACHE=/hf-cache
+      - HF_HUB_OFFLINE=1
+      - PYTHONUNBUFFERED=1
+      - PYTHONFAULTHANDLER=1
+      # (optional) force PyPI if NVIDIA mirror is flaky:
+      - PIP_INDEX_URL=https://pypi.org/simple
+      - PIP_DEFAULT_TIMEOUT=120
+    volumes:
+      - ./data:/data:ro
+      - ./data/classifier_out:/out
+      - ./hf-cache:/hf-cache
+      - ./classifier:/app
+    working_dir: /app
+    # transformers/accelerate/sentencepiece are already in the image venv (pip3 hits the
+    # PEP668-locked system python on 24.04; use `uv pip install` if extra packages are ever needed)
+    command: >
+      bash -lc "python3 -u classifier.py"
+    restart: unless-stopped
+    
+  wildfire_detection:
+    image: harel314/orin-r39.2:cu132-nano_llm
+    container_name: wildfire_detection
+    runtime: nvidia
+    network_mode: host
+    shm_size: "4g"
+    mem_limit: 6g
+    memswap_limit: 12g
+    restart: unless-stopped
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,video
+      - DISPLAY=:1
+      - XAUTHORITY=/tmp/.docker.xauth
+      - PULSE_SERVER=unix:/run/user/1000/pulse/native
+      - TEXT_OUT_PATH=/data/out_txt
+      - HF_HOME=/hf-cache
+      - HF_HUB_CACHE=/hf-cache
+      - TRANSFORMERS_CACHE=/hf-cache
+      - HF_HUB_OFFLINE=1
+      - CUDA_CACHE_PATH=/hf-cache/.nv-compute-cache
+      # torch's pip-bundled cuDNN (9.20) clashes with the system's (9.21) -> SUBLIBRARY_VERSION_MISMATCH;
+      # preload the system one so all cuDNN sublibraries come from a single install
+      - LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libcudnn.so.9
+      # reduce GPU allocator fragmentation on the 7.4GB shared-memory Orin: NvMap error 12
+      # retries can hit a fatal torch NVML assert on Tegra instead of recovering
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+      # NEW 
+      - VIDEO_ALERT_UDP_IP=0.0.0.0     # bind address for FIRE alerts
+      - VIDEO_ALERT_UDP_PORT=5006      # must match classifier's alert port
+      - VIDEO_CLIP_DIR=/out/clips      # where clips are saved (under your existing /out mount)
+      - VIDEO_CLIP_SECONDS=0          # clip length
+      - VIDEO_CLIP_MIN_INTERVAL=1     # rate limit (one clip per minute)
+      - VIDEO_INPUT=/dev/video0
+      - VIDEO_OUTPUT=display://0
+      - CLASSIFIER_SEND_INTERVAL=0.000001
+    volumes:
+      - /tmp/argus_socket:/tmp/argus_socket
+      - /etc/enctune.conf:/etc/enctune.conf
+      - /etc/nv_tegra_release:/etc/nv_tegra_release
+      - /tmp/nv_jetson_model:/tmp/nv_jetson_model
+      - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/data
+      - ./nano_llm/vision/video.py:/opt/NanoLLM/nano_llm/vision/video.py
+      # MLC backend is dead in the JP7 image (tvm relax_vm removed); guard its import
+      - ./nano_llm/models/__init__.py:/opt/NanoLLM/nano_llm/models/__init__.py
+      - ./nano_llm/models/awq.py:/opt/NanoLLM/nano_llm/models/awq.py
+#      - /home/tesla/.local/lib/python3.10/site-packages/pubsub:/usr/local/lib/python3.10/dist-packages/pubsub
+      - ./data/classifier_out:/out
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /run/user/1000/pulse:/run/user/1000/pulse
+      - /tmp/.X11-unix/:/tmp/.X11-unix
+      - /tmp/.docker.xauth:/tmp/.docker.xauth
+      - ./hf-cache:/hf-cache
+    devices:
+      - /dev/snd
+      - /dev/bus/usb
+      - /dev/i2c-0
+      - /dev/i2c-1
+      - /dev/i2c-2
+      - /dev/i2c-4
+      - /dev/i2c-5
+      - /dev/i2c-7
+#      - /dev/i2c-9
+      - /dev/video0
+      - /dev/video1
+    stdin_open: true
+    tty: true
+    command:
+      - bash
+      - -lc
+      # api=awq replaces MLC (q4f16) — the JP7 image ships mlc-llm 0.20 whose tvm API
+      # NanoLLM predates; the AWQ stack was built into the image and works
+      - >
+        QPATH=$$(python3 -c "from huggingface_hub import hf_hub_download; print(hf_hub_download('Efficient-Large-Model/VILA1.5-3b-AWQ','llm/vila-1.5-3b-w4-g128-awq-v2.pt'))") &&
+        python3 -m nano_llm.vision.video
+        --model Efficient-Large-Model/VILA1.5-3b-AWQ
+        --api awq
+        --vision-api hf
+        --quantization "$$QPATH"
+        --max-images 15
+        --max-new-tokens 40
+        --video-input "$$VIDEO_INPUT"
+        --video-input-codec mjpeg
+        --video-input-width 1920
+        --video-input-height 1080
+        --video-output "$$VIDEO_OUTPUT"
+        --prompt "describe the scene in detail, and what is happening in it. do you see any signs of smoke? is smoke present?"
+
+
+
+      

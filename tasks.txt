@@ -1,0 +1,23 @@
+How to get into the container and run python from script?
+How to control saving of the output?
+Can you publish the output with connection? subsocket/ros?
+
+
+If we can publish the output as socket -> we can send it to our script of actions.
+
+How to compress text to decision making? can we run cosine similarity between "wild fire" and the compressed text? can we translate the text to binary decision? search online with huggingface.
+
+
+
+How i see the architecture:
+
+
+Video stream from camera -> ALWAYS publishing to certain server. 
+
+The script of actions - call it idk "FireFighter" - listenes to the published channel, translate it to either binary or set of states and make a decision.   
+
+binary can be - fire / no fire
+
+states can be nothing / smoke / smoke and fire / fire / strong light or blind / cannot identify fire.
+
+

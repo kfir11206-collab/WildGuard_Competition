@@ -1,0 +1,28 @@
+{
+  "total_from_pretrained_s": 78.52,
+  "phases": [
+    [
+      "LlamaForCausalLM(config)",
+      2.22
+    ],
+    [
+      "make_quant_linear",
+      4.75
+    ],
+    [
+      "torch.load(mmap=True)",
+      0.55
+    ],
+    [
+      "make_quant_attn",
+      47.46
+    ],
+    [
+      "make_quant_norm",
+      0.0
+    ]
+  ],
+  "remainder_(skeleton_move_misc)_s": 23.54,
+  "gpu_mem_allocated_mb": 3952,
+  "no_mmap": false
+}

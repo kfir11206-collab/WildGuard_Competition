@@ -1,0 +1,25 @@
+{
+  "mode": "burst",
+  "rep": 1,
+  "t_watcher_launch_epoch": 1784649529.365408,
+  "wake_start": {
+    "t": 6.655,
+    "state": "WAKING",
+    "event": "wake_start",
+    "confidence": 0.8528,
+    "from_state": "SLEEPING"
+  },
+  "awake": {
+    "t": 152.813,
+    "state": "AWAKE",
+    "event": "awake",
+    "wake_seconds": 146.16,
+    "loader": {
+      "compose_up_seconds": 3.08,
+      "first_output_seconds": 146.15
+    }
+  },
+  "baseline_tj_c": 51.968,
+  "run_dir": "mmap_sandbox/results/burst_vs_continuous_run1/burst_1",
+  "timed_out": false
+}

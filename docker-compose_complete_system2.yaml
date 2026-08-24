@@ -1,0 +1,133 @@
+# docker-compose.yml
+version: "3.8"
+
+services:
+
+  wildfire_classifier:
+    image: dustynv/nano_llm:r36.4.0
+    container_name: wildfire_classifier
+    runtime: nvidia
+    network_mode: host
+    shm_size: "2g"
+
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+      - INPUT_FILE=/data/out_txt
+      - OUTPUT_FILE=/out/classifier_results.jsonl
+
+      - THRESHOLD=0.4
+      - POLL_MS=200
+
+      - HF_HOME=/hf-cache
+      - TRANSFORMERS_CACHE=/hf-cache
+
+      - PYTHONUNBUFFERED=1
+      - PYTHONFAULTHANDLER=1
+
+      - PIP_INDEX_URL=https://pypi.org/simple
+      - PIP_DEFAULT_TIMEOUT=120
+
+    volumes:
+      - ./data:/data:ro
+      - ./data/classifier_out:/out
+      - ./hf-cache:/hf-cache
+      - ./classifier:/app
+
+    working_dir: /app
+
+    command: >
+      bash -lc "
+      pip3 install -q --no-cache-dir
+      transformers==4.42.4
+      accelerate==0.33.0
+      sentencepiece==0.2.0
+      &&
+      python3 -u classifier.py
+      "
+
+    restart: unless-stopped
+
+  wildfire_detection:
+    image: dustynv/nano_llm:r36.4.0
+    container_name: wildfire_detection
+
+    runtime: nvidia
+    network_mode: host
+    shm_size: "8g"
+
+    environment:
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,video
+
+      - DISPLAY=:1
+      - XAUTHORITY=/tmp/.docker.xauth
+      - PULSE_SERVER=unix:/run/user/1000/pulse/native
+
+      - TEXT_OUT_PATH=/data/out_txt
+
+      - VIDEO_ALERT_UDP_IP=0.0.0.0
+      - VIDEO_ALERT_UDP_PORT=5006
+
+      - VIDEO_CLIP_DIR=/out/clips
+      - VIDEO_CLIP_SECONDS=0
+      - VIDEO_CLIP_MIN_INTERVAL=1
+
+      - VIDEO_INPUT=/dev/video0
+      - VIDEO_OUTPUT=display://0
+
+      - CLASSIFIER_SEND_INTERVAL=0.000001
+
+    volumes:
+      - /tmp/argus_socket:/tmp/argus_socket
+      - /etc/enctune.conf:/etc/enctune.conf
+      - /etc/nv_tegra_release:/etc/nv_tegra_release
+      - /tmp/nv_jetson_model:/tmp/nv_jetson_model
+
+      - /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket
+      - /var/run/docker.sock:/var/run/docker.sock
+
+      - ./data:/data
+      - ./nano_llm/vision/video.py:/opt/NanoLLM/nano_llm/vision/video.py
+
+      - ./data/classifier_out:/out
+
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+
+      - /run/user/1000/pulse:/run/user/1000/pulse
+
+      - /tmp/.X11-unix/:/tmp/.X11-unix
+      - /tmp/.docker.xauth:/tmp/.docker.xauth
+
+    devices:
+      - /dev/snd
+      - /dev/bus/usb
+
+      - /dev/i2c-0
+      - /dev/i2c-1
+      - /dev/i2c-2
+      - /dev/i2c-4
+      - /dev/i2c-5
+      - /dev/i2c-7
+#      - /dev/i2c-9
+
+      - /dev/video0
+      - /dev/video1
+
+    stdin_open: true
+    tty: true
+
+    command:
+      - bash
+      - -lc
+      - >
+        python3 -m nano_llm.vision.video
+        --model Efficient-Large-Model/VILA1.5-3b
+        --max-images 15
+        --max-new-tokens 40
+        --video-input "$$VIDEO_INPUT"
+        --video-output "$$VIDEO_OUTPUT"
+        --prompt "describe the scene in detail, and what is happening in it. do you see any signs of smoke? is smoke present?"
+
+    restart: unless-stopped

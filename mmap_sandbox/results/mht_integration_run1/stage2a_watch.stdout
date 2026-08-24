@@ -1,0 +1,14 @@
+{"t": 0.0, "state": "SLEEPING", "event": "listening", "sock": "fire_watcher/watcher.sock", "wake_mode": "spawn"}
+{"t": 3.722, "state": "SLEEPING", "event": "confidence", "value": 0.0, "smoothed": 0.0}
+{"t": 4.232, "state": "SLEEPING", "event": "confidence", "value": 0.859, "smoothed": 0.859}
+{"t": 4.233, "state": "WAKING", "event": "wake_start", "confidence": 0.859, "from_state": "SLEEPING"}
+{"t": 4.449, "state": "WAKING", "event": "mht_stopped", "rc": 0, "seconds": 0.22}
+{"t": 8.418, "state": "AWAKE", "event": "awake", "wake_seconds": 4.18, "loader": {"mb": 2814, "load_seconds": 3.92}}
+{"t": 68.755, "state": "AWAKE", "event": "no_fire_timeout", "quiet_seconds": 60.3}
+{"t": 69.123, "state": "SLEEPING", "event": "slept", "compose_stop_seconds": null}
+{"t": 69.132, "state": "SLEEPING", "event": "mht_started", "rc": 0, "seconds": 0.01}
+{"t": 69.88, "state": "SLEEPING", "event": "confidence", "value": 0.0, "smoothed": 0.0}
+{"t": 70.392, "state": "SLEEPING", "event": "confidence", "value": 0.858, "smoothed": 0.858}
+{"t": 70.393, "state": "WAKING", "event": "wake_start", "confidence": 0.858, "from_state": "SLEEPING"}
+{"t": 70.607, "state": "WAKING", "event": "mht_stopped", "rc": 0, "seconds": 0.21}
+{"t": 74.468, "state": "AWAKE", "event": "awake", "wake_seconds": 4.08, "loader": {"mb": 2814, "load_seconds": 3.82}}

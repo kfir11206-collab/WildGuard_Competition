@@ -1,0 +1,21 @@
+{
+  "reps": 3,
+  "pace_mbps": 703.0,
+  "trace": "0.20:5,0.95:600",
+  "interval": 0.5,
+  "noise": 0.0,
+  "seed": 42,
+  "wake_at": 0.85,
+  "sleep_at": 0.4,
+  "ema_alpha": 0.4,
+  "compose_file": "/home/student/Documents/projects/wildfire_detection/docker-compose_fused_system.yaml",
+  "ready_file": "/home/student/Documents/projects/wildfire_detection/data/out_txt",
+  "ready_timeout": 300.0,
+  "cooldown": 30.0,
+  "outdir": "mmap_sandbox/results/burst_vs_continuous_run1",
+  "files": [
+    "/home/student/Documents/projects/wildfire_detection/hf-cache/models--typeform--distilbert-base-uncased-mnli/snapshots/cfa538a0fddbbd978fefe8966c1aeff7ad409c90/model.safetensors",
+    "/home/student/Documents/projects/wildfire_detection/hf-cache/models--Efficient-Large-Model--VILA1.5-3b-AWQ/snapshots/f18f59ccac0b45f92e70a490e6f88ab5ebadef23/vision_tower/model.safetensors",
+    "/home/student/Documents/projects/wildfire_detection/hf-cache/models--Efficient-Large-Model--VILA1.5-3b-AWQ/snapshots/f18f59ccac0b45f92e70a490e6f88ab5ebadef23/llm/vila-1.5-3b-w4-g128-awq-v2.pt"
+  ]
+}

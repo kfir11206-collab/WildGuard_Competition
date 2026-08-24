@@ -1,0 +1,7 @@
+name: wildfire-shutdown-test
+services:
+  dummy:
+    image: harel314/orin-r39.2:cu132-nano_llm
+    container_name: shutdown_test_dummy
+    command: ["sleep", "600"]
+    restart: "no"

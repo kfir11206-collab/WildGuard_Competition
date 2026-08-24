@@ -1,0 +1,13 @@
+{"t": 0.0, "state": "SLEEPING", "event": "listening", "sock": "watcher.sock", "wake_mode": "resident"}
+{"t": 0.464, "state": "SLEEPING", "event": "confidence", "value": 0.3}
+{"t": 1.464, "state": "SLEEPING", "event": "confidence", "value": 0.65}
+{"t": 5.383, "state": "PREWARMED", "event": "prewarm_done", "mb": 2814, "seconds": 3.92}
+{"t": 6.464, "state": "PREWARMED", "event": "confidence", "value": 0.9}
+{"t": 6.467, "state": "WAKING", "event": "wake_start", "confidence": 0.9, "from_state": "PREWARMED"}
+{"t": 7.212, "state": "AWAKE", "event": "awake", "wake_seconds": 0.74, "loader": {"mb": 2814, "load_seconds": 0.74}}
+{"t": 10.464, "state": "AWAKE", "event": "confidence", "value": 0.2}
+{"t": 10.772, "state": "SLEEPING", "event": "slept"}
+{"t": 12.465, "state": "SLEEPING", "event": "confidence", "value": 0.9}
+{"t": 12.466, "state": "WAKING", "event": "wake_start", "confidence": 0.9, "from_state": "SLEEPING"}
+{"t": 12.881, "state": "AWAKE", "event": "awake", "wake_seconds": 0.41, "loader": {"mb": 2814, "load_seconds": 0.41}}
+{"t": 16.465, "state": "AWAKE", "event": "shutdown"}

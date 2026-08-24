@@ -1,0 +1,5 @@
+FROM harel314/orin-r39.2:cu132-nano_llm
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends python3-pyqt5 \
+ && rm -rf /var/lib/apt/lists/*
+RUN /opt/venv/bin/python3 -m pip install --no-cache-dir cupy-cuda13x 'numpy<2'

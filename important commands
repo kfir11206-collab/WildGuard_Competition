@@ -1,0 +1,151 @@
+v4l2-ctl -d /dev/video0 --set-parm=5
+xhost +local:root
+docker compose -f docker-compose_Node_1.yaml up --force-recreate
+
+docker compose -f docker-compose_wildfire_classifier.yaml up -d wildfire_classifier
+
+docker compose -f docker-compose_wildfire_classifier.yaml stop wildfire_classifier
+docker compose -f docker-compose_wildfire_classifier.yaml rm -f wildfire_class
+docker compose -f docker-compose_wildfire_classifier.yaml logs -f wildfire_classifier
+
+python3 - <<'PY'
+import socket, json, time
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+for _ in range(3):
+    s.sendto(json.dumps({"label":"FIRE"}).encode(), ("127.0.0.1", 5006))
+    time.sleep(0.2)
+print("sent 3 FIRE alerts")
+PY
+
+
+command: >
+      python3 -m nano_llm.vision.video
+      --model Efficient-Large-Model/VILA-2.7b
+      --max-images 15
+      --max-new-tokens 48
+      --video-input /dev/video0
+      --video-output display://0
+      --prompt "describe the scene in detail, and what is happening in it"
+
+docker compose -f docker-compose_metrics_logger.yaml down
+docker compose -f docker-compose_metrics_logger.yaml build --no-cache
+docker compose -f docker-compose_metrics_logger.yaml up
+
+#most important 
+docker compose -f docker-compose_complete_system.yaml run --rm -e VIDEO_INPUT="/dev/video0" -e VIDEO_OUTPUT="display://0" wildfire_detection
+
+#New - fused system, manual
+docker compose -f docker-compose_fused_system.yaml up -d
+docker compose -f docker-compose_fused_system.yaml stop
+docker compose -f docker-compose_fused_system.yaml logs -f wildfire_detection
+docker compose -f docker-compose_fused_system.yaml down
+
+#fused system managed by fire_watcher (wakes/stops docker itself on MHT confidence)
+python3 fire_watcher/fire_watcher.py --sock fire_watcher/watcher.sock --wake-mode compose --log fire_watcher/watch.jsonl
+python3 fire_watcher/mht_sim.py fire_watcher/watcher.sock "0.30:4,0.70:15,0.92:240,0.20:30" --noise 0.05
+
+#check what's running / stopped
+docker ps -a | grep fused
+
+#===== FULL SYSTEM: real MHT -> fire_watcher -> VLM (2026-08-23) =====
+#run from the project root. the watcher starts the MHT itself and stops
+#the MHT + containers on Ctrl-C. defaults already point at the fused
+#compose file, data/out_txt, and data/classifier_out/classifier_results.jsonl
+
+cd /home/student/Documents/projects/wildfire_detection
+source .venv/bin/activate
+xhost +local:root
+
+python3 fire_watcher/fire_watcher.py \
+  --sock fire_watcher/watcher.sock \
+  --wake-mode compose \
+  --log fire_watcher/watch.jsonl \
+  --mht-start-cmd "$PWD/fire_watcher/mht_start.sh" \
+  --mht-stop-cmd  "$PWD/fire_watcher/mht_stop.sh"
+
+#stop everything: Ctrl-C in that terminal
+
+#monitor, in other terminals
+tail -f fire_watcher/watch.jsonl
+tail -f fire_watcher/mht.log
+watch -n2 'docker ps --format "{{.Names}}\t{{.Status}}"'
+tail -f data/classifier_out/classifier_results.jsonl
+
+#MHT alone: check the camera and see live scores (no watcher, no VLM)
+python3 fire_watcher/mht_live.py --sock fire_watcher/watcher.sock --source /dev/video0 --stats-interval 5
+
+#drive the MHT from a known smoke clip instead of the camera
+MHT_SOURCE=/home/student/Project/WildGuard/fusion/transcoded/test__smoke__99182-653447840.mp4.mp4 \
+  bash fire_watcher/mht_start.sh
+bash fire_watcher/mht_stop.sh
+
+#per-frame scene diagnostic (brightness, motion%, detections, score)
+python3 mmap_sandbox/mht_integration/diagnose_scene.py --source /dev/video0 --seconds 60 --out /tmp/diag.jsonl
+
+#thresholds (defaults: prewarm 0.60 / wake 0.85 / sleep 0.40, no extra smoothing)
+#  --prewarm-at --wake-at --sleep-at --ema-alpha --no-fire-timeout
+
+#recover if something was left behind
+pkill -f fire_watcher.py ; bash fire_watcher/mht_stop.sh
+docker compose -f docker-compose_fused_system.yaml stop
+rm -f fire_watcher/watcher.sock fire_watcher/mht.pid
+
+#pull teammate's latest MHT
+git -C MHT_TOP pull
+
+#gotchas
+# - socket path must stay short: AF_UNIX limit is ~108 bytes
+# - docker compose stop takes 10-13s and containers exit 137. that is normal,
+#   not a failure. never judge a stop sooner than ~15s
+# - system python3 has opencv 4.8 (CUDA), the venv has 5.0 (headless).
+#   mht_start.sh pins the venv interpreter, so the MHT always uses 5.0
+#   no matter which shell launched the watcher. activating is optional
+# - the watcher never auto-restarts. if it dies, the MHT keeps running:
+#   run mht_stop.sh before starting it again
+
+#===== FULLY CONTAINERIZED: watcher itself runs in docker (2026-08-24) =====
+#nothing runs on the host python any more. the watcher container starts
+#mht_watch itself, and stops/starts the VLM pair on MHT confidence.
+#no .venv, no fire_watcher/mht_start.sh, no host python3 needed.
+
+cd /home/student/Documents/projects/wildfire_detection
+xhost +local:root
+
+#start the whole thing (watcher -> starts mht_watch -> waits for confidence)
+docker compose -f docker-compose_fused_system.yaml --profile watcher up -d fire_watcher
+
+#stop the whole thing (watcher's SIGTERM handler stops the stack + mht_watch)
+docker compose -f docker-compose_fused_system.yaml --profile watcher stop fire_watcher
+
+#monitor
+docker logs -f fire_watcher_fused
+docker logs -f mht_watch_fused
+tail -f fire_watcher/watch.jsonl
+watch -n2 'docker ps --format "{{.Names}}\t{{.Status}}"'
+
+#force a wake by hand (mht_sim overrides the live MHT scores)
+docker exec fire_watcher_fused python3 fire_watcher/mht_sim.py \
+  fire_watcher/watcher.sock "0.30:4,0.70:15,0.92:240,0.20:30" --noise 0.05
+
+#full teardown incl. the watcher
+docker compose -f docker-compose_fused_system.yaml --profile watcher --profile watch down
+
+#gotchas for the containerized watcher
+# - the project MUST be bind-mounted at its identical host path. compose
+#   resolves ./data inside the container but the DAEMON resolves it on the
+#   host, so the two paths have to be the same string
+# - fire_watcher has NO mem_limit on purpose. cgroup v2 charges mmap page
+#   cache to the container that faults it in, so a limit would make the
+#   kernel evict the very ~2.8GB pre-warm the watcher just did
+# - compose calls are scoped to "wildfire_classifier wildfire_detection".
+#   a bare `--profile watcher stop` WILL stop the watcher itself
+# - stop_grace_period is 60s because compose stop takes 10-13s and the
+#   default 10s SIGKILL would cut the shutdown handler off mid-way
+
+#===== resuming a claude code session from a plain terminal =====
+#useful when you need to close VS Code to free RAM (VS Code was ~2.6GB).
+#the conversation is stored on disk per project dir, so it survives.
+cd /home/student/Documents/projects/wildfire_detection
+claude --continue          # resumes the most recent session in this dir
+claude --resume            # or pick from a list of past sessions
+#the docker containers are detached and keep running while you switch.

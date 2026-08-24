@@ -1,0 +1,859 @@
+tesla@ubuntu:~/projects/wildfire_detection$ tree
+.
+├── app
+├── classifier
+│   └── classifier.py
+├── classifier.py
+├── data
+│   ├── basic_wildfire.mp4
+│   ├── classifier_out
+│   │   ├── classifier_results.jsonl
+│   │   ├── fire_10.jsonl
+│   │   ├── fire_11.jsonl
+│   │   ├── fire_12.jsonl
+│   │   ├── fire_13.jsonl
+│   │   ├── fire_14.jsonl
+│   │   ├── fire_15.jsonl
+│   │   ├── fire_16.jsonl
+│   │   ├── fire_17.jsonl
+│   │   ├── fire_18.jsonl
+│   │   ├── fire_19.jsonl
+│   │   ├── fire_1.jsonl
+│   │   ├── fire_20.jsonl
+│   │   ├── fire_21.jsonl
+│   │   ├── fire_22.jsonl
+│   │   ├── fire_23.jsonl
+│   │   ├── fire_24.jsonl
+│   │   ├── fire_25.jsonl
+│   │   ├── fire_26.jsonl
+│   │   ├── fire_27.jsonl
+│   │   ├── fire_28.jsonl
+│   │   ├── fire_29.jsonl
+│   │   ├── fire_2.jsonl
+│   │   ├── fire_30.jsonl
+│   │   ├── fire_31.jsonl
+│   │   ├── fire_32.jsonl
+│   │   ├── fire_33.jsonl
+│   │   ├── fire_34.jsonl
+│   │   ├── fire_35.jsonl
+│   │   ├── fire_36.jsonl
+│   │   ├── fire_37.jsonl
+│   │   ├── fire_3.jsonl
+│   │   ├── fire_4.jsonl
+│   │   ├── fire_5.jsonl
+│   │   ├── fire_6.jsonl
+│   │   ├── fire_7.jsonl
+│   │   ├── fire_8.jsonl
+│   │   ├── fire_9.jsonl
+│   │   ├── no_fire_10.jsonl
+│   │   ├── no_fire_11.jsonl
+│   │   ├── no_fire_12.jsonl
+│   │   ├── no_fire_13.jsonl
+│   │   ├── no_fire_14.jsonl
+│   │   ├── no_fire_15.jsonl
+│   │   ├── no_fire_16.jsonl
+│   │   ├── no_fire_17.jsonl
+│   │   ├── no_fire_18.jsonl
+│   │   ├── no_fire_19.jsonl
+│   │   ├── no_fire_20.jsonl
+│   │   ├── no_fire_21.jsonl
+│   │   ├── no_fire_22.jsonl
+│   │   ├── no_fire_23.jsonl
+│   │   ├── no_fire_24.jsonl
+│   │   ├── no_fire_25.jsonl
+│   │   ├── no_fire_26.jsonl
+│   │   ├── no_fire_27.jsonl
+│   │   ├── no_fire_28.jsonl
+│   │   ├── no_fire_29.jsonl
+│   │   ├── no_fire_30.jsonl
+│   │   ├── no_fire_31.jsonl
+│   │   ├── no_fire_32.jsonl
+│   │   ├── no_fire_33.jsonl
+│   │   ├── no_fire_34.jsonl
+│   │   ├── no_fire_35.jsonl
+│   │   ├── no_fire_36.jsonl
+│   │   ├── no_fire_37.jsonl
+│   │   ├── no_fire_38.jsonl
+│   │   ├── no_fire_39.jsonl
+│   │   ├── no_fire_3.jsonl
+│   │   ├── no_fire_4.jsonl
+│   │   ├── no_fire_5.jsonl
+│   │   ├── no_fire_6.jsonl
+│   │   ├── no_fire_7.jsonl
+│   │   ├── no_fire_8.jsonl
+│   │   └── no_fire_9.jsonl
+│   ├── classifier_outA
+│   │   └── classifier_results.jsonl
+│   ├── fire_data
+│   │   ├── final_2.mp4
+│   │   ├── final.mp4
+│   │   ├── fire_10.mp4
+│   │   ├── fire_11.mp4
+│   │   ├── fire_12.mp4
+│   │   ├── fire_13.mp4
+│   │   ├── fire_14.mp4
+│   │   ├── fire_15.mp4
+│   │   ├── fire_16.mp4
+│   │   ├── fire_17.mp4
+│   │   ├── fire_18.mp4
+│   │   ├── fire_19.mp4
+│   │   ├── fire_1.mp4
+│   │   ├── fire_20.mp4
+│   │   ├── fire_21.mp4
+│   │   ├── fire_22.mp4
+│   │   ├── fire_23.mp4
+│   │   ├── fire_24.mp4
+│   │   ├── fire_25.mp4
+│   │   ├── fire_26.mp4
+│   │   ├── fire_27.mp4
+│   │   ├── fire_28.mp4
+│   │   ├── fire_29.mp4
+│   │   ├── fire_2.mp4
+│   │   ├── fire_30.mp4
+│   │   ├── fire_31.mp4
+│   │   ├── fire_32.mp4
+│   │   ├── fire_33.mp4
+│   │   ├── fire_34.mp4
+│   │   ├── fire_35.mp4
+│   │   ├── fire_36.mp4
+│   │   ├── fire_37.mp4
+│   │   ├── fire_3.mp4
+│   │   ├── fire_4.mp4
+│   │   ├── fire_5.mp4
+│   │   ├── fire_6.mp4
+│   │   ├── fire_7.mp4
+│   │   ├── fire_8.mp4
+│   │   ├── fire_9.mp4
+│   │   ├── no_fire_10.mp4
+│   │   ├── no_fire_11.mp4
+│   │   ├── no_fire_12.mp4
+│   │   ├── no_fire_13.mp4
+│   │   ├── no_fire_14.mp4
+│   │   ├── no_fire_15.mp4
+│   │   ├── no_fire_16.mp4
+│   │   ├── no_fire_17.mp4
+│   │   ├── no_fire_18.mp4
+│   │   ├── no_fire_19.mp4
+│   │   ├── no_fire_1.mp4
+│   │   ├── no_fire_20.mp4
+│   │   ├── no_fire_21.mp4
+│   │   ├── no_fire_22.mp4
+│   │   ├── no_fire_23.mp4
+│   │   ├── no_fire_24.mp4
+│   │   ├── no_fire_25.mp4
+│   │   ├── no_fire_26.mp4
+│   │   ├── no_fire_27.mp4
+│   │   ├── no_fire_28.mp4
+│   │   ├── no_fire_29.mp4
+│   │   ├── no_fire_2.mp4
+│   │   ├── no_fire_30.mp4
+│   │   ├── no_fire_31.mp4
+│   │   ├── no_fire_32.mp4
+│   │   ├── no_fire_33.mp4
+│   │   ├── no_fire_34.mp4
+│   │   ├── no_fire_35.mp4
+│   │   ├── no_fire_36_long.mp4
+│   │   ├── no_fire_37.mp4
+│   │   ├── no_fire_3.mp4
+│   │   ├── no_fire_4.mp4
+│   │   ├── no_fire_5.mp4
+│   │   ├── no_fire_6.mp4
+│   │   ├── no_fire_7.mp4
+│   │   ├── no_fire_8.mp4
+│   │   └── no_fire_9.mp4
+│   ├── long_wildfire.mp4
+│   ├── models
+│   │   ├── huggingface
+│   │   │   ├── models--Efficient-Large-Model--VILA1.5-3b
+│   │   │   │   ├── blobs
+│   │   │   │   │   ├── 008d75e3a1129697fe52c34feda6ae4101496ad8
+│   │   │   │   │   ├── 0f13134ed29056f82f3ab7e0246f0ab973e7ecf3
+│   │   │   │   │   ├── 14761dcf1466dc232bd41de9c21d4c617b15755e
+│   │   │   │   │   ├── 14a0cbded72d9b3776fad22a63629ba7bc29f41b
+│   │   │   │   │   ├── 47ab96cd62cc374653a0ea0fb77f9457e0f53481
+│   │   │   │   │   ├── 4eed552fa9ca41f3d6fb14b59a481bf12137a37e964df0ec60f412b3ac2a8637
+│   │   │   │   │   ├── 52e5555b3112420a2d888a9a7a369b0340280279
+│   │   │   │   │   ├── 7aedb3582ecda9fa99ee9242c17a9658f6744db083ee6ebdc8fb14857f84d220
+│   │   │   │   │   ├── 7e3764125ad000414d381fe7eb6b222be9f0f2b4c14a55b22bf68cb29647d526
+│   │   │   │   │   ├── 7ff33a279820c6c20596e26e22d8181fb669ca20
+│   │   │   │   │   ├── 8b173c9ac8194749df58c92051618c0ff74c4c20
+│   │   │   │   │   ├── a0bd45e5e5bcdf2e9aae2dc0a659ad5d9c95afb7
+│   │   │   │   │   ├── a6344aac8c09253b3b630fb776ae94478aa0275b
+│   │   │   │   │   ├── b2ec4d57442d166b846728a699180663011f0a8a
+│   │   │   │   │   ├── b63acc16bd9be4e7f900ba7e66ddc82400c3c12d77cd5c2cfa4bc77761c0732d
+│   │   │   │   │   ├── bf84ec1a28ba89feb07162d95b06633a40b4975f
+│   │   │   │   │   └── f912f7e3e83a967ef9f927ac2dd5275d3fe1bb62b2208075e4eff877fcf47ba7
+│   │   │   │   ├── refs
+│   │   │   │   │   └── main
+│   │   │   │   └── snapshots
+│   │   │   │       └── 42d1dda6807cc521ef27674ca2ae157539d17026
+│   │   │   │           ├── config.json -> ../../blobs/a0bd45e5e5bcdf2e9aae2dc0a659ad5d9c95afb7
+│   │   │   │           ├── config.json.backup
+│   │   │   │           ├── llm
+│   │   │   │           │   ├── config.json -> ../../../blobs/b2ec4d57442d166b846728a699180663011f0a8a
+│   │   │   │           │   ├── generation_config.json -> ../../../blobs/bf84ec1a28ba89feb07162d95b06633a40b4975f
+│   │   │   │           │   ├── model-00001-of-00002.safetensors -> ../../../blobs/4eed552fa9ca41f3d6fb14b59a481bf12137a37e964df0ec60f412b3ac2a8637
+│   │   │   │           │   ├── model-00002-of-00002.safetensors -> ../../../blobs/b63acc16bd9be4e7f900ba7e66ddc82400c3c12d77cd5c2cfa4bc77761c0732d
+│   │   │   │           │   ├── model.safetensors.index.json -> ../../../blobs/8b173c9ac8194749df58c92051618c0ff74c4c20
+│   │   │   │           │   ├── special_tokens_map.json -> ../../../blobs/14761dcf1466dc232bd41de9c21d4c617b15755e
+│   │   │   │           │   ├── tokenizer_config.json -> ../../../blobs/47ab96cd62cc374653a0ea0fb77f9457e0f53481
+│   │   │   │           │   └── tokenizer.model -> ../../../blobs/7aedb3582ecda9fa99ee9242c17a9658f6744db083ee6ebdc8fb14857f84d220
+│   │   │   │           ├── mm_projector
+│   │   │   │           │   ├── config.json -> ../../../blobs/7ff33a279820c6c20596e26e22d8181fb669ca20
+│   │   │   │           │   └── model.safetensors -> ../../../blobs/f912f7e3e83a967ef9f927ac2dd5275d3fe1bb62b2208075e4eff877fcf47ba7
+│   │   │   │           ├── README.md -> ../../blobs/14a0cbded72d9b3776fad22a63629ba7bc29f41b
+│   │   │   │           ├── trainer_state.json -> ../../blobs/008d75e3a1129697fe52c34feda6ae4101496ad8
+│   │   │   │           └── vision_tower
+│   │   │   │               ├── config.json -> ../../../blobs/52e5555b3112420a2d888a9a7a369b0340280279
+│   │   │   │               ├── model.safetensors -> ../../../blobs/7e3764125ad000414d381fe7eb6b222be9f0f2b4c14a55b22bf68cb29647d526
+│   │   │   │               └── preprocessor_config.json -> ../../../blobs/0f13134ed29056f82f3ab7e0246f0ab973e7ecf3
+│   │   │   ├── models--Efficient-Large-Model--VILA-2.7b
+│   │   │   │   ├── blobs
+│   │   │   │   │   ├── 14761dcf1466dc232bd41de9c21d4c617b15755e
+│   │   │   │   │   ├── 3e832039ee7206cc26424f54e091cb93c28d03dd4e03ebcf5bec918cf7ede8a7
+│   │   │   │   │   ├── 47ab96cd62cc374653a0ea0fb77f9457e0f53481
+│   │   │   │   │   ├── 4eb023549c46f186fd84f99c7c03b5e5bafd2696
+│   │   │   │   │   ├── 695d8506bf4be0c1e4d1fc694c393783861b42ef10f4028929794f3bbd93bdf6
+│   │   │   │   │   ├── 79be73d8225f48e71e2e991b559e1d52b4717c820c455c642a6d73916dddc10e
+│   │   │   │   │   ├── 79e7d9906036754d8f9333fb2ed4dd1651334f34
+│   │   │   │   │   ├── 9e556afd44213b6bd1be2b850ebbbd98f5481437a8021afaf58ee7fb1818d347
+│   │   │   │   │   ├── a6344aac8c09253b3b630fb776ae94478aa0275b
+│   │   │   │   │   ├── a75dccf93ac1a661ae1f4206ecfe1ef05afc3c5d
+│   │   │   │   │   ├── ad04bf5ed19cf79ea0bda558f7e9b90d1639a13c
+│   │   │   │   │   └── b0f63f9eba57cf43f371bb21e95b51f4b04fed9f
+│   │   │   │   ├── refs
+│   │   │   │   │   └── main
+│   │   │   │   └── snapshots
+│   │   │   │       └── 2ed82105eefd5926cccb46af9e71b0ca77f12704
+│   │   │   │           ├── config.json -> ../../blobs/b0f63f9eba57cf43f371bb21e95b51f4b04fed9f
+│   │   │   │           ├── config.json.backup
+│   │   │   │           ├── generation_config.json -> ../../blobs/ad04bf5ed19cf79ea0bda558f7e9b90d1639a13c
+│   │   │   │           ├── mm_projector.bin
+│   │   │   │           ├── model-00001-of-00002.safetensors -> ../../blobs/79be73d8225f48e71e2e991b559e1d52b4717c820c455c642a6d73916dddc10e
+│   │   │   │           ├── model-00002-of-00002.safetensors -> ../../blobs/695d8506bf4be0c1e4d1fc694c393783861b42ef10f4028929794f3bbd93bdf6
+│   │   │   │           ├── model.safetensors.index.json -> ../../blobs/4eb023549c46f186fd84f99c7c03b5e5bafd2696
+│   │   │   │           ├── README.md -> ../../blobs/a75dccf93ac1a661ae1f4206ecfe1ef05afc3c5d
+│   │   │   │           ├── special_tokens_map.json -> ../../blobs/14761dcf1466dc232bd41de9c21d4c617b15755e
+│   │   │   │           ├── tokenizer_config.json -> ../../blobs/47ab96cd62cc374653a0ea0fb77f9457e0f53481
+│   │   │   │           ├── tokenizer.model -> ../../blobs/9e556afd44213b6bd1be2b850ebbbd98f5481437a8021afaf58ee7fb1818d347
+│   │   │   │           ├── trainer_state.json -> ../../blobs/79e7d9906036754d8f9333fb2ed4dd1651334f34
+│   │   │   │           └── training_args.bin -> ../../blobs/3e832039ee7206cc26424f54e091cb93c28d03dd4e03ebcf5bec918cf7ede8a7
+│   │   │   ├── models--openai--clip-vit-large-patch14-336
+│   │   │   │   ├── blobs
+│   │   │   │   │   ├── c6032c2e0caae3dc2d4fba35535fa6307dbb49df59c7e182b1bc4b3329b81801
+│   │   │   │   │   └── e9c5a5dc325b017eda0b6e802f79283a1f68bf27
+│   │   │   │   ├── refs
+│   │   │   │   │   └── main
+│   │   │   │   └── snapshots
+│   │   │   │       └── ce19dc912ca5cd21c8a653c79e251e808ccabcd1
+│   │   │   │           ├── config.json -> ../../blobs/e9c5a5dc325b017eda0b6e802f79283a1f68bf27
+│   │   │   │           └── pytorch_model.bin -> ../../blobs/c6032c2e0caae3dc2d4fba35535fa6307dbb49df59c7e182b1bc4b3329b81801
+│   │   │   └── version.txt
+│   │   └── mlc
+│   │       └── dist
+│   │           ├── models
+│   │           │   ├── VILA1.5-3b -> /data/models/huggingface/models--Efficient-Large-Model--VILA1.5-3b/snapshots/42d1dda6807cc521ef27674ca2ae157539d17026/llm
+│   │           │   └── VILA-2.7b -> /data/models/huggingface/models--Efficient-Large-Model--VILA-2.7b/snapshots/2ed82105eefd5926cccb46af9e71b0ca77f12704
+│   │           ├── VILA1.5-3b
+│   │           │   ├── ctx256
+│   │           │   │   └── VILA1.5-3b-q4f16_ft
+│   │           │   │       └── params
+│   │           │   │           ├── mlc-chat-config.json
+│   │           │   │           ├── ndarray-cache.json
+│   │           │   │           ├── params_shard_0.bin
+│   │           │   │           ├── params_shard_10.bin
+│   │           │   │           ├── params_shard_11.bin
+│   │           │   │           ├── params_shard_12.bin
+│   │           │   │           ├── params_shard_13.bin
+│   │           │   │           ├── params_shard_14.bin
+│   │           │   │           ├── params_shard_15.bin
+│   │           │   │           ├── params_shard_16.bin
+│   │           │   │           ├── params_shard_17.bin
+│   │           │   │           ├── params_shard_18.bin
+│   │           │   │           ├── params_shard_19.bin
+│   │           │   │           ├── params_shard_1.bin
+│   │           │   │           ├── params_shard_20.bin
+│   │           │   │           ├── params_shard_21.bin
+│   │           │   │           ├── params_shard_22.bin
+│   │           │   │           ├── params_shard_23.bin
+│   │           │   │           ├── params_shard_24.bin
+│   │           │   │           ├── params_shard_25.bin
+│   │           │   │           ├── params_shard_26.bin
+│   │           │   │           ├── params_shard_27.bin
+│   │           │   │           ├── params_shard_28.bin
+│   │           │   │           ├── params_shard_29.bin
+│   │           │   │           ├── params_shard_2.bin
+│   │           │   │           ├── params_shard_30.bin
+│   │           │   │           ├── params_shard_31.bin
+│   │           │   │           ├── params_shard_32.bin
+│   │           │   │           ├── params_shard_33.bin
+│   │           │   │           ├── params_shard_34.bin
+│   │           │   │           ├── params_shard_35.bin
+│   │           │   │           ├── params_shard_36.bin
+│   │           │   │           ├── params_shard_37.bin
+│   │           │   │           ├── params_shard_38.bin
+│   │           │   │           ├── params_shard_39.bin
+│   │           │   │           ├── params_shard_3.bin
+│   │           │   │           ├── params_shard_40.bin
+│   │           │   │           ├── params_shard_41.bin
+│   │           │   │           ├── params_shard_42.bin
+│   │           │   │           ├── params_shard_43.bin
+│   │           │   │           ├── params_shard_44.bin
+│   │           │   │           ├── params_shard_45.bin
+│   │           │   │           ├── params_shard_46.bin
+│   │           │   │           ├── params_shard_47.bin
+│   │           │   │           ├── params_shard_48.bin
+│   │           │   │           ├── params_shard_49.bin
+│   │           │   │           ├── params_shard_4.bin
+│   │           │   │           ├── params_shard_50.bin
+│   │           │   │           ├── params_shard_5.bin
+│   │           │   │           ├── params_shard_6.bin
+│   │           │   │           ├── params_shard_7.bin
+│   │           │   │           ├── params_shard_8.bin
+│   │           │   │           ├── params_shard_9.bin
+│   │           │   │           ├── tokenizer_config.json
+│   │           │   │           ├── tokenizer.json
+│   │           │   │           └── tokenizer.model
+│   │           │   └── ctx4096
+│   │           │       └── VILA1.5-3b-q4f16_ft
+│   │           │           ├── mod_cache_before_build.pkl
+│   │           │           ├── params
+│   │           │           │   ├── mlc-chat-config.json
+│   │           │           │   ├── ndarray-cache.json
+│   │           │           │   ├── params_shard_0.bin
+│   │           │           │   ├── params_shard_10.bin
+│   │           │           │   ├── params_shard_11.bin
+│   │           │           │   ├── params_shard_12.bin
+│   │           │           │   ├── params_shard_13.bin
+│   │           │           │   ├── params_shard_14.bin
+│   │           │           │   ├── params_shard_15.bin
+│   │           │           │   ├── params_shard_16.bin
+│   │           │           │   ├── params_shard_17.bin
+│   │           │           │   ├── params_shard_18.bin
+│   │           │           │   ├── params_shard_19.bin
+│   │           │           │   ├── params_shard_1.bin
+│   │           │           │   ├── params_shard_20.bin
+│   │           │           │   ├── params_shard_21.bin
+│   │           │           │   ├── params_shard_22.bin
+│   │           │           │   ├── params_shard_23.bin
+│   │           │           │   ├── params_shard_24.bin
+│   │           │           │   ├── params_shard_25.bin
+│   │           │           │   ├── params_shard_26.bin
+│   │           │           │   ├── params_shard_27.bin
+│   │           │           │   ├── params_shard_28.bin
+│   │           │           │   ├── params_shard_29.bin
+│   │           │           │   ├── params_shard_2.bin
+│   │           │           │   ├── params_shard_30.bin
+│   │           │           │   ├── params_shard_31.bin
+│   │           │           │   ├── params_shard_32.bin
+│   │           │           │   ├── params_shard_33.bin
+│   │           │           │   ├── params_shard_34.bin
+│   │           │           │   ├── params_shard_35.bin
+│   │           │           │   ├── params_shard_36.bin
+│   │           │           │   ├── params_shard_37.bin
+│   │           │           │   ├── params_shard_38.bin
+│   │           │           │   ├── params_shard_39.bin
+│   │           │           │   ├── params_shard_3.bin
+│   │           │           │   ├── params_shard_40.bin
+│   │           │           │   ├── params_shard_41.bin
+│   │           │           │   ├── params_shard_42.bin
+│   │           │           │   ├── params_shard_43.bin
+│   │           │           │   ├── params_shard_44.bin
+│   │           │           │   ├── params_shard_45.bin
+│   │           │           │   ├── params_shard_46.bin
+│   │           │           │   ├── params_shard_47.bin
+│   │           │           │   ├── params_shard_48.bin
+│   │           │           │   ├── params_shard_49.bin
+│   │           │           │   ├── params_shard_4.bin
+│   │           │           │   ├── params_shard_50.bin
+│   │           │           │   ├── params_shard_5.bin
+│   │           │           │   ├── params_shard_6.bin
+│   │           │           │   ├── params_shard_7.bin
+│   │           │           │   ├── params_shard_8.bin
+│   │           │           │   ├── params_shard_9.bin
+│   │           │           │   ├── tokenizer_config.json
+│   │           │           │   ├── tokenizer.json
+│   │           │           │   └── tokenizer.model
+│   │           │           └── VILA1.5-3b-q4f16_ft-cuda.so
+│   │           └── VILA-2.7b
+│   │               └── ctx4096
+│   │                   └── VILA-2.7b-q4f16_ft
+│   │                       ├── mod_cache_before_build.pkl
+│   │                       ├── params
+│   │                       │   ├── mlc-chat-config.json
+│   │                       │   ├── ndarray-cache.json
+│   │                       │   ├── params_shard_0.bin
+│   │                       │   ├── params_shard_10.bin
+│   │                       │   ├── params_shard_11.bin
+│   │                       │   ├── params_shard_12.bin
+│   │                       │   ├── params_shard_13.bin
+│   │                       │   ├── params_shard_14.bin
+│   │                       │   ├── params_shard_15.bin
+│   │                       │   ├── params_shard_16.bin
+│   │                       │   ├── params_shard_17.bin
+│   │                       │   ├── params_shard_18.bin
+│   │                       │   ├── params_shard_19.bin
+│   │                       │   ├── params_shard_1.bin
+│   │                       │   ├── params_shard_20.bin
+│   │                       │   ├── params_shard_21.bin
+│   │                       │   ├── params_shard_22.bin
+│   │                       │   ├── params_shard_23.bin
+│   │                       │   ├── params_shard_24.bin
+│   │                       │   ├── params_shard_25.bin
+│   │                       │   ├── params_shard_26.bin
+│   │                       │   ├── params_shard_27.bin
+│   │                       │   ├── params_shard_28.bin
+│   │                       │   ├── params_shard_29.bin
+│   │                       │   ├── params_shard_2.bin
+│   │                       │   ├── params_shard_30.bin
+│   │                       │   ├── params_shard_31.bin
+│   │                       │   ├── params_shard_32.bin
+│   │                       │   ├── params_shard_33.bin
+│   │                       │   ├── params_shard_34.bin
+│   │                       │   ├── params_shard_35.bin
+│   │                       │   ├── params_shard_36.bin
+│   │                       │   ├── params_shard_37.bin
+│   │                       │   ├── params_shard_38.bin
+│   │                       │   ├── params_shard_39.bin
+│   │                       │   ├── params_shard_3.bin
+│   │                       │   ├── params_shard_40.bin
+│   │                       │   ├── params_shard_41.bin
+│   │                       │   ├── params_shard_42.bin
+│   │                       │   ├── params_shard_43.bin
+│   │                       │   ├── params_shard_44.bin
+│   │                       │   ├── params_shard_45.bin
+│   │                       │   ├── params_shard_46.bin
+│   │                       │   ├── params_shard_47.bin
+│   │                       │   ├── params_shard_48.bin
+│   │                       │   ├── params_shard_49.bin
+│   │                       │   ├── params_shard_4.bin
+│   │                       │   ├── params_shard_50.bin
+│   │                       │   ├── params_shard_5.bin
+│   │                       │   ├── params_shard_6.bin
+│   │                       │   ├── params_shard_7.bin
+│   │                       │   ├── params_shard_8.bin
+│   │                       │   ├── params_shard_9.bin
+│   │                       │   ├── tokenizer_config.json
+│   │                       │   ├── tokenizer.json
+│   │                       │   └── tokenizer.model
+│   │                       └── VILA-2.7b-q4f16_ft-cuda.so
+│   ├── output
+│   ├── output_txt
+│   ├── out_txt
+│   ├── published_text.txt
+│   └── wildfire_in_field.mp4
+├── docker-compose_complete_system2.yaml
+├── docker-compose_complete_system.yaml
+├── docker-compose_Node_1.yaml
+├── hf-cache
+│   ├── models--Efficient-Large-Model--VILA1.5-3b
+│   │   ├── blobs
+│   │   │   ├── 008d75e3a1129697fe52c34feda6ae4101496ad8
+│   │   │   ├── 0f13134ed29056f82f3ab7e0246f0ab973e7ecf3
+│   │   │   ├── 14761dcf1466dc232bd41de9c21d4c617b15755e
+│   │   │   ├── 14a0cbded72d9b3776fad22a63629ba7bc29f41b
+│   │   │   ├── 47ab96cd62cc374653a0ea0fb77f9457e0f53481
+│   │   │   ├── 4eed552fa9ca41f3d6fb14b59a481bf12137a37e964df0ec60f412b3ac2a8637
+│   │   │   ├── 52e5555b3112420a2d888a9a7a369b0340280279
+│   │   │   ├── 7aedb3582ecda9fa99ee9242c17a9658f6744db083ee6ebdc8fb14857f84d220
+│   │   │   ├── 7e3764125ad000414d381fe7eb6b222be9f0f2b4c14a55b22bf68cb29647d526
+│   │   │   ├── 7ff33a279820c6c20596e26e22d8181fb669ca20
+│   │   │   ├── 8b173c9ac8194749df58c92051618c0ff74c4c20
+│   │   │   ├── a0bd45e5e5bcdf2e9aae2dc0a659ad5d9c95afb7
+│   │   │   ├── a6344aac8c09253b3b630fb776ae94478aa0275b
+│   │   │   ├── b2ec4d57442d166b846728a699180663011f0a8a
+│   │   │   ├── b63acc16bd9be4e7f900ba7e66ddc82400c3c12d77cd5c2cfa4bc77761c0732d
+│   │   │   ├── bf84ec1a28ba89feb07162d95b06633a40b4975f
+│   │   │   └── f912f7e3e83a967ef9f927ac2dd5275d3fe1bb62b2208075e4eff877fcf47ba7
+│   │   ├── refs
+│   │   │   └── main
+│   │   └── snapshots
+│   │       └── 42d1dda6807cc521ef27674ca2ae157539d17026
+│   │           ├── config.json -> ../../blobs/a0bd45e5e5bcdf2e9aae2dc0a659ad5d9c95afb7
+│   │           ├── config.json.backup
+│   │           ├── llm
+│   │           │   ├── config.json -> ../../../blobs/b2ec4d57442d166b846728a699180663011f0a8a
+│   │           │   ├── generation_config.json -> ../../../blobs/bf84ec1a28ba89feb07162d95b06633a40b4975f
+│   │           │   ├── model-00001-of-00002.safetensors -> ../../../blobs/4eed552fa9ca41f3d6fb14b59a481bf12137a37e964df0ec60f412b3ac2a8637
+│   │           │   ├── model-00002-of-00002.safetensors -> ../../../blobs/b63acc16bd9be4e7f900ba7e66ddc82400c3c12d77cd5c2cfa4bc77761c0732d
+│   │           │   ├── model.safetensors.index.json -> ../../../blobs/8b173c9ac8194749df58c92051618c0ff74c4c20
+│   │           │   ├── special_tokens_map.json -> ../../../blobs/14761dcf1466dc232bd41de9c21d4c617b15755e
+│   │           │   ├── tokenizer_config.json -> ../../../blobs/47ab96cd62cc374653a0ea0fb77f9457e0f53481
+│   │           │   └── tokenizer.model -> ../../../blobs/7aedb3582ecda9fa99ee9242c17a9658f6744db083ee6ebdc8fb14857f84d220
+│   │           ├── mm_projector
+│   │           │   ├── config.json -> ../../../blobs/7ff33a279820c6c20596e26e22d8181fb669ca20
+│   │           │   └── model.safetensors -> ../../../blobs/f912f7e3e83a967ef9f927ac2dd5275d3fe1bb62b2208075e4eff877fcf47ba7
+│   │           ├── README.md -> ../../blobs/14a0cbded72d9b3776fad22a63629ba7bc29f41b
+│   │           ├── trainer_state.json -> ../../blobs/008d75e3a1129697fe52c34feda6ae4101496ad8
+│   │           └── vision_tower
+│   │               ├── config.json -> ../../../blobs/52e5555b3112420a2d888a9a7a369b0340280279
+│   │               ├── model.safetensors -> ../../../blobs/7e3764125ad000414d381fe7eb6b222be9f0f2b4c14a55b22bf68cb29647d526
+│   │               └── preprocessor_config.json -> ../../../blobs/0f13134ed29056f82f3ab7e0246f0ab973e7ecf3
+│   ├── models--Efficient-Large-Model--VILA-2.7b
+│   │   ├── blobs
+│   │   │   ├── 14761dcf1466dc232bd41de9c21d4c617b15755e
+│   │   │   ├── 3e832039ee7206cc26424f54e091cb93c28d03dd4e03ebcf5bec918cf7ede8a7
+│   │   │   ├── 47ab96cd62cc374653a0ea0fb77f9457e0f53481
+│   │   │   ├── 4eb023549c46f186fd84f99c7c03b5e5bafd2696
+│   │   │   ├── 695d8506bf4be0c1e4d1fc694c393783861b42ef10f4028929794f3bbd93bdf6
+│   │   │   ├── 79be73d8225f48e71e2e991b559e1d52b4717c820c455c642a6d73916dddc10e
+│   │   │   ├── 79e7d9906036754d8f9333fb2ed4dd1651334f34
+│   │   │   ├── 9e556afd44213b6bd1be2b850ebbbd98f5481437a8021afaf58ee7fb1818d347
+│   │   │   ├── a6344aac8c09253b3b630fb776ae94478aa0275b
+│   │   │   ├── a75dccf93ac1a661ae1f4206ecfe1ef05afc3c5d
+│   │   │   ├── ad04bf5ed19cf79ea0bda558f7e9b90d1639a13c
+│   │   │   └── b0f63f9eba57cf43f371bb21e95b51f4b04fed9f
+│   │   ├── refs
+│   │   │   └── main
+│   │   └── snapshots
+│   │       └── 2ed82105eefd5926cccb46af9e71b0ca77f12704
+│   │           ├── config.json -> ../../blobs/b0f63f9eba57cf43f371bb21e95b51f4b04fed9f
+│   │           ├── config.json.backup
+│   │           ├── generation_config.json -> ../../blobs/ad04bf5ed19cf79ea0bda558f7e9b90d1639a13c
+│   │           ├── mm_projector.bin
+│   │           ├── model-00001-of-00002.safetensors -> ../../blobs/79be73d8225f48e71e2e991b559e1d52b4717c820c455c642a6d73916dddc10e
+│   │           ├── model-00002-of-00002.safetensors -> ../../blobs/695d8506bf4be0c1e4d1fc694c393783861b42ef10f4028929794f3bbd93bdf6
+│   │           ├── model.safetensors.index.json -> ../../blobs/4eb023549c46f186fd84f99c7c03b5e5bafd2696
+│   │           ├── README.md -> ../../blobs/a75dccf93ac1a661ae1f4206ecfe1ef05afc3c5d
+│   │           ├── special_tokens_map.json -> ../../blobs/14761dcf1466dc232bd41de9c21d4c617b15755e
+│   │           ├── tokenizer_config.json -> ../../blobs/47ab96cd62cc374653a0ea0fb77f9457e0f53481
+│   │           ├── tokenizer.model -> ../../blobs/9e556afd44213b6bd1be2b850ebbbd98f5481437a8021afaf58ee7fb1818d347
+│   │           ├── trainer_state.json -> ../../blobs/79e7d9906036754d8f9333fb2ed4dd1651334f34
+│   │           └── training_args.bin -> ../../blobs/3e832039ee7206cc26424f54e091cb93c28d03dd4e03ebcf5bec918cf7ede8a7
+│   ├── models--openai--clip-vit-large-patch14-336
+│   │   ├── blobs
+│   │   │   ├── c6032c2e0caae3dc2d4fba35535fa6307dbb49df59c7e182b1bc4b3329b81801
+│   │   │   └── e9c5a5dc325b017eda0b6e802f79283a1f68bf27
+│   │   ├── refs
+│   │   │   └── main
+│   │   └── snapshots
+│   │       └── ce19dc912ca5cd21c8a653c79e251e808ccabcd1
+│   │           ├── config.json -> ../../blobs/e9c5a5dc325b017eda0b6e802f79283a1f68bf27
+│   │           └── pytorch_model.bin -> ../../blobs/c6032c2e0caae3dc2d4fba35535fa6307dbb49df59c7e182b1bc4b3329b81801
+│   ├── models--typeform--distilbert-base-uncased-mnli
+│   │   ├── blobs
+│   │   │   ├── 16d47e5948c7076ecfe8b9d343c0d1474cd600f18405c40cfcf183605787af41
+│   │   │   ├── 46e71b82b5c5e8a0f6630fdf04cf6ee74bc9dfec
+│   │   │   ├── 659271c03755b53fea13e06fb75aa32fb175b418
+│   │   │   ├── e7b0375001f109a6b8873d756ad4f7bbb15fbaa5
+│   │   │   └── fb140275c155a9c7c5a3b3e0e77a9e839594a938
+│   │   ├── refs
+│   │   │   └── main
+│   │   └── snapshots
+│   │       └── cfa538a0fddbbd978fefe8966c1aeff7ad409c90
+│   │           ├── config.json -> ../../blobs/659271c03755b53fea13e06fb75aa32fb175b418
+│   │           ├── model.safetensors -> ../../blobs/16d47e5948c7076ecfe8b9d343c0d1474cd600f18405c40cfcf183605787af41
+│   │           ├── special_tokens_map.json -> ../../blobs/e7b0375001f109a6b8873d756ad4f7bbb15fbaa5
+│   │           ├── tokenizer_config.json -> ../../blobs/46e71b82b5c5e8a0f6630fdf04cf6ee74bc9dfec
+│   │           └── vocab.txt -> ../../blobs/fb140275c155a9c7c5a3b3e0e77a9e839594a938
+│   ├── version.txt
+│   └── _write_test
+├── important commands
+├── logs
+│   ├── cpu_iowait_percent.png
+│   ├── cpu_percent.png
+│   ├── ram_used_gb.png
+│   ├── sample_latency_ms.png
+│   ├── sd_io_metrics.csv
+│   ├── sd_read_MBps.png
+│   ├── sd_write_MBps.png
+│   ├── swap_percent.png
+│   └── swap_used_gb.png
+├── nano_llm
+│   ├── agent.py
+│   ├── agents
+│   │   ├── chat.py
+│   │   ├── dynamic_agent.py
+│   │   ├── __init__.py
+│   │   ├── video_query.py
+│   │   ├── video_stream.py
+│   │   ├── voice_chat.py
+│   │   └── web_chat.py
+│   ├── chat
+│   │   ├── example.py
+│   │   ├── history.py
+│   │   ├── kv_cache.py
+│   │   ├── __main__.py
+│   │   ├── message.py
+│   │   ├── __pycache__
+│   │   │   ├── history.cpython-310.pyc
+│   │   │   ├── kv_cache.cpython-310.pyc
+│   │   │   ├── __main__.cpython-310.pyc
+│   │   │   ├── message.cpython-310.pyc
+│   │   │   ├── stream.cpython-310.pyc
+│   │   │   └── templates.cpython-310.pyc
+│   │   ├── stream.py
+│   │   └── templates.py
+│   ├── completion.py
+│   ├── datasets
+│   │   ├── bridge.py
+│   │   ├── droid.py
+│   │   ├── dump.py
+│   │   ├── __init__.py
+│   │   ├── __main__.py
+│   │   ├── oxe.py
+│   │   ├── __pycache__
+│   │   │   ├── bridge.cpython-310.pyc
+│   │   │   ├── droid.cpython-310.pyc
+│   │   │   ├── dump.cpython-310.pyc
+│   │   │   ├── __init__.cpython-310.pyc
+│   │   │   ├── oxe.cpython-310.pyc
+│   │   │   ├── rlds.cpython-310.pyc
+│   │   │   ├── robomimic.cpython-310.pyc
+│   │   │   └── tfds.cpython-310.pyc
+│   │   ├── rlds_export.py
+│   │   ├── rlds.py
+│   │   ├── robomimic.py
+│   │   └── tfds.py
+│   ├── __init__.py
+│   ├── __main__.py
+│   ├── models
+│   │   ├── auto_gptq.py
+│   │   ├── awq.py
+│   │   ├── hf.py
+│   │   ├── __init__.py
+│   │   ├── mlc.py
+│   │   └── __pycache__
+│   │       ├── awq.cpython-310.pyc
+│   │       ├── hf.cpython-310.pyc
+│   │       ├── __init__.cpython-310.pyc
+│   │       └── mlc.cpython-310.pyc
+│   ├── nano_llm.py
+│   ├── plugin.py
+│   ├── plugins
+│   │   ├── audio
+│   │   │   ├── audio_input.py
+│   │   │   ├── audio_output.py
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── audio_input.cpython-310.pyc
+│   │   │   │   ├── audio_output.cpython-310.pyc
+│   │   │   │   └── __init__.cpython-310.pyc
+│   │   │   └── web_audio.py
+│   │   ├── bot_functions
+│   │   │   ├── alert.py
+│   │   │   ├── clock.py
+│   │   │   ├── home_assistant.py
+│   │   │   ├── __init__.py
+│   │   │   ├── location.py
+│   │   │   ├── __pycache__
+│   │   │   │   └── __init__.cpython-310.pyc
+│   │   │   └── weather.py
+│   │   ├── callback.py
+│   │   ├── chat_query.py
+│   │   ├── data
+│   │   │   ├── data_logger.py
+│   │   │   ├── data_table.py
+│   │   │   ├── deduplicate.py
+│   │   │   ├── event_filter.py
+│   │   │   ├── __init__.py
+│   │   │   ├── mux.py
+│   │   │   ├── nanodb.py
+│   │   │   └── __pycache__
+│   │   │       ├── data_logger.cpython-310.pyc
+│   │   │       ├── data_table.cpython-310.pyc
+│   │   │       ├── deduplicate.cpython-310.pyc
+│   │   │       ├── event_filter.cpython-310.pyc
+│   │   │       ├── __init__.cpython-310.pyc
+│   │   │       ├── mux.cpython-310.pyc
+│   │   │       └── nanodb.cpython-310.pyc
+│   │   ├── dynamic_plugin.py
+│   │   ├── __init__.py
+│   │   ├── llm
+│   │   │   ├── auto_prompt.py
+│   │   │   ├── __init__.py
+│   │   │   ├── nano_llm.py
+│   │   │   ├── nano_vla.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── auto_prompt.cpython-310.pyc
+│   │   │   │   ├── __init__.cpython-310.pyc
+│   │   │   │   ├── nano_llm.cpython-310.pyc
+│   │   │   │   ├── nano_vla.cpython-310.pyc
+│   │   │   │   ├── text_stream.cpython-310.pyc
+│   │   │   │   └── user_prompt.cpython-310.pyc
+│   │   │   ├── text_stream.py
+│   │   │   └── user_prompt.py
+│   │   ├── print_stream.py
+│   │   ├── process_proxy.py
+│   │   ├── __pycache__
+│   │   │   ├── callback.cpython-310.pyc
+│   │   │   ├── chat_query.cpython-310.pyc
+│   │   │   ├── dynamic_plugin.cpython-310.pyc
+│   │   │   ├── __init__.cpython-310.pyc
+│   │   │   ├── print_stream.cpython-310.pyc
+│   │   │   ├── process_proxy.cpython-310.pyc
+│   │   │   ├── tegrastats.cpython-310.pyc
+│   │   │   ├── terminal.cpython-310.pyc
+│   │   │   └── web_client.cpython-310.pyc
+│   │   ├── robotics
+│   │   │   ├── __init__.py
+│   │   │   ├── mimicgen.py
+│   │   │   ├── robot_dataset.py
+│   │   │   └── ros_connector.py
+│   │   ├── speech
+│   │   │   ├── auto_asr.py
+│   │   │   ├── auto_tts.py
+│   │   │   ├── fastpitch_tts.py
+│   │   │   ├── __init__.py
+│   │   │   ├── piper_tts.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── auto_asr.cpython-310.pyc
+│   │   │   │   ├── auto_tts.cpython-310.pyc
+│   │   │   │   ├── __init__.cpython-310.pyc
+│   │   │   │   └── vad_filter.cpython-310.pyc
+│   │   │   ├── riva_asr.py
+│   │   │   ├── riva_tts.py
+│   │   │   ├── vad_filter.py
+│   │   │   ├── whisper_asr.py
+│   │   │   └── xtts.py
+│   │   ├── tegrastats.py
+│   │   ├── terminal.py
+│   │   ├── tools
+│   │   │   ├── accuweather.py
+│   │   │   ├── clock.py
+│   │   │   ├── home_assistant.py
+│   │   │   ├── location.py
+│   │   │   └── notification.py
+│   │   ├── video
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-310.pyc
+│   │   │   │   ├── rate_limit.cpython-310.pyc
+│   │   │   │   ├── text_overlay.cpython-310.pyc
+│   │   │   │   ├── video_output.cpython-310.pyc
+│   │   │   │   └── video_source.cpython-310.pyc
+│   │   │   ├── rate_limit.py
+│   │   │   ├── text_overlay.py
+│   │   │   ├── video_output.py
+│   │   │   └── video_source.py
+│   │   └── web_client.py
+│   ├── __pycache__
+│   │   ├── agent.cpython-310.pyc
+│   │   ├── __init__.cpython-310.pyc
+│   │   ├── nano_llm.cpython-310.pyc
+│   │   ├── node2.cpython-310.pyc
+│   │   ├── plugin.cpython-310.pyc
+│   │   └── version.cpython-310.pyc
+│   ├── studio.py
+│   ├── test
+│   │   ├── asr.py
+│   │   ├── asr_tts_loopback.py
+│   │   ├── audio.py
+│   │   ├── dump_safetensors.py
+│   │   ├── function_calling.py
+│   │   ├── kv_cache.py
+│   │   ├── mp_chat.py
+│   │   ├── mp_test.py
+│   │   ├── mp_video.py
+│   │   ├── tts.py
+│   │   └── video.py
+│   ├── utils
+│   │   ├── args.py
+│   │   ├── audio.py
+│   │   ├── __init__.py
+│   │   ├── inspection.py
+│   │   ├── keyboard.py
+│   │   ├── keys.py
+│   │   ├── model.py
+│   │   ├── prompts.py
+│   │   ├── __pycache__
+│   │   │   ├── args.cpython-310.pyc
+│   │   │   ├── audio.cpython-310.pyc
+│   │   │   ├── __init__.cpython-310.pyc
+│   │   │   ├── inspection.cpython-310.pyc
+│   │   │   ├── keyboard.cpython-310.pyc
+│   │   │   ├── keys.cpython-310.pyc
+│   │   │   ├── model.cpython-310.pyc
+│   │   │   ├── prompts.cpython-310.pyc
+│   │   │   ├── request.cpython-310.pyc
+│   │   │   └── text.cpython-310.pyc
+│   │   ├── request.py
+│   │   └── text.py
+│   ├── version.py
+│   ├── vision
+│   │   ├── batch_video.py
+│   │   ├── clip.py
+│   │   ├── debug_batch_frames.py
+│   │   ├── example.py
+│   │   ├── __init__.py
+│   │   ├── mm_projector.py
+│   │   ├── __pycache__
+│   │   │   ├── batch_video.cpython-310.pyc
+│   │   │   ├── clip.cpython-310.pyc
+│   │   │   ├── debug_batch_frames.cpython-310.pyc
+│   │   │   ├── __init__.cpython-310.pyc
+│   │   │   ├── mm_projector.cpython-310.pyc
+│   │   │   └── video.cpython-310.pyc
+│   │   ├── video.py
+│   │   └── vla.py
+│   └── web
+│       ├── __init__.py
+│       ├── __pycache__
+│       │   ├── __init__.cpython-310.pyc
+│       │   └── server.cpython-310.pyc
+│       ├── server.py
+│       ├── static
+│       │   ├── alert.js
+│       │   ├── audio.js
+│       │   ├── audioWorkers.js
+│       │   ├── bootstrap.bundle.min.js
+│       │   ├── bootstrap.bundle.min.js.map
+│       │   ├── bootstrap.css
+│       │   ├── chat.css
+│       │   ├── debounce.js
+│       │   ├── drawflow.css
+│       │   ├── favicon.ico
+│       │   ├── grid.js
+│       │   ├── jquery-3.6.3.min.js
+│       │   ├── menu.css
+│       │   ├── menu.js
+│       │   ├── nvidia_logo_white_60.png
+│       │   ├── nvidia_logo_white_65.png
+│       │   ├── nvidia_logo_white_70.png
+│       │   ├── nvidia_logo_white.png
+│       │   ├── rest.js
+│       │   ├── select2.min.css
+│       │   ├── select2.min.js
+│       │   ├── studio.css
+│       │   ├── studio.js
+│       │   ├── webrtc.js
+│       │   └── websocket.js
+│       └── templates
+│           ├── index.html
+│           ├── macros.html
+│           ├── studio.html
+│           └── video_query.html
+├── README.md
+├── src
+│   └── test.sh
+├── tasks.txt
+└── wheels
+    ├── accelerate-0.33.0-py3-none-any.whl
+    ├── certifi-2025.8.3-py3-none-any.whl
+    ├── charset_normalizer-3.4.3-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
+    ├── filelock-3.19.1-py3-none-any.whl
+    ├── fsspec-2025.9.0-py3-none-any.whl
+    ├── hf_xet-1.1.9-cp37-abi3-manylinux_2_28_aarch64.whl
+    ├── huggingface_hub-0.34.4-py3-none-any.whl
+    ├── idna-3.10-py3-none-any.whl
+    ├── jinja2-3.1.6-py3-none-any.whl
+    ├── MarkupSafe-3.0.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+    ├── mpmath-1.3.0-py3-none-any.whl
+    ├── networkx-3.4.2-py3-none-any.whl
+    ├── numpy-1.26.4-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+    ├── packaging-25.0-py3-none-any.whl
+    ├── psutil-7.0.0-cp36-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+    ├── PyYAML-6.0.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+    ├── regex-2025.9.1-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
+    ├── requests-2.32.5-py3-none-any.whl
+    ├── safetensors-0.6.2-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+    ├── sentencepiece-0.2.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+    ├── sympy-1.14.0-py3-none-any.whl
+    ├── tokenizers-0.19.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+    ├── torch-2.8.0-cp310-cp310-manylinux_2_28_aarch64.whl
+    ├── tqdm-4.67.1-py3-none-any.whl
+    ├── transformers-4.42.4-py3-none-any.whl
+    ├── typing_extensions-4.15.0-py3-none-any.whl
+    └── urllib3-2.5.0-py3-none-any.whl
+
+103 directories, 752 files

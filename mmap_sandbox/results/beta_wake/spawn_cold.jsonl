@@ -1,0 +1,6 @@
+{"t": 0.0, "state": "SLEEPING", "event": "listening", "sock": "watcher.sock", "wake_mode": "spawn"}
+{"t": 0.484, "state": "SLEEPING", "event": "confidence", "value": 0.3}
+{"t": 1.484, "state": "SLEEPING", "event": "confidence", "value": 0.9}
+{"t": 1.485, "state": "WAKING", "event": "wake_start", "confidence": 0.9, "from_state": "SLEEPING"}
+{"t": 5.39, "state": "AWAKE", "event": "awake", "wake_seconds": 3.9, "loader": {"mb": 2814, "load_seconds": 3.85}}
+{"t": 9.484, "state": "AWAKE", "event": "shutdown"}

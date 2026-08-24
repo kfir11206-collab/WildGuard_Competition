@@ -1,0 +1,155 @@
+[
+  {
+    "mode": "burst",
+    "rep": 0,
+    "t_watcher_launch_epoch": 1784649122.2525501,
+    "wake_start": {
+      "t": 6.58,
+      "state": "WAKING",
+      "event": "wake_start",
+      "confidence": 0.8528,
+      "from_state": "SLEEPING"
+    },
+    "awake": {
+      "t": 161.24,
+      "state": "AWAKE",
+      "event": "awake",
+      "wake_seconds": 154.66,
+      "loader": {
+        "compose_up_seconds": 3.07,
+        "first_output_seconds": 154.65
+      }
+    },
+    "baseline_tj_c": 48.187,
+    "run_dir": "mmap_sandbox/results/burst_vs_continuous_run1/burst_0",
+    "timed_out": false
+  },
+  {
+    "mode": "continuous",
+    "rep": 0,
+    "t_watcher_launch_epoch": 1784649330.512281,
+    "wake_start": {
+      "t": 6.637,
+      "state": "WAKING",
+      "event": "wake_start",
+      "confidence": 0.8528,
+      "from_state": "SLEEPING",
+      "mode": "continuous"
+    },
+    "awake": {
+      "t": 160.588,
+      "state": "AWAKE",
+      "event": "awake",
+      "wake_seconds": 153.95,
+      "loader": {
+        "compose_up_seconds": 2.91,
+        "first_output_seconds": 148.2
+      }
+    },
+    "baseline_tj_c": 50.812,
+    "run_dir": "mmap_sandbox/results/burst_vs_continuous_run1/continuous_0",
+    "timed_out": false
+  },
+  {
+    "mode": "burst",
+    "rep": 1,
+    "t_watcher_launch_epoch": 1784649529.365408,
+    "wake_start": {
+      "t": 6.655,
+      "state": "WAKING",
+      "event": "wake_start",
+      "confidence": 0.8528,
+      "from_state": "SLEEPING"
+    },
+    "awake": {
+      "t": 152.813,
+      "state": "AWAKE",
+      "event": "awake",
+      "wake_seconds": 146.16,
+      "loader": {
+        "compose_up_seconds": 3.08,
+        "first_output_seconds": 146.15
+      }
+    },
+    "baseline_tj_c": 51.968,
+    "run_dir": "mmap_sandbox/results/burst_vs_continuous_run1/burst_1",
+    "timed_out": false
+  },
+  {
+    "mode": "continuous",
+    "rep": 1,
+    "t_watcher_launch_epoch": 1784649701.5034962,
+    "wake_start": {
+      "t": 6.619,
+      "state": "WAKING",
+      "event": "wake_start",
+      "confidence": 0.8528,
+      "from_state": "SLEEPING",
+      "mode": "continuous"
+    },
+    "awake": {
+      "t": 163.384,
+      "state": "AWAKE",
+      "event": "awake",
+      "wake_seconds": 156.76,
+      "loader": {
+        "compose_up_seconds": 3.02,
+        "first_output_seconds": 151.08
+      }
+    },
+    "baseline_tj_c": 52.937,
+    "run_dir": "mmap_sandbox/results/burst_vs_continuous_run1/continuous_1",
+    "timed_out": false
+  },
+  {
+    "mode": "burst",
+    "rep": 2,
+    "t_watcher_launch_epoch": 1784649882.043717,
+    "wake_start": {
+      "t": 6.631,
+      "state": "WAKING",
+      "event": "wake_start",
+      "confidence": 0.8528,
+      "from_state": "SLEEPING"
+    },
+    "awake": {
+      "t": 157.585,
+      "state": "AWAKE",
+      "event": "awake",
+      "wake_seconds": 150.95,
+      "loader": {
+        "compose_up_seconds": 3.18,
+        "first_output_seconds": 150.94
+      }
+    },
+    "baseline_tj_c": 52.687,
+    "run_dir": "mmap_sandbox/results/burst_vs_continuous_run1/burst_2",
+    "timed_out": false
+  },
+  {
+    "mode": "continuous",
+    "rep": 2,
+    "t_watcher_launch_epoch": 1784650058.3883045,
+    "wake_start": {
+      "t": 6.631,
+      "state": "WAKING",
+      "event": "wake_start",
+      "confidence": 0.8528,
+      "from_state": "SLEEPING",
+      "mode": "continuous"
+    },
+    "awake": {
+      "t": 312.839,
+      "state": "AWAKE",
+      "event": "awake",
+      "wake_seconds": 306.21,
+      "loader": {
+        "compose_up_seconds": 2.95,
+        "first_output_seconds": null
+      }
+    },
+    "baseline_tj_c": 52.5,
+    "run_dir": "mmap_sandbox/results/burst_vs_continuous_run1/continuous_2",
+    "timed_out": false
+  }
+]
