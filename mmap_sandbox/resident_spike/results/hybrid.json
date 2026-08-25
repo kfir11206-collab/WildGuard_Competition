@@ -1,0 +1,51 @@
+{
+  "baseline": {
+    "load_seconds": 73.17,
+    "fuse_calls": 1,
+    "fuse_seconds": 47.28,
+    "gpu_mb": 3960,
+    "rss_mb": 5853,
+    "fused_save_seconds": null,
+    "fused_file_gb": 1.69,
+    "answer": "2+2 is equal to 4.</s>"
+  },
+  "reload": {
+    "reload_seconds": 12.07,
+    "fuse_calls_added": 0,
+    "missing_keys": 0,
+    "unexpected_keys": 0,
+    "gpu_mb": 3961,
+    "rss_mb": 5569,
+    "answer_matches_baseline": true
+  },
+  "evict_wake": {
+    "gpu_mb_awake": 3961,
+    "gpu_mb_asleep": 2271,
+    "gpu_mb_freed": 1690,
+    "rss_mb_awake": 5569,
+    "rss_mb_asleep": 4241,
+    "rss_mb_freed": 1328,
+    "params_evicted": 67,
+    "params_still_meta_after_wake": 0,
+    "wake_seconds": 5.44,
+    "fuse_calls_added": 0,
+    "missing_keys": 0,
+    "unexpected_keys": 0,
+    "gpu_mb_after_wake": 3961,
+    "rss_mb_after_wake": 5368,
+    "answer_matches_baseline": true
+  },
+  "cold_wake": {
+    "page_cache_mb_before_drop": 665,
+    "page_cache_mb_after_drop": 190,
+    "page_cache_mb_evicted": 475,
+    "gpu_mb_freed": 1690,
+    "cold_wake_seconds": 8.05,
+    "warm_wake_seconds": 5.44,
+    "fuse_calls_added": 0,
+    "missing_keys": 0,
+    "unexpected_keys": 0,
+    "params_still_meta_after_wake": 0,
+    "answer_matches_baseline": true
+  }
+}
