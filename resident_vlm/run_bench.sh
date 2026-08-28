@@ -1,5 +1,9 @@
 #!/bin/bash
-# Detached benchmark run. REPS=n to change rep count (default 2, ~15 min/rep).
+# Detached benchmark run.
+#   bash run_bench.sh                                   full matrix, 2 reps x 2 arms
+#   bash run_bench.sh --reps 1 --arms baseline          one arm only
+# Any arguments are passed straight through to bench.py; with none, --reps $REPS
+# (default 2, ~15 min/rep) is used. Pre-flight runs either way.
 # Launch from a PLAIN terminal (not VS Code), then
 # close VS Code so the desktop stops competing for RAM. Keep the desktop
 # session logged in - the baseline arm renders to DISPLAY=:1, and container
@@ -32,7 +36,7 @@ if [ -c /dev/video0 ]; then ok "camera" "ok"; else bad "camera" "MISSING /dev/vi
 
 running=$(docker ps -q | wc -l)
 if [ "$running" -eq 0 ]; then ok "containers" "0 (clean)"
-else bad "containers" "$running running - stop them first"; fi
+else bad "containers" "$running running - clear with: docker ps -q | xargs -r docker rm -f"; fi
 
 avail=$(awk '/MemAvailable/{print int($2/1024)}' /proc/meminfo)
 if [ "$avail" -ge 6000 ]; then ok "RAM available" "${avail}MB"
@@ -50,8 +54,14 @@ fi
 
 LOG=$ROOT/resident_vlm/results/bench_$(date +%Y%m%d_%H%M%S).log
 echo
-echo "pre-flight passed. starting $REPS reps x 2 arms (~15 min/rep, so ~$((REPS*15)) min)."
-setsid nohup python3 -u "$ROOT/resident_vlm/bench.py" --reps "$REPS" > "$LOG" 2>&1 < /dev/null &
+if [ "$#" -gt 0 ]; then
+  echo "pre-flight passed. running: bench.py $*"
+  set -- "$@"
+else
+  echo "pre-flight passed. starting $REPS reps x 2 arms (~15 min/rep, so ~$((REPS*15)) min)."
+  set -- --reps "$REPS"
+fi
+setsid nohup python3 -u "$ROOT/resident_vlm/bench.py" "$@" > "$LOG" 2>&1 < /dev/null &
 echo "detached as pid $!. safe to close this terminal AND VS Code."
 echo
 echo "progress:  tail -f $LOG"

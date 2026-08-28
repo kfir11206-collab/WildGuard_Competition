@@ -1,0 +1,78 @@
+[
+  {
+    "tag": "resident_0",
+    "arm": "resident",
+    "rep": 0,
+    "trigger_to_verdict_s": 13.572,
+    "idle_asleep": {
+      "seconds": 19.964,
+      "energy_j": 94.46,
+      "mean_power_w": 4.73,
+      "sd_read_mb": 85.0,
+      "sd_read_mb_s": 4.3,
+      "sd_read_ms": 2949,
+      "sd_mean_read_latency_ms": 0.188,
+      "sd_max_stall_ms": 562,
+      "sd_stalls_over_500ms": 2,
+      "tj_start_c": 46.625,
+      "tj_peak_c": 46.843,
+      "mem_available_min_mb": 1780
+    },
+    "wake": {
+      "seconds": 13.418,
+      "energy_j": 90.0,
+      "mean_power_w": 6.71,
+      "sd_read_mb": 2568.6,
+      "sd_read_mb_s": 191.4,
+      "sd_read_ms": 16782,
+      "sd_mean_read_latency_ms": 0.471,
+      "sd_max_stall_ms": 631,
+      "sd_stalls_over_500ms": 1,
+      "tj_start_c": 46.25,
+      "tj_peak_c": 49.281,
+      "mem_available_min_mb": 245
+    },
+    "awake": {
+      "seconds": 59.94,
+      "energy_j": 1059.88,
+      "mean_power_w": 17.68,
+      "sd_read_mb": 814.0,
+      "sd_read_mb_s": 13.6,
+      "sd_read_ms": 8762,
+      "sd_mean_read_latency_ms": 0.263,
+      "sd_max_stall_ms": 273,
+      "sd_stalls_over_500ms": 0,
+      "tj_start_c": 48.781,
+      "tj_peak_c": 59.625,
+      "mem_available_min_mb": 327
+    },
+    "sleep_transition": {
+      "seconds": 34.198,
+      "energy_j": 183.1,
+      "mean_power_w": 5.35,
+      "sd_read_mb": 174.3,
+      "sd_read_mb_s": 5.1,
+      "sd_read_ms": 1948,
+      "sd_mean_read_latency_ms": 0.217,
+      "sd_max_stall_ms": 147,
+      "sd_stalls_over_500ms": 0,
+      "tj_start_c": 59.312,
+      "tj_peak_c": 59.625,
+      "mem_available_min_mb": 422
+    },
+    "idle_after": {
+      "seconds": 19.867,
+      "energy_j": 96.47,
+      "mean_power_w": 4.86,
+      "sd_read_mb": 193.8,
+      "sd_read_mb_s": 9.8,
+      "sd_read_ms": 5418,
+      "sd_mean_read_latency_ms": 0.206,
+      "sd_max_stall_ms": 624,
+      "sd_stalls_over_500ms": 3,
+      "tj_start_c": 51.156,
+      "tj_peak_c": 51.406,
+      "mem_available_min_mb": 1810
+    }
+  }
+]
