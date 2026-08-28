@@ -14,6 +14,7 @@ import os
 import socket
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -29,6 +30,78 @@ OUT_TXT = ROOT / "data" / "out_txt"
 SOCK = ROOT / "resident_vlm" / "resident.sock"
 FUSED = ROOT / "resident_vlm" / "results" / "fused_state.pt"
 STACK = ["wildfire_classifier", "wildfire_detection"]
+WATCHER_SOCK = ROOT / "fire_watcher" / "watcher.sock"
+
+
+class MhtSink(threading.Thread):
+    """Stands in for fire_watcher's listener.
+
+    mht_live.py connects to watcher.sock at startup and exits with
+    ConnectionRefusedError if nobody is listening - so without this the MHT
+    container starts, reports rc=0, and dies ~3s later, leaving the benchmark
+    with no camera contention and no MHT memory load. We only drain the scores;
+    fire_watcher's wake logic would fight the harness for control.
+    """
+
+    def __init__(self, path):
+        super().__init__(daemon=True)
+        self.path = Path(path)
+        self.scores = []
+        self.stopping = threading.Event()
+        if self.path.exists():
+            self.path.unlink()
+        self.srv = socket.socket(socket.AF_UNIX)
+        self.srv.bind(str(self.path))
+        os.chmod(self.path, 0o777)
+        self.srv.listen(2)
+        self.srv.settimeout(1.0)
+
+    def run(self):
+        while not self.stopping.is_set():
+            try:
+                conn, _ = self.srv.accept()
+            except socket.timeout:
+                continue
+            except OSError:
+                break
+            threading.Thread(target=self._drain, args=(conn,), daemon=True).start()
+
+    def _drain(self, conn):
+        f = conn.makefile()
+        while not self.stopping.is_set():
+            line = f.readline()
+            if not line:
+                break
+            try:
+                self.scores.append((round(time.monotonic(), 3), float(line.strip())))
+            except ValueError:
+                pass
+        conn.close()
+
+    def stop(self):
+        self.stopping.set()
+        try:
+            self.srv.close()
+        except OSError:
+            pass
+        self.path.unlink(missing_ok=True)
+
+
+def mht_container_running():
+    return bool(compose("ps", "-q", "--status", "running", "mht_watch").stdout.strip())
+
+
+def wait_for_mht(sink, timeout=90):
+    """rc=0 from compose never meant the MHT survived - wait for a real score."""
+    n0 = len(sink.scores)
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if len(sink.scores) > n0:
+            return True
+        if not mht_container_running():
+            return False
+        time.sleep(0.5)
+    return False
 
 
 def compose(*args, timeout=600):
@@ -120,20 +193,35 @@ def stop_daemon(proc):
             proc.kill()
 
 
-def run_arm(arm, rep, args, outdir):
+def run_arm(arm, rep, args, outdir, sink):
     tag = f"{arm}_{rep}"
     rec = {"arm": arm, "rep": rep}
     daemon = None
     smp = S.Sampler(outdir / f"{tag}.jsonl", hz=args.hz)
 
     try:
+        # Clear the camera first: the previous arm ends with mht_up(), and
+        # /dev/video0 is single-opener, so anything below that needs the camera
+        # would fail while MHT still holds it.
+        compose("stop", "-t", "20", *STACK)
+        mht_stop()
+
         if arm == "resident":
             daemon = start_daemon(outdir / f"{tag}.daemon.log")
             rec["load"] = send("STATS")
+            # Unmeasured warm-up: the camera's first open costs ~6s and every
+            # later one ~0.1s. A continuously-running daemon pays that once at
+            # boot, so measuring its first-ever open would inflate every wake.
+            rec["warmup_wake"] = send("WAKE", timeout=args.verdict_timeout)
+            rec["warmup_sleep"] = send("SLEEP", timeout=120)
 
-        compose("stop", "-t", "20", *STACK)
         mht_up()
+        rec["mht_alive"] = wait_for_mht(sink)
+        if not rec["mht_alive"]:
+            print(f"[{tag}] WARNING: MHT is not producing scores - "
+                  f"camera contention and its memory load are ABSENT", flush=True)
         time.sleep(args.mht_settle)
+        mht_scores_at_trigger = len(sink.scores)
 
         drop_cache([FUSED] if arm == "resident" else default_model_files())
         rec["cooldown_seconds"], rec["tj_start"] = cooldown(args.tj_target, args.cooldown_max)
@@ -167,13 +255,19 @@ def run_arm(arm, rep, args, outdir):
         smp.mark("sleep_start")
         if arm == "resident":
             rec["sleep_reply"] = send("SLEEP", timeout=120)
+            compose("stop", "-t", "30", "wildfire_classifier")
         else:
             compose("stop", "-t", "30", *STACK)
         smp.mark("sleep_done")
         mht_up()
+        rec["mht_alive_after_wake_cycle"] = wait_for_mht(sink)
+        if not rec["mht_alive_after_wake_cycle"]:
+            print(f"[{tag}] WARNING: MHT did not come back after the wake cycle "
+                  f"- likely the camera was not released", flush=True)
         smp.mark("mht_restarted")
         time.sleep(args.idle_seconds)
         smp.mark("sleep_idle_end")
+        rec["mht_scores_during_arm"] = len(sink.scores) - mht_scores_at_trigger
     finally:
         smp.stop()
         if daemon is not None:
@@ -191,8 +285,8 @@ def main():
     p.add_argument("--awake-seconds", type=float, default=60.0)
     p.add_argument("--idle-seconds", type=float, default=20.0)
     p.add_argument("--mht-settle", type=float, default=15.0)
-    p.add_argument("--tj-target", type=float, default=47.0)
-    p.add_argument("--cooldown-max", type=float, default=180.0)
+    p.add_argument("--tj-target", type=float, default=52.0)
+    p.add_argument("--cooldown-max", type=float, default=240.0)
     p.add_argument("--verdict-timeout", type=float, default=420.0)
     p.add_argument("--hz", type=float, default=10.0)
     p.add_argument("--out", default=None)
@@ -204,16 +298,22 @@ def main():
     (outdir / "args.json").write_text(json.dumps(vars(args), indent=2))
     print(f"[bench] writing to {outdir}", flush=True)
 
+    sink = MhtSink(WATCHER_SOCK)
+    sink.start()
+    print(f"[bench] listening on {WATCHER_SOCK} for MHT scores", flush=True)
+
     all_recs = []
     try:
         for rep in range(args.reps):
             for arm in args.arms:
-                all_recs.append(run_arm(arm, rep, args, outdir))
+                all_recs.append(run_arm(arm, rep, args, outdir, sink))
     finally:
         compose("stop", "-t", "30", *STACK)
         subprocess.run(["docker", "rm", "-f", "resident_vlm"], capture_output=True, text=True)
-        mht_up()
+        compose("stop", "-t", "10", "mht_watch")
         (outdir / "summary.json").write_text(json.dumps(all_recs, indent=2))
+        (outdir / "mht_scores.json").write_text(json.dumps(sink.scores))
+        sink.stop()
     print(f"[bench] done -> {outdir}/summary.json", flush=True)
 
 

@@ -164,9 +164,13 @@ class Resident:
             missing, unexpected = self._load_from_card()
             sd_read = round(time.monotonic() - t0, 3)
             t1 = time.monotonic()
-            self._open_camera()
-            cam_open = round(time.monotonic() - t1, 3)
             self.state = "AWAKE"
+            try:
+                self._open_camera()
+            except Exception:
+                self.log("camera_open_failed")
+                raise
+            cam_open = round(time.monotonic() - t1, 3)
             t2 = time.monotonic()
             text = self._infer_once()
             first_verdict = round(time.monotonic() - t2, 3)
@@ -270,7 +274,11 @@ def main():
                 conn.sendall(b'{"ok": true}\n')
                 break
             fn = handlers.get(cmd)
-            reply = fn() if fn else {"error": f"unknown command {cmd!r}"}
+            try:
+                reply = fn() if fn else {"error": f"unknown command {cmd!r}"}
+            except Exception as exc:
+                reply = {"error": repr(exc)[:300]}
+                res.log("command_failed", command=cmd, error=reply["error"])
             conn.sendall(json.dumps(reply).encode() + b"\n")
         finally:
             conn.close()

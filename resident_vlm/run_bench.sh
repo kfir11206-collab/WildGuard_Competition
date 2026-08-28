@@ -1,12 +1,13 @@
 #!/bin/bash
-# Detached benchmark run. Launch from a PLAIN terminal (not VS Code), then
+# Detached benchmark run. REPS=n to change rep count (default 2, ~15 min/rep).
+# Launch from a PLAIN terminal (not VS Code), then
 # close VS Code so the desktop stops competing for RAM. Keep the desktop
 # session logged in - the baseline arm renders to DISPLAY=:1, and container
 # X access comes from xhost (see the xhost check below), not from an xauth file.
 ROOT=/home/student/Documents/projects/wildfire_detection
 cd "$ROOT" || exit 1
 
-REPS=${REPS:-3}
+REPS=${REPS:-2}
 fail=0
 ok()   { printf "  %-24s %s\n" "$1" "$2"; }
 bad()  { printf "  %-24s %s\n" "$1" "$2"; fail=1; }
@@ -49,7 +50,7 @@ fi
 
 LOG=$ROOT/resident_vlm/results/bench_$(date +%Y%m%d_%H%M%S).log
 echo
-echo "pre-flight passed. starting $REPS reps x 2 arms (~10 min/rep)."
+echo "pre-flight passed. starting $REPS reps x 2 arms (~15 min/rep, so ~$((REPS*15)) min)."
 setsid nohup python3 -u "$ROOT/resident_vlm/bench.py" --reps "$REPS" > "$LOG" 2>&1 < /dev/null &
 echo "detached as pid $!. safe to close this terminal AND VS Code."
 echo
