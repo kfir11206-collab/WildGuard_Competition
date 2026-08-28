@@ -12,6 +12,7 @@ ROOT=/home/student/Documents/projects/wildfire_detection
 cd "$ROOT" || exit 1
 
 REPS=${REPS:-2}
+MINRAM=${MINRAM:-6000}   # override if pre-flight blocks you: MINRAM=5500 bash run_bench.sh
 fail=0
 ok()   { printf "  %-24s %s\n" "$1" "$2"; }
 bad()  { printf "  %-24s %s\n" "$1" "$2"; fail=1; }
@@ -39,8 +40,8 @@ if [ "$running" -eq 0 ]; then ok "containers" "0 (clean)"
 else bad "containers" "$running running - clear with: docker ps -q | xargs -r docker rm -f"; fi
 
 avail=$(awk '/MemAvailable/{print int($2/1024)}' /proc/meminfo)
-if [ "$avail" -ge 6000 ]; then ok "RAM available" "${avail}MB"
-else bad "RAM available" "${avail}MB - close VS Code/browser (need >=6000)"; fi
+if [ "$avail" -ge "$MINRAM" ]; then ok "RAM available" "${avail}MB (need >=${MINRAM})"
+else bad "RAM available" "${avail}MB - close VS Code/browser (need >=${MINRAM}, or set MINRAM=)"; fi
 
 mode=$(cat /var/lib/nvpmodel/status 2>/dev/null)
 cap=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 2>/dev/null)
