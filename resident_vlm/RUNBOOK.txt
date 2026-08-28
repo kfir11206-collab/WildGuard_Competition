@@ -1,0 +1,54 @@
+RESIDENT VLM BENCHMARK - RUNBOOK
+================================
+cat this file any time:  cat ~/Documents/projects/wildfire_detection/resident_vlm/RUNBOOK.txt
+
+BEFORE RUNNING
+  - Close VS Code and the browser. Keep the DESKTOP LOGGED IN: the baseline
+    arm renders to DISPLAY=:1 and will fail without X.
+  - Optional extra headroom (~300MB): close GNOME Software and Update Manager.
+  - Check:  free -m      (want MemAvailable >= 6000)
+
+STEP 1 - baseline dry run, ~6 min. The baseline arm has never run; this is the
+         half that needs X and pays the ~150s cold start.
+
+  bash ~/Documents/projects/wildfire_detection/resident_vlm/run_bench.sh \
+    --reps 1 --arms baseline \
+    --out ~/Documents/projects/wildfire_detection/resident_vlm/results/dryrun_baseline
+
+  It prints a log path. Watch it with:   tail -f <that path>
+  GOOD: a line "[baseline_0] trigger->verdict = <number>s"  (expect ~150-200s)
+  BAD : "trigger->verdict = None"  -> no verdict was produced; do not run the
+        full matrix, keep the log and the results dir for Claude.
+
+STEP 2 - full matrix, ~30 min (2 reps x 2 arms).
+
+  bash ~/Documents/projects/wildfire_detection/resident_vlm/run_bench.sh
+
+  REPS=3 bash .../run_bench.sh    -> ~45 min, better medians
+  It detaches (setsid): safe to close the terminal. Reopen VS Code afterwards.
+
+IF PRE-FLIGHT BLOCKS ON RAM
+  It refuses below 6000MB. To lower it deliberately:
+      MINRAM=5500 bash .../run_bench.sh
+  Expect more swapping, which pollutes the SD numbers - prefer freeing RAM.
+
+IF SOMETHING GOES WRONG
+  stop a run:            pkill -f bench.py
+  clear containers:      docker ps -q | xargs -r docker rm -f
+  check what ran:        ls -la ~/Documents/projects/wildfire_detection/resident_vlm/results/
+
+WHAT NOT TO DO
+  - Do not delete anything under resident_vlm/results/ - that is the raw data.
+  - Do not reboot mid-run.
+
+WHEN IT FINISHES
+  Reopen VS Code and tell Claude. It will run:
+      python3 resident_vlm/analyze.py resident_vlm/results/<rundir>
+  and build the latency / throughput / energy / thermal tables.
+
+KNOWN CAVEATS (already understood, no action needed)
+  - The baseline arm peaks around 6.7GB (VLM ~5.7GB + classifier up to 1GB) on a
+    7.5GB board, so some swap is possible even with VS Code closed. The sampler
+    now records swap bytes so the analysis can subtract it from SD reads.
+  - The daemon has no display output; the baseline service does. This inflates
+    the BASELINE's awake power slightly. It does not affect wake latency.
