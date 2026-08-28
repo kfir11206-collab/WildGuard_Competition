@@ -6,7 +6,9 @@ BEFORE RUNNING
   - Close VS Code and the browser. Keep the DESKTOP LOGGED IN: the baseline
     arm renders to DISPLAY=:1 and will fail without X.
   - Optional extra headroom (~300MB): close GNOME Software and Update Manager.
-  - Check:  free -m      (want MemAvailable >= 6000)
+  - Check:  free -m      (want MemAvailable >= 5500)
+    ~5.6-5.7GB is what this board reaches with VS Code closed. That is normal
+    and the run is expected to proceed at that level.
 
 STEP 1 - baseline dry run, ~6 min. The baseline arm has never run; this is the
          half that needs X and pays the ~150s cold start.
@@ -28,9 +30,9 @@ STEP 2 - full matrix, ~30 min (2 reps x 2 arms).
   It detaches (setsid): safe to close the terminal. Reopen VS Code afterwards.
 
 IF PRE-FLIGHT BLOCKS ON RAM
-  It refuses below 6000MB. To lower it deliberately:
-      MINRAM=5500 bash .../run_bench.sh
-  Expect more swapping, which pollutes the SD numbers - prefer freeing RAM.
+  It refuses below 5500MB. To lower it deliberately:
+      MINRAM=5200 bash .../run_bench.sh
+  Lower means more swapping. Some swapping is EXPECTED and is measured.
 
 IF SOMETHING GOES WRONG
   stop a run:            pkill -f bench.py
@@ -47,8 +49,14 @@ WHEN IT FINISHES
   and build the latency / throughput / energy / thermal tables.
 
 KNOWN CAVEATS (already understood, no action needed)
-  - The baseline arm peaks around 6.7GB (VLM ~5.7GB + classifier up to 1GB) on a
-    7.5GB board, so some swap is possible even with VS Code closed. The sampler
-    now records swap bytes so the analysis can subtract it from SD reads.
+  - The baseline arm peaks around 6.2-6.3GB (VLM ~5.7GB + classifier) on a 7.5GB
+    board with ~5.65GB free, so it WILL swap roughly 600MB. This is a property
+    of the board, not a fault, and it cannot be engineered away without going
+    headless (which would only recover ~500MB and break the display the
+    baseline arm needs). The sampler records swap bytes so the analysis
+    subtracts them from SD reads and reports both. Decision made deliberately
+    2026-08-28 to keep full-system fidelity.
+  - It will not OOM: docker limits are 6g/12g-swap for the VLM, 1g for the
+    classifier, and 7.4GB of swap is free.
   - The daemon has no display output; the baseline service does. This inflates
     the BASELINE's awake power slightly. It does not affect wake latency.

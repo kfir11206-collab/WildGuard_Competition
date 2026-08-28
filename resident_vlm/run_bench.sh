@@ -12,7 +12,11 @@ ROOT=/home/student/Documents/projects/wildfire_detection
 cd "$ROOT" || exit 1
 
 REPS=${REPS:-2}
-MINRAM=${MINRAM:-6000}   # override if pre-flight blocks you: MINRAM=5500 bash run_bench.sh
+# 5500 is what this board actually reaches with VS Code closed and the desktop
+# still logged in. The baseline arm needs ~6.2GB (VLM 5.7 + classifier), so it
+# WILL swap; that is a property of a 7.5GB board, not a harness fault, and the
+# sampler records swap bytes so analysis can subtract them from SD reads.
+MINRAM=${MINRAM:-5500}
 fail=0
 ok()   { printf "  %-24s %s\n" "$1" "$2"; }
 bad()  { printf "  %-24s %s\n" "$1" "$2"; fail=1; }
