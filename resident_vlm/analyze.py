@@ -52,6 +52,10 @@ def window_stats(samples, t0, t1):
         "mean_power_w": mean_w,
         "sd_read_mb": round(rd / 1e6, 1),
         "sd_read_mb_s": round(rd / 1e6 / span, 1) if span > 0 else None,
+        "swap_in_mb": round((inside[-1].get("pswpin_bytes", 0)
+                             - inside[0].get("pswpin_bytes", 0)) / 1e6, 1),
+        "swap_out_mb": round((inside[-1].get("pswpout_bytes", 0)
+                              - inside[0].get("pswpout_bytes", 0)) / 1e6, 1),
         "sd_read_ms": read_ms,
         "sd_mean_read_latency_ms": round(read_ms / reads, 3) if reads else None,
         "sd_max_stall_ms": max(jumps) if jumps else None,
@@ -91,7 +95,7 @@ def main():
 
     (rundir / "analysis.json").write_text(json.dumps(rows, indent=2))
 
-    hdr = f"{'arm':<10}{'rep':<5}{'t2v_s':>8}{'wake_J':>9}{'wake_W':>8}{'SD_MB':>8}{'MB/s':>8}{'stallms':>9}{'sleepW':>8}{'tj_pk':>7}{'freeMB':>8}"
+    hdr = f"{'arm':<10}{'rep':<5}{'t2v_s':>8}{'wake_J':>9}{'wake_W':>8}{'SD_MB':>8}{'MB/s':>8}{'swapIn':>8}{'stallms':>9}{'sleepW':>8}{'tj_pk':>7}{'freeMB':>8}"
     print(hdr)
     print("-" * len(hdr))
     for r in rows:
@@ -100,7 +104,8 @@ def main():
         print(f"{str(r['arm']):<10}{str(r['rep']):<5}"
               f"{str(r['trigger_to_verdict_s']):>8}{str(w.get('energy_j')):>9}"
               f"{str(w.get('mean_power_w')):>8}{str(w.get('sd_read_mb')):>8}"
-              f"{str(w.get('sd_read_mb_s')):>8}{str(w.get('sd_max_stall_ms')):>9}"
+              f"{str(w.get('sd_read_mb_s')):>8}{str(w.get('swap_in_mb')):>8}"
+              f"{str(w.get('sd_max_stall_ms')):>9}"
               f"{str(idle.get('mean_power_w')):>8}"
               f"{str(w.get('tj_peak_c')):>7}{str(idle.get('mem_available_min_mb')):>8}")
 

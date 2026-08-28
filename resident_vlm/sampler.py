@@ -61,8 +61,24 @@ def _diskstats(dev):
     return {}
 
 
+def _vmstat():
+    """pswpin/pswpout count swap pages moved - lets the analysis separate SD
+    reads that are model weights from SD reads that are only swap traffic."""
+    out = {}
+    try:
+        with open("/proc/vmstat") as f:
+            for line in f:
+                k, _, v = line.partition(" ")
+                if k in ("pswpin", "pswpout"):
+                    out[f"{k}_bytes"] = int(v) * 4096
+    except OSError:
+        pass
+    return out
+
+
 def _meminfo():
-    want = {"MemAvailable:": "mem_available_mb", "Cached:": "cached_mb"}
+    want = {"MemAvailable:": "mem_available_mb", "Cached:": "cached_mb",
+            "SwapFree:": "swap_free_mb"}
     out = {}
     with open("/proc/meminfo") as f:
         for line in f:
@@ -87,6 +103,7 @@ def sample(dev="nvme0n1"):
             continue
     rec.update(_diskstats(dev))
     rec.update(_meminfo())
+    rec.update(_vmstat())
     return rec
 
 
