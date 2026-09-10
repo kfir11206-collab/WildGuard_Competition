@@ -45,6 +45,28 @@ def read_tj():
         return None
 
 
+DRIVE_LABELS = {"SDSQXFN": "sd_express", "CT1000P5PSSD8": "ssd"}
+
+
+def device_stamp(dev="nvme0n1"):
+    base = Path("/sys/block") / dev
+    out = {"dev": dev}
+    for field in ("model", "serial", "firmware_rev"):
+        try:
+            out[field] = (base / "device" / field).read_text().strip()
+        except OSError:
+            out[field] = None
+    try:
+        out["size_bytes"] = int((base / "size").read_text()) * 512
+    except OSError:
+        out["size_bytes"] = None
+    model = out["model"] or ""
+    out["label"] = next(
+        (label for key, label in DRIVE_LABELS.items() if key in model), "unknown"
+    )
+    return out
+
+
 def _diskstats(dev):
     with open("/proc/diskstats") as f:
         for line in f:

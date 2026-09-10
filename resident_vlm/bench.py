@@ -296,7 +296,11 @@ def main():
                                time.strftime("bench_%Y%m%d_%H%M%S")))
     outdir.mkdir(parents=True, exist_ok=True)
     (outdir / "args.json").write_text(json.dumps(vars(args), indent=2))
+    stamp = S.device_stamp()
+    (outdir / "device.json").write_text(json.dumps(stamp, indent=2))
     print(f"[bench] writing to {outdir}", flush=True)
+    print(f"[bench] storage device: {stamp['label']} "
+          f"model={stamp['model']} sn={stamp['serial']}", flush=True)
 
     sink = MhtSink(WATCHER_SOCK)
     sink.start()
