@@ -5,34 +5,89 @@ cat this file any time:  cat ~/Documents/projects/wildfire_detection/resident_vl
 BEFORE RUNNING
   - Close VS Code and the browser. Keep the DESKTOP LOGGED IN: the baseline
     arm renders to DISPLAY=:1 and will fail without X.
-  - Optional extra headroom (~300MB): close GNOME Software and Update Manager.
+  - REQUIRED, on BOTH drives: kill the desktop's background helpers. They
+    have no window, so closing everything does not close them. gnome-software
+    alone holds ~190MB; together they free ~270MB. Without this the board sits
+    near 5300MB and pre-flight refuses.
+        pkill -f gnome-software; pkill -f update-notifier
+        pkill -f evolution-; pkill -f tracker-miner-fs-3
+    Do the same on the SSD run - the clone autostarts the same helpers, and the
+    two cards must start from the same free RAM to be comparable.
+  - The sitting is STEP 0 to STEP 3 in order, and it is IDENTICAL on both
+    drives - same steps, same order, same flags. That is what makes the
+    SD-vs-SSD comparison fair. You need to be at the board for STEP 0 and
+    STEP 1 (~30-40 min) and to start STEP 2. STEP 2 then runs on its own
+    (~45 min), and STEP 3 can wait until you are back.
+  - POWER MODE, after EVERY reboot: the board comes up at full power while
+    still claiming 25W (it did 2026-09-11 16:27). Set the 25W limits with:
+        bash ~/Documents/projects/wildfire_detection/mmap_sandbox/card_eval/set_25w_clocks.sh
+    It asks for your password and must print cpu 1344000 and gpu 918000000.
+    Use it instead of "sudo nvpmodel -m 1": on this board nvpmodel asks for
+    a reboot every time; answering "no" changes nothing ("optMask is 1, no
+    request for power mode" - checked 2026-09-11), and after a reboot the
+    board is back at full power. The limits last until the next reboot.
+    STEP 1 and STEP 2 refuse to start without them.
+  - Start from a RESTED drive: nothing heavy on the board for 30 min before
+    STEP 0 - no tests, no containers. If STEP 1 is stopped for any reason, do
+    not restart it straight away: wait 30 min and start again from STEP 0. A
+    warm drive changes the results (the SD slows itself down above ~85 C).
+  - Nobody else uses the board during the sitting - no MHT GUI, no containers,
+    no other Claude sessions. One interruption cost the 2026-09-11 afternoon run.
   - Check:  free -m      (want MemAvailable >= 5500)
-    ~5.6-5.7GB is what this board reaches with VS Code closed. That is normal
-    and the run is expected to proceed at that level.
+    ~5.6-5.7GB is what this board reaches with VS Code closed and the helpers
+    killed. That is normal and the run is expected to proceed at that level.
 
-STEP 1 - baseline dry run, ~6 min. The baseline arm has never run; this is the
-         half that needs X and pays the ~150s cold start.
+STEP 0 - drive diagnostics BEFORE the runs (asks for your password once):
+
+  bash ~/Documents/projects/wildfire_detection/mmap_sandbox/card_eval/nvme_diag.sh
+
+STEP 1 - card evaluation with the standard tools (fio / iostat / gdsio), ~25-35 min.
+         Runs in the FOREGROUND: keep this terminal open and wait for the
+         "[card_eval] DONE" line before STEP 2 - both hammer the same drive.
+
+  python3 ~/Documents/projects/wildfire_detection/mmap_sandbox/card_eval/card_eval.py
+
+  One line per test, e.g.  "[seq_read_1m_qd8]  887.9 MB/s  847 IOPS  p99 11.08 ms"
+  GOOD: 18 test lines, then "[card_eval] DONE <results dir>"
+  The terminal stays quiet between those lines - that is normal.
+  BAD : any "FAILED" line -> let it finish, keep the results dir, tell Claude.
+  It writes an 8GB test file to ~/card_eval_work and deletes it at the end.
+  Before each test it waits (at most 2 min) for the drive to cool back to
+  within 5 C of its own resting temperature - pauses are normal.
+  Results: mmap_sandbox/results/card_eval/<drive label>_<timestamp>/
+
+STEP 2 - resident benchmark, ~45 min (3 reps x 2 arms).
 
   bash ~/Documents/projects/wildfire_detection/resident_vlm/run_bench.sh \
-    --reps 1 --arms baseline \
-    --out ~/Documents/projects/wildfire_detection/resident_vlm/results/dryrun_baseline
+    --reps 3 --arms baseline resident
 
-  It prints a log path. Watch it with:   tail -f <that path>
-  GOOD: a line "[baseline_0] trigger->verdict = <number>s"  (expect ~150-200s)
-  BAD : "trigger->verdict = None"  -> no verdict was produced; do not run the
-        full matrix, keep the log and the results dir for Claude.
+  It detaches (setsid): safe to close the terminal. Keep VS Code CLOSED.
+  Arms:  baseline   cold container start, reads ~6-7GB off the card
+         resident   burst wake, demand-paged mmap
+  resident_continuous is NOT run: its smoke (results/smoke_continuous) read the
+  file twice - the GPU copy of the weights shares RAM with the page cache and
+  evicts the pre-read. Burst vs continuous is measured by fio in STEP 1 instead.
 
-STEP 2 - full matrix, ~30 min (2 reps x 2 arms).
+STEP 3 - drive diagnostics AGAIN, any time after STEP 2's log shows
+         "[bench] done" - an hour later or the next morning is fine:
 
-  bash ~/Documents/projects/wildfire_detection/resident_vlm/run_bench.sh
+  bash ~/Documents/projects/wildfire_detection/mmap_sandbox/card_eval/nvme_diag.sh
 
-  REPS=3 bash .../run_bench.sh    -> ~45 min, better medians
-  It detaches (setsid): safe to close the terminal. Reopen VS Code afterwards.
+  It reads counters, not temperatures (temperatures were recorded during the
+  tests). The drive's thermal-throttle counters only go up while it is hot
+  and never reset, so the STEP 0 / STEP 3 difference is what the sitting
+  caused, however long you wait. Two rules: run it BEFORE rebooting or
+  powering off for the swap (a reboot clears the kernel log it also reads),
+  and do not run other heavy work on the drive in between. Then reopen
+  VS Code and tell Claude.
 
 IF PRE-FLIGHT BLOCKS ON RAM
-  It refuses below 5500MB. To lower it deliberately:
-      MINRAM=5200 bash .../run_bench.sh
+  It refuses below 5500MB. To lower it deliberately, put MINRAM= in front of
+  the whole STEP 2 command (it is one line - copy all of it):
+      MINRAM=5300 bash ~/Documents/projects/wildfire_detection/resident_vlm/run_bench.sh --reps 3 --arms baseline resident
   Lower means more swapping. Some swapping is EXPECTED and is measured.
+  After the 2026-09-11 16:27 reboot the SD only reached ~5400MB, so its
+  official STEP 2 used MINRAM=5300 - use the same floor on the SSD.
 
 IF SOMETHING GOES WRONG
   stop a run:            pkill -f bench.py
@@ -47,6 +102,41 @@ WHEN IT FINISHES
   Reopen VS Code and tell Claude. It will run:
       python3 resident_vlm/analyze.py resident_vlm/results/<rundir>
   and build the latency / throughput / energy / thermal tables.
+
+WHICH DRIVE PRODUCED THE RUN
+  Every run dir now contains:
+    device.json  model / serial / firmware / size / pcie_width / label
+                 label is "sd_express" or "ssd"; pcie_width is 1 for the card
+                 (SD Express is PCIe x1 by spec) and 4 for the M.2 SSD
+    host.json    pmode / pmode_name / nvpmodel service state / CPU clocks
+  If label reads "unknown" the drive was not recognised - tell Claude, do not
+  silently compare the numbers.
+
+SWAPPING THE CARD FOR THE SSD
+  1. Finish, COMMIT and PUSH the SD runs first - git pull on the SSD needs the
+     push. The SSD boots a clone from 2026-09-10, so anything not pushed from
+     the card simply is not there.
+  2. Power off, swap the drive, boot.
+  3. git pull   (the clone predates today's commits)
+  4. Confirm the drive and the partition layout:
+       cat /sys/block/nvme0n1/device/{model,serial,firmware_rev}
+       lsblk -b -o NAME,SIZE,FSTYPE,MOUNTPOINT /dev/nvme0n1
+       sudo parted /dev/nvme0n1 print free
+       df -h /
+     Do NOT expand the partition. Leaving the clone untouched keeps the
+     filesystem layout identical to the card, which is what makes the
+     comparison controlled. The benchmarks are read-dominated, so the
+     unallocated tail would not help the SSD anyway.
+  5. Open VS Code and tell Claude: "read mmap_sandbox/card_eval/HANDOFF.md,
+     we are on the SSD now". The SSD's Claude memory predates 2026-09-11, so
+     HANDOFF.md is what tells it where we are. Then, in this order:
+       a. Set the power mode (BEFORE RUNNING) - a fresh boot comes up at full
+          power:  bash ~/Documents/projects/wildfire_detection/mmap_sandbox/card_eval/set_25w_clocks.sh
+       b. STEP 0 to STEP 3 above, unchanged - same commands, same flags,
+          VS Code closed, background helpers killed, drive rested.
+       c. Afterwards Claude runs the stall probe (~4 min, VS Code open is fine):
+            python3 mmap_sandbox/card_eval/stall_probe.py
+          Never right before STEP 0 - it loads the drive.
 
 KNOWN CAVEATS (already understood, no action needed)
   - The baseline arm peaks around 6.2-6.3GB (VLM ~5.7GB + classifier) on a 7.5GB

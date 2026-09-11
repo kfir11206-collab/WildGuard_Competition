@@ -5,6 +5,8 @@ Reads the INA3221 rails straight from sysfs rather than parsing tegrastats,
 because tegrastats only timestamps to the second and a wake is a few seconds long.
 """
 import json
+import re
+import subprocess
 import threading
 import time
 from pathlib import Path
@@ -60,10 +62,57 @@ def device_stamp(dev="nvme0n1"):
         out["size_bytes"] = int((base / "size").read_text()) * 512
     except OSError:
         out["size_bytes"] = None
+    try:
+        addr = (base / "device" / "address").read_text().strip()
+        pci = Path("/sys/bus/pci/devices") / addr
+        out["pcie_addr"] = addr
+        out["pcie_speed"] = (pci / "current_link_speed").read_text().strip()
+        out["pcie_width"] = int((pci / "current_link_width").read_text())
+    except (OSError, ValueError):
+        out["pcie_addr"] = out["pcie_speed"] = out["pcie_width"] = None
     model = out["model"] or ""
     out["label"] = next(
         (label for key, label in DRIVE_LABELS.items() if key in model), "unknown"
     )
+    return out
+
+
+def power_stamp():
+    out = {}
+    try:
+        out["pmode"] = Path("/var/lib/nvpmodel/status").read_text().strip()
+    except OSError:
+        out["pmode"] = None
+    names = {}
+    try:
+        for line in Path("/etc/nvpmodel.conf").read_text().splitlines():
+            m = re.match(r"< POWER_MODEL ID=(\d+) NAME=(\S+) >", line.strip())
+            if m:
+                names[int(m.group(1))] = m.group(2)
+    except OSError:
+        pass
+    try:
+        out["pmode_name"] = names.get(int((out["pmode"] or "").split(":")[-1]))
+    except ValueError:
+        out["pmode_name"] = None
+    try:
+        out["nvpmodel_service"] = subprocess.run(
+            ["systemctl", "is-active", "nvpmodel"],
+            capture_output=True, text=True, timeout=10).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        out["nvpmodel_service"] = None
+    cpu = Path("/sys/devices/system/cpu")
+    for key, rel in (("cpu_online", "online"),
+                     ("cpu_max_khz", "cpu0/cpufreq/scaling_max_freq"),
+                     ("cpu_governor", "cpu0/cpufreq/scaling_governor")):
+        try:
+            out[key] = (cpu / rel).read_text().strip()
+        except OSError:
+            out[key] = None
+    try:
+        out["gpu_max_hz"] = Path("/sys/class/devfreq/17000000.gpu/max_freq").read_text().strip()
+    except OSError:
+        out["gpu_max_hz"] = None
     return out
 
 
@@ -110,7 +159,7 @@ def _meminfo():
     return out
 
 
-def sample(dev="nvme0n1"):
+def sample(dev="nvme0n1", card_temp=True):
     rec = {"t": time.monotonic(), "wall": time.time()}
     for name, (volt, curr) in RAILS.items():
         try:
@@ -123,6 +172,12 @@ def sample(dev="nvme0n1"):
             rec[f"temp_{name.split('-')[0]}_c"] = int(path.read_text()) / 1000.0
         except (OSError, ValueError):
             continue
+    card = next(Path(f"/sys/block/{dev}/device").glob("hwmon*/temp1_input"), None) if card_temp else None
+    if card is not None:
+        try:
+            rec["temp_card_c"] = int(card.read_text()) / 1000.0
+        except (OSError, ValueError):
+            pass
     rec.update(_diskstats(dev))
     rec.update(_meminfo())
     rec.update(_vmstat())
@@ -130,21 +185,23 @@ def sample(dev="nvme0n1"):
 
 
 class Sampler(threading.Thread):
-    def __init__(self, path, hz=10.0, dev="nvme0n1"):
+    def __init__(self, path, hz=10.0, dev="nvme0n1", card_temp=True):
         super().__init__(daemon=True)
         self.path = Path(path)
         self.period = 1.0 / hz
         self.dev = dev
+        self.card_temp = card_temp
         self.stopping = threading.Event()
         self.marks = []
 
-    def mark(self, name):
-        self.marks.append({"name": name, "t": time.monotonic(), "wall": time.time()})
+    def mark(self, name, t=None):
+        t = time.monotonic() if t is None else t
+        self.marks.append({"name": name, "t": t, "wall": time.time()})
 
     def run(self):
         with open(self.path, "w") as f:
             while not self.stopping.is_set():
-                f.write(json.dumps(sample(self.dev)) + "\n")
+                f.write(json.dumps(sample(self.dev, self.card_temp)) + "\n")
                 f.flush()
                 self.stopping.wait(self.period)
 

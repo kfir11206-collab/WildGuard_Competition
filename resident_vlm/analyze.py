@@ -8,6 +8,10 @@ from pathlib import Path
 WINDOWS = [
     ("idle_asleep", "idle_start", "idle_end"),
     ("wake", "trigger", "first_verdict"),
+    ("preread", "wake_sent", "preread_end"),
+    ("wake_read", "wake_sent", "sd_read_end"),
+    ("camera_open", "sd_read_end", "camera_open_end"),
+    ("inference", "camera_open_end", "first_verdict_end"),
     ("awake", "awake_start", "awake_end"),
     ("sleep_transition", "sleep_start", "sleep_done"),
     ("idle_after", "mht_restarted", "sleep_idle_end"),
@@ -95,15 +99,22 @@ def main():
 
     (rundir / "analysis.json").write_text(json.dumps(rows, indent=2))
 
-    hdr = f"{'arm':<10}{'rep':<5}{'t2v_s':>8}{'wake_J':>9}{'wake_W':>8}{'SD_MB':>8}{'MB/s':>8}{'swapIn':>8}{'stallms':>9}{'sleepW':>8}{'tj_pk':>7}{'freeMB':>8}"
+    hdr = (f"{'arm':<21}{'rep':<5}{'t2v_s':>8}{'wake_J':>9}{'wake_W':>8}"
+           f"{'rd_s':>7}{'rd_J':>7}{'rdMB/s':>8}"
+           f"{'SD_MB':>8}{'MB/s':>8}{'swapIn':>8}{'stallms':>9}{'sleepW':>8}"
+           f"{'tj_pk':>7}{'freeMB':>8}")
     print(hdr)
     print("-" * len(hdr))
     for r in rows:
         w = r.get("wake") or {}
+        rd = r.get("wake_read") or {}
         idle = r.get("idle_asleep") or {}
-        print(f"{str(r['arm']):<10}{str(r['rep']):<5}"
+        print(f"{str(r['arm']):<21}{str(r['rep']):<5}"
               f"{str(r['trigger_to_verdict_s']):>8}{str(w.get('energy_j')):>9}"
-              f"{str(w.get('mean_power_w')):>8}{str(w.get('sd_read_mb')):>8}"
+              f"{str(w.get('mean_power_w')):>8}"
+              f"{str(rd.get('seconds')):>7}{str(rd.get('energy_j')):>7}"
+              f"{str(rd.get('sd_read_mb_s')):>8}"
+              f"{str(w.get('sd_read_mb')):>8}"
               f"{str(w.get('sd_read_mb_s')):>8}{str(w.get('swap_in_mb')):>8}"
               f"{str(w.get('sd_max_stall_ms')):>9}"
               f"{str(idle.get('mean_power_w')):>8}"
@@ -114,11 +125,15 @@ def main():
                 if r["arm"] == arm and r["trigger_to_verdict_s"]]
         ej = [(r.get("wake") or {}).get("energy_j") for r in rows if r["arm"] == arm]
         ej = [e for e in ej if e]
+        rj = [(r.get("wake_read") or {}).get("energy_j") for r in rows if r["arm"] == arm]
+        rj = [e for e in rj if e]
         if vals:
             print(f"\n{arm}: trigger->verdict median {statistics.median(vals):.2f}s "
                   f"(n={len(vals)})", end="")
             if ej:
                 print(f", wake energy median {statistics.median(ej):.1f} J", end="")
+            if rj:
+                print(f", read-phase energy median {statistics.median(rj):.1f} J", end="")
             print()
 
 

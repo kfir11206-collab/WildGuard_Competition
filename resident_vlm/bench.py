@@ -105,8 +105,12 @@ def wait_for_mht(sink, timeout=90):
 
 
 def compose(*args, timeout=600):
-    return subprocess.run(["docker", "compose", "-f", str(COMPOSE), *args],
-                          capture_output=True, text=True, timeout=timeout)
+    r = subprocess.run(["docker", "compose", "-f", str(COMPOSE), *args],
+                       capture_output=True, text=True, timeout=timeout)
+    if r.returncode != 0:
+        print(f"[bench] docker compose {' '.join(args)} failed (rc={r.returncode}): "
+              f"{r.stderr.strip()[-400:]}", flush=True)
+    return r
 
 
 def mht_up():
@@ -164,10 +168,11 @@ def send(cmd, timeout=600):
     return json.loads(line)
 
 
-def start_daemon(log_path, ready_timeout=400):
+def start_daemon(log_path, extra=(), ready_timeout=400):
     f = open(log_path, "w")
     proc = subprocess.Popen(
-        ["bash", str(ROOT / "resident_vlm" / "run_resident.sh"), "--sleep-on-start"],
+        ["bash", str(ROOT / "resident_vlm" / "run_resident.sh"),
+         "--sleep-on-start", *extra],
         stdout=f, stderr=subprocess.STDOUT,
     )
     deadline = time.monotonic() + ready_timeout
@@ -193,9 +198,24 @@ def stop_daemon(proc):
             proc.kill()
 
 
+def mark_wake_phases(smp, t0, reply):
+    t = t0
+    smp.mark("wake_sent", t)
+    for key in ("preread_seconds", "sd_read_seconds",
+                "camera_open_seconds", "first_verdict_seconds"):
+        d = reply.get(key)
+        if d is None:
+            continue
+        t += d
+        smp.mark(key[: -len("_seconds")] + "_end", t)
+
+
 def run_arm(arm, rep, args, outdir, sink):
     tag = f"{arm}_{rep}"
     rec = {"arm": arm, "rep": rep}
+    resident = arm.startswith("resident")
+    pace = (["--pace-mbps", str(args.pace_mbps)]
+            if arm == "resident_continuous" else [])
     daemon = None
     smp = S.Sampler(outdir / f"{tag}.jsonl", hz=args.hz)
 
@@ -206,8 +226,8 @@ def run_arm(arm, rep, args, outdir, sink):
         compose("stop", "-t", "20", *STACK)
         mht_stop()
 
-        if arm == "resident":
-            daemon = start_daemon(outdir / f"{tag}.daemon.log")
+        if resident:
+            daemon = start_daemon(outdir / f"{tag}.daemon.log", extra=pace)
             rec["load"] = send("STATS")
             # Unmeasured warm-up: the camera's first open costs ~6s and every
             # later one ~0.1s. A continuously-running daemon pays that once at
@@ -223,7 +243,7 @@ def run_arm(arm, rep, args, outdir, sink):
         time.sleep(args.mht_settle)
         mht_scores_at_trigger = len(sink.scores)
 
-        drop_cache([FUSED] if arm == "resident" else default_model_files())
+        drop_cache([FUSED] if resident else default_model_files())
         rec["cooldown_seconds"], rec["tj_start"] = cooldown(args.tj_target, args.cooldown_max)
 
         smp.start()
@@ -237,11 +257,15 @@ def run_arm(arm, rep, args, outdir, sink):
         mht_stop()
         smp.mark("mht_stopped")
         compose("up", "-d", "wildfire_classifier")
-        if arm == "resident":
+        if resident:
+            t_wake = time.monotonic()
             rec["wake_reply"] = send("WAKE", timeout=args.verdict_timeout)
+            mark_wake_phases(smp, t_wake, rec["wake_reply"])
         else:
-            compose("up", "-d", "wildfire_detection")
-        t_verdict = wait_for_verdict(size0, args.verdict_timeout)
+            up = compose("up", "-d", "wildfire_detection")
+            if up.returncode != 0:
+                rec["error"] = up.stderr.strip()[-400:]
+        t_verdict = None if "error" in rec else wait_for_verdict(size0, args.verdict_timeout)
         smp.mark("first_verdict")
         rec["trigger_to_verdict_seconds"] = (
             round(t_verdict - t_trigger, 3) if t_verdict else None
@@ -253,7 +277,7 @@ def run_arm(arm, rep, args, outdir, sink):
         rec["tj_awake"] = S.read_tj()
 
         smp.mark("sleep_start")
-        if arm == "resident":
+        if resident:
             rec["sleep_reply"] = send("SLEEP", timeout=120)
             compose("stop", "-t", "30", "wildfire_classifier")
         else:
@@ -289,6 +313,7 @@ def main():
     p.add_argument("--cooldown-max", type=float, default=240.0)
     p.add_argument("--verdict-timeout", type=float, default=420.0)
     p.add_argument("--hz", type=float, default=10.0)
+    p.add_argument("--pace-mbps", type=float, default=185.0)
     p.add_argument("--out", default=None)
     args = p.parse_args()
 
@@ -298,9 +323,14 @@ def main():
     (outdir / "args.json").write_text(json.dumps(vars(args), indent=2))
     stamp = S.device_stamp()
     (outdir / "device.json").write_text(json.dumps(stamp, indent=2))
+    power = S.power_stamp()
+    (outdir / "host.json").write_text(json.dumps(power, indent=2))
     print(f"[bench] writing to {outdir}", flush=True)
     print(f"[bench] storage device: {stamp['label']} "
           f"model={stamp['model']} sn={stamp['serial']}", flush=True)
+    print(f"[bench] power mode: {power['pmode']} ({power['pmode_name']}) "
+          f"nvpmodel={power['nvpmodel_service']} "
+          f"cpu_max={power['cpu_max_khz']} kHz", flush=True)
 
     sink = MhtSink(WATCHER_SOCK)
     sink.start()

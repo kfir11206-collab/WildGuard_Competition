@@ -33,6 +33,15 @@ else
                                     || bad "xhost" "could not grant - run: xhost +local:root"
 fi
 
+XA=/tmp/.docker.xauth
+if [ -d "$XA" ]; then
+  bad "xauth file" "$XA is a DIRECTORY (docker made it) - run: sudo rmdir $XA"
+elif [ -f "$XA" ] || touch "$XA" 2>/dev/null; then
+  ok "xauth file" "present (mount target only - X access comes from xhost)"
+else
+  bad "xauth file" "could not create $XA"
+fi
+
 if [ -f resident_vlm/results/fused_state.pt ]; then
   ok "fused checkpoint" "$(du -h resident_vlm/results/fused_state.pt | cut -f1)"
 else ok "fused checkpoint" "absent - daemon will rebuild it (+15s)"; fi
@@ -49,9 +58,10 @@ else bad "RAM available" "${avail}MB - close VS Code/browser (need >=${MINRAM}, 
 
 mode=$(cat /var/lib/nvpmodel/status 2>/dev/null)
 cap=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 2>/dev/null)
-if [ "$mode" = "pmode:0001" ] && [ "$cap" = "1344000" ]; then
+gpu=$(cat /sys/class/devfreq/17000000.gpu/max_freq 2>/dev/null)
+if [ "$mode" = "pmode:0001" ] && [ "$cap" = "1344000" ] && [ "$gpu" = "918000000" ]; then
   ok "power mode" "25W applied (verified live)"
-else bad "power mode" "$mode cap=$cap - expected pmode:0001 / 1344000"; fi
+else bad "power mode" "$mode cpu=$cap gpu=$gpu - run mmap_sandbox/card_eval/set_25w_clocks.sh"; fi
 
 if [ "$fail" -ne 0 ]; then
   echo; echo "pre-flight FAILED - nothing was started."; exit 1

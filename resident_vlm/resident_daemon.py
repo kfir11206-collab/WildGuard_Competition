@@ -101,6 +101,23 @@ class Resident:
         with open(meta_path, "w") as f:
             json.dump({"stamp": self.stamp, "model": self.args.model}, f)
 
+    def _paced_preread(self):
+        budget = self.args.pace_mbps * 1e6
+        chunk = 16 << 20
+        t0 = time.monotonic()
+        total = 0
+        with open(self.args.fused, "rb", buffering=0) as f:
+            while True:
+                b = f.read(chunk)
+                if not b:
+                    break
+                total += len(b)
+                target = t0 + total / budget
+                now = time.monotonic()
+                if target > now:
+                    time.sleep(target - now)
+        return round(time.monotonic() - t0, 3), total
+
     def _load_from_card(self):
         sd = torch.load(self.args.fused, map_location="cpu", mmap=True)
         report = self.model.model.load_state_dict(sd, assign=True, strict=False)
@@ -161,8 +178,11 @@ class Resident:
                 return {"error": "already awake"}
             d0 = diskstats(self.args.dev)
             t0 = time.monotonic()
+            preread_s, preread_b = (self._paced_preread()
+                                    if self.args.pace_mbps > 0 else (None, None))
+            t_load = time.monotonic()
             missing, unexpected = self._load_from_card()
-            sd_read = round(time.monotonic() - t0, 3)
+            sd_read = round(time.monotonic() - t_load, 3)
             t1 = time.monotonic()
             self.state = "AWAKE"
             try:
@@ -179,6 +199,8 @@ class Resident:
                 self._emit(text)
             d1 = diskstats(self.args.dev)
             out = {
+                "preread_seconds": preread_s,
+                "preread_bytes": preread_b,
                 "sd_read_seconds": sd_read,
                 "camera_open_seconds": cam_open,
                 "first_verdict_seconds": first_verdict,
@@ -248,6 +270,7 @@ def main():
     p.add_argument("--text-out", default=os.environ.get("TEXT_OUT_PATH", "/data/out_txt"))
     p.add_argument("--prompt", default="describe the scene in detail, and what is happening in it. "
                                        "do you see any signs of smoke? is smoke present?")
+    p.add_argument("--pace-mbps", type=float, default=0.0)
     p.add_argument("--sleep-on-start", action="store_true")
     args = p.parse_args()
 
