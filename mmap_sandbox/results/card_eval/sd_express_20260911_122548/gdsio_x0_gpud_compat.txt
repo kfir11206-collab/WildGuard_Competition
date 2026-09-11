@@ -1,0 +1,1 @@
+IoType: READ XferType: GPUD Threads: 8 DataSetSize: 25689088/8388608(KiB) IOSize: 1024(KiB) Throughput: 0.816355 GiB/sec, Avg_Latency: 9569.206293 usecs ops: 25087 total_time 30.010239 secs

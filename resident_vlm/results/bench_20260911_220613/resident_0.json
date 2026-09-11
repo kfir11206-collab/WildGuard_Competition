@@ -1,0 +1,69 @@
+{
+  "arm": "resident",
+  "rep": 0,
+  "load": {
+    "state": "SLEEPING",
+    "gpu_mb": 2248,
+    "rss_mb": 4519,
+    "verdicts": 0,
+    "fuse_calls_total": 1,
+    "load_seconds": 72.69
+  },
+  "warmup_wake": {
+    "preread_seconds": null,
+    "preread_bytes": null,
+    "sd_read_seconds": 7.385,
+    "camera_open_seconds": 5.07,
+    "first_verdict_seconds": 2.58,
+    "wake_seconds": 15.038,
+    "bytes_read": 2324074496,
+    "missing_keys": 0,
+    "unexpected_keys": 0,
+    "fuse_calls_total": 1,
+    "params_still_meta": 0,
+    "gpu_mb": 3946,
+    "rss_mb": 5993,
+    "verdict": "The image is blurry and out of focus, making it difficult to discern specific details. However, it appears to be an indoor setting with a desk and a computer monitor</s>"
+  },
+  "warmup_sleep": {
+    "camera_close_seconds": 0.275,
+    "sleep_seconds": 1.619,
+    "gpu_mb_freed": 1689,
+    "rss_mb_freed": 1684,
+    "gpu_mb_asleep": 2265,
+    "rss_mb_asleep": 4304,
+    "params_evicted": 67
+  },
+  "mht_alive": true,
+  "cooldown_seconds": 38.0,
+  "tj_start": 52.0,
+  "wake_reply": {
+    "preread_seconds": null,
+    "preread_bytes": null,
+    "sd_read_seconds": 9.879,
+    "camera_open_seconds": 0.118,
+    "first_verdict_seconds": 2.614,
+    "wake_seconds": 12.614,
+    "bytes_read": 2591805440,
+    "missing_keys": 0,
+    "unexpected_keys": 0,
+    "fuse_calls_total": 1,
+    "params_still_meta": 0,
+    "gpu_mb": 3954,
+    "rss_mb": 5522,
+    "verdict": "The image is blurry and out of focus, making it difficult to discern specific details. However, it appears to be an indoor setting with various objects and possibly some smoke.</s>"
+  },
+  "trigger_to_verdict_seconds": 15.118,
+  "tj_awake": 63.656,
+  "sleep_reply": {
+    "camera_close_seconds": 0.261,
+    "sleep_seconds": 1.313,
+    "gpu_mb_freed": 1689,
+    "rss_mb_freed": 1689,
+    "gpu_mb_asleep": 2265,
+    "rss_mb_asleep": 3624,
+    "params_evicted": 67
+  },
+  "mht_alive_after_wake_cycle": true,
+  "mht_scores_during_arm": 152
+}

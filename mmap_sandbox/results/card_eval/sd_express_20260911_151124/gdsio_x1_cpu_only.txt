@@ -1,0 +1,1 @@
+IoType: READ XferType: CPUONLY Threads: 8 DataSetSize: 25659392/8388608(KiB) IOSize: 1024(KiB) Throughput: 0.818697 GiB/sec, Avg_Latency: 9541.007060 usecs ops: 25058 total_time 29.889807 secs

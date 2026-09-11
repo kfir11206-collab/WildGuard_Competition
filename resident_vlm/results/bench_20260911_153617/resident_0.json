@@ -1,0 +1,69 @@
+{
+  "arm": "resident",
+  "rep": 0,
+  "load": {
+    "state": "SLEEPING",
+    "gpu_mb": 2248,
+    "rss_mb": 4606,
+    "verdicts": 0,
+    "fuse_calls_total": 1,
+    "load_seconds": 72.15
+  },
+  "warmup_wake": {
+    "preread_seconds": null,
+    "preread_bytes": null,
+    "sd_read_seconds": 7.174,
+    "camera_open_seconds": 4.572,
+    "first_verdict_seconds": 2.59,
+    "wake_seconds": 14.339,
+    "bytes_read": 2242547712,
+    "missing_keys": 0,
+    "unexpected_keys": 0,
+    "fuse_calls_total": 1,
+    "params_still_meta": 0,
+    "gpu_mb": 3946,
+    "rss_mb": 6173,
+    "verdict": "1. The image is blurry and out of focus, making it difficult to discern specific details.\n2. There is no visible smoke in the image.\n3. The image</s>"
+  },
+  "warmup_sleep": {
+    "camera_close_seconds": 0.26,
+    "sleep_seconds": 1.507,
+    "gpu_mb_freed": 1689,
+    "rss_mb_freed": 1684,
+    "gpu_mb_asleep": 2265,
+    "rss_mb_asleep": 4437,
+    "params_evicted": 67
+  },
+  "mht_alive": true,
+  "cooldown_seconds": 40.0,
+  "tj_start": 52.0,
+  "wake_reply": {
+    "preread_seconds": null,
+    "preread_bytes": null,
+    "sd_read_seconds": 9.012,
+    "camera_open_seconds": 0.178,
+    "first_verdict_seconds": 2.659,
+    "wake_seconds": 11.855,
+    "bytes_read": 2593161216,
+    "missing_keys": 0,
+    "unexpected_keys": 0,
+    "fuse_calls_total": 1,
+    "params_still_meta": 0,
+    "gpu_mb": 3954,
+    "rss_mb": 5774,
+    "verdict": "1. The image is blurry and out of focus, making it difficult to discern specific details.\n2. There is no visible smoke in the image.\n3. The image</s>"
+  },
+  "trigger_to_verdict_seconds": 15.0,
+  "tj_awake": 62.843,
+  "sleep_reply": {
+    "camera_close_seconds": 0.268,
+    "sleep_seconds": 1.313,
+    "gpu_mb_freed": 1689,
+    "rss_mb_freed": 1690,
+    "gpu_mb_asleep": 2265,
+    "rss_mb_asleep": 3832,
+    "params_evicted": 67
+  },
+  "mht_alive_after_wake_cycle": true,
+  "mht_scores_during_arm": 156
+}

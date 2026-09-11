@@ -1,0 +1,364 @@
+=== kernel log ===
+[Fri Sep 11 10:09:17 2026] tegra194-pcie 14100000.pcie: Adding to iommu group 4
+[Fri Sep 11 10:09:17 2026] tegra194-pcie 14100000.pcie: host bridge /bus@0/pcie@14100000 ranges:
+[Fri Sep 11 10:09:17 2026] tegra194-pcie 14100000.pcie:      MEM 0x2080000000..0x20a7ffffff -> 0x2080000000
+[Fri Sep 11 10:09:17 2026] tegra194-pcie 14100000.pcie:      MEM 0x20a8000000..0x20afffffff -> 0x0040000000
+[Fri Sep 11 10:09:17 2026] tegra194-pcie 14100000.pcie:       IO 0x0030100000..0x00301fffff -> 0x0030100000
+[Fri Sep 11 10:09:17 2026] tegra194-pcie 14100000.pcie: iATU: unroll T, 8 ob, 2 ib, align 64K, limit 32G
+[Fri Sep 11 10:09:18 2026] tegra194-pcie 14100000.pcie: PCIe Gen.1 x1 link up
+[Fri Sep 11 10:09:18 2026] tegra194-pcie 14100000.pcie: PCIe Gen.1 x1 link up
+[Fri Sep 11 10:09:18 2026] tegra194-pcie 14100000.pcie: PCI host bridge to bus 0001:00
+[Fri Sep 11 10:09:18 2026] pci 0001:00:00.0: [10de:229e] type 01 class 0x060400 PCIe Root Port
+[Fri Sep 11 10:09:18 2026] pci 0001:01:00.0: [10ec:c822] type 00 class 0x028000 PCIe Endpoint
+[Fri Sep 11 10:09:18 2026] pcieport 0001:00:00.0: Adding to iommu group 4
+[Fri Sep 11 10:09:18 2026] pcieport 0001:00:00.0: PME: Signaling with IRQ 179
+[Fri Sep 11 10:09:18 2026] pcieport 0001:00:00.0: AER: enabled with IRQ 179
+[Fri Sep 11 10:09:18 2026] tegra194-pcie 14160000.pcie: Adding to iommu group 6
+[Fri Sep 11 10:09:18 2026] tegra194-pcie 14160000.pcie: host bridge /bus@0/pcie@14160000 ranges:
+[Fri Sep 11 10:09:18 2026] tegra194-pcie 14160000.pcie:      MEM 0x2140000000..0x2427ffffff -> 0x2140000000
+[Fri Sep 11 10:09:18 2026] tegra194-pcie 14160000.pcie:      MEM 0x2428000000..0x242fffffff -> 0x0040000000
+[Fri Sep 11 10:09:18 2026] tegra194-pcie 14160000.pcie:       IO 0x0036100000..0x00361fffff -> 0x0036100000
+[Fri Sep 11 10:09:18 2026] tegra194-pcie 14160000.pcie: iATU: unroll T, 8 ob, 2 ib, align 64K, limit 32G
+[Fri Sep 11 10:09:19 2026] tegra194-pcie 14160000.pcie: Phy link never came up
+[Fri Sep 11 10:09:20 2026] tegra194-pcie 14160000.pcie: Phy link never came up
+[Fri Sep 11 10:09:20 2026] tegra194-pcie 14160000.pcie: PCI host bridge to bus 0004:00
+[Fri Sep 11 10:09:20 2026] pci 0004:00:00.0: [10de:229c] type 01 class 0x060400 PCIe Root Port
+[Fri Sep 11 10:09:20 2026] pcieport 0004:00:00.0: Adding to iommu group 6
+[Fri Sep 11 10:09:20 2026] pcieport 0004:00:00.0: PME: Signaling with IRQ 182
+[Fri Sep 11 10:09:20 2026] pcieport 0004:00:00.0: AER: enabled with IRQ 182
+[Fri Sep 11 10:09:20 2026] tegra194-pcie 141e0000.pcie: Adding to iommu group 7
+[Fri Sep 11 10:09:20 2026] tegra194-pcie 141e0000.pcie: host bridge /bus@0/pcie@141e0000 ranges:
+[Fri Sep 11 10:09:20 2026] tegra194-pcie 141e0000.pcie:      MEM 0x3000000000..0x3227ffffff -> 0x3000000000
+[Fri Sep 11 10:09:20 2026] tegra194-pcie 141e0000.pcie:      MEM 0x3228000000..0x322fffffff -> 0x0040000000
+[Fri Sep 11 10:09:20 2026] tegra194-pcie 141e0000.pcie:       IO 0x003e100000..0x003e1fffff -> 0x003e100000
+[Fri Sep 11 10:09:20 2026] tegra194-pcie 141e0000.pcie: iATU: unroll T, 8 ob, 2 ib, align 64K, limit 32G
+[Fri Sep 11 10:09:20 2026] tegra194-pcie 141e0000.pcie: PCIe Gen.3 x1 link up
+[Fri Sep 11 10:09:21 2026] tegra194-pcie 141e0000.pcie: PCIe Gen.3 x1 link up
+[Fri Sep 11 10:09:21 2026] tegra194-pcie 141e0000.pcie: PCI host bridge to bus 0007:00
+[Fri Sep 11 10:09:21 2026] pci 0007:00:00.0: [10de:229a] type 01 class 0x060400 PCIe Root Port
+[Fri Sep 11 10:09:21 2026] pci 0007:01:00.0: [15b7:5007] type 00 class 0x010802 PCIe Endpoint
+[Fri Sep 11 10:09:21 2026] pcieport 0007:00:00.0: Adding to iommu group 7
+[Fri Sep 11 10:09:21 2026] pcieport 0007:00:00.0: PME: Signaling with IRQ 184
+[Fri Sep 11 10:09:21 2026] pcieport 0007:00:00.0: AER: enabled with IRQ 184
+[Fri Sep 11 10:09:21 2026] nvme 0007:01:00.0: Adding to iommu group 7
+[Fri Sep 11 10:09:21 2026] nvme nvme0: pci function 0007:01:00.0
+[Fri Sep 11 10:09:21 2026] nvme 0007:01:00.0: enabling device (0000 -> 0002)
+[Fri Sep 11 10:09:21 2026] nvme nvme0: allocated 128 MiB host memory buffer.
+[Fri Sep 11 10:09:21 2026] nvme nvme0: 6/0/0 default/read/poll queues
+[Fri Sep 11 10:09:21 2026]  nvme0n1: p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14 p15
+[Fri Sep 11 10:09:21 2026] tegra194-pcie 140a0000.pcie: Adding to iommu group 8
+[Fri Sep 11 10:09:21 2026] tegra194-pcie 140a0000.pcie: host bridge /bus@0/pcie@140a0000 ranges:
+[Fri Sep 11 10:09:21 2026] tegra194-pcie 140a0000.pcie:      MEM 0x3240000000..0x3527ffffff -> 0x3240000000
+[Fri Sep 11 10:09:21 2026] tegra194-pcie 140a0000.pcie:      MEM 0x3528000000..0x352fffffff -> 0x0040000000
+[Fri Sep 11 10:09:21 2026] tegra194-pcie 140a0000.pcie:       IO 0x002a100000..0x002a1fffff -> 0x002a100000
+[Fri Sep 11 10:09:21 2026] tegra194-pcie 140a0000.pcie: iATU: unroll T, 8 ob, 2 ib, align 64K, limit 32G
+[Fri Sep 11 10:09:21 2026] EXT4-fs (nvme0n1p1): mounted filesystem ce9fb08c-3a91-4989-829c-2be7e7c7afef r/w with ordered data mode. Quota mode: none.
+[Fri Sep 11 10:09:21 2026] tegra194-pcie 140a0000.pcie: PCIe Gen.1 x1 link up
+[Fri Sep 11 10:09:21 2026] tegra194-pcie 140a0000.pcie: PCIe Gen.1 x1 link up
+[Fri Sep 11 10:09:21 2026] tegra194-pcie 140a0000.pcie: PCI host bridge to bus 0008:00
+[Fri Sep 11 10:09:21 2026] pci 0008:00:00.0: [10de:229c] type 01 class 0x060400 PCIe Root Port
+[Fri Sep 11 10:09:21 2026] pci 0008:01:00.0: [10ec:8168] type 00 class 0x020000 PCIe Endpoint
+[Fri Sep 11 10:09:21 2026] pcieport 0008:00:00.0: Adding to iommu group 8
+[Fri Sep 11 10:09:21 2026] pcieport 0008:00:00.0: PME: Signaling with IRQ 193
+[Fri Sep 11 10:09:21 2026] pcieport 0008:00:00.0: AER: enabled with IRQ 193
+[Fri Sep 11 10:09:22 2026] systemd[1]: Starting modprobe@nvme_fabrics.service - Load Kernel Module nvme_fabrics...
+[Fri Sep 11 10:09:22 2026] EXT4-fs (nvme0n1p1): re-mounted ce9fb08c-3a91-4989-829c-2be7e7c7afef.
+[Fri Sep 11 10:09:26 2026] block nvme0n1: No UUID available providing old NGUID
+[Fri Sep 11 12:29:45 2026] nvme nvme0: I/O tag 839 (e347) QID 2 timeout, completion polled
+[Fri Sep 11 13:49:38 2026] nvme nvme0: I/O tag 551 (b227) QID 4 timeout, completion polled
+[Fri Sep 11 13:50:46 2026] nvme nvme0: I/O tag 134 (0086) QID 2 timeout, completion polled
+[Fri Sep 11 13:51:25 2026] nvme nvme0: I/O tag 71 (e047) QID 3 timeout, completion polled
+[Fri Sep 11 13:57:31 2026] nvme nvme0: I/O tag 717 (42cd) QID 1 timeout, completion polled
+=== card health ===
+Smart Log for NVME device:nvme0 namespace-id:ffffffff
+critical_warning			: 0
+temperature				: 55 °C (328 K)
+available_spare				: 100%
+available_spare_threshold		: 10%
+percentage_used				: 0%
+endurance group critical warning summary: 0
+Data Units Read				: 14452953 (7.40 TB)
+Data Units Written			: 5566891 (2.85 TB)
+host_read_commands			: 265055622
+host_write_commands			: 96144698
+controller_busy_time			: 2
+power_cycles				: 66
+power_on_hours				: 320
+unsafe_shutdowns			: 16
+media_errors				: 0
+num_err_log_entries			: 0
+Warning Temperature Time		: 334
+Critical Composite Temperature Time	: 58
+Thermal Management T1 Trans Count	: 726
+Thermal Management T2 Trans Count	: 865
+Thermal Management T1 Total Time	: 2807
+Thermal Management T2 Total Time	: 41782
+=== card error log ===
+Error Log Entries for device:nvme0 entries:64
+.................
+ Entry[ 0]   
+.................
+error_count	: 0
+sqid		: 0
+cmdid		: 0
+status_field	: 0(Successful Completion: The command completed without error)
+phase_tag	: 0
+parm_err_loc	: 0
+lba		: 0
+nsid		: 0
+vs		: 0
+trtype		: The transport type is not indicated or the error is not transport related.
+csi		: 0
+opcode		: 0
+cs		: 0
+trtype_spec_info: 0
+log_page_version: 0
+.................
+ Entry[ 1]   
+.................
+error_count	: 0
+sqid		: 0
+cmdid		: 0
+status_field	: 0(Successful Completion: The command completed without error)
+phase_tag	: 0
+parm_err_loc	: 0
+lba		: 0
+nsid		: 0
+vs		: 0
+trtype		: The transport type is not indicated or the error is not transport related.
+csi		: 0
+opcode		: 0
+cs		: 0
+trtype_spec_info: 0
+log_page_version: 0
+.................
+ Entry[ 2]   
+.................
+error_count	: 0
+sqid		: 0
+cmdid		: 0
+status_field	: 0(Successful Completion: The command completed without error)
+phase_tag	: 0
+parm_err_loc	: 0
+lba		: 0
+nsid		: 0
+vs		: 0
+trtype		: The transport type is not indicated or the error is not transport related.
+csi		: 0
+opcode		: 0
+cs		: 0
+trtype_spec_info: 0
+log_page_version: 0
+.................
+ Entry[ 3]   
+.................
+error_count	: 0
+sqid		: 0
+cmdid		: 0
+status_field	: 0(Successful Completion: The command completed without error)
+phase_tag	: 0
+parm_err_loc	: 0
+lba		: 0
+nsid		: 0
+vs		: 0
+trtype		: The transport type is not indicated or the error is not transport related.
+csi		: 0
+opcode		: 0
+cs		: 0
+trtype_spec_info: 0
+log_page_version: 0
+.................
+ Entry[ 4]   
+.................
+error_count	: 0
+sqid		: 0
+cmdid		: 0
+status_field	: 0(Successful Completion: The command completed without error)
+=== card power states ===
+get-feature:0x0c (Autonomous Power State Transition), Current value:0x00000001
+	Autonomous Power State Transition Enable (APSTE): Enabled
+	Auto PST Entries	.................
+	Entry[ 0]   
+	.................
+	Idle Time Prior to Transition (ITPT): 2000 ms
+	Idle Transition Power State   (ITPS): 4
+	.................
+	Entry[ 1]   
+	.................
+	Idle Time Prior to Transition (ITPT): 2000 ms
+	Idle Transition Power State   (ITPS): 4
+	.................
+	Entry[ 2]   
+	.................
+	Idle Time Prior to Transition (ITPT): 2000 ms
+	Idle Transition Power State   (ITPS): 4
+	.................
+	Entry[ 3]   
+	.................
+	Idle Time Prior to Transition (ITPT): 2000 ms
+	Idle Transition Power State   (ITPS): 4
+	.................
+	Entry[ 4]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[ 5]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[ 6]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[ 7]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[ 8]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[ 9]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[10]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[11]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[12]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[13]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[14]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[15]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[16]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[17]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[18]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[19]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[20]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[21]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[22]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[23]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[24]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[25]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[26]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[27]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[28]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[29]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[30]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+	Entry[31]   
+	.................
+	Idle Time Prior to Transition (ITPT): 0 ms
+	Idle Transition Power State   (ITPS): 0
+	.................
+apsta     : 0x1
+wctemp    : 358
+cctemp    : 363
+hmpre     : 51200
+hmmin     : 823
+mntmt     : 303
+mxtmt     : 363
+hmminds   : 0
+ps      0 : mp:1.80W operational enlat:0 exlat:0 rrt:0 rrl:0
+ps      1 : mp:1.44W operational enlat:0 exlat:0 rrt:0 rrl:0
+ps      2 : mp:0.72W operational enlat:0 exlat:0 rrt:0 rrl:0
+ps      3 : mp:0.0200W non-operational enlat:11000 exlat:16000 rrt:3 rrl:3
+ps      4 : mp:0.0150W non-operational enlat:11000 exlat:45000 rrt:4 rrl:4
+=== pcie link ===
+		DevSta:	CorrErr- NonFatalErr- FatalErr- UnsupReq- AuxPwr- TransPend-
+		LnkCap:	Port #0, Speed 8GT/s, Width x1, ASPM L1, Exit Latency L1 <8us
+		LnkCtl:	ASPM Disabled; RCB 64 bytes, Disabled- CommClk+
+		LnkSta:	Speed 8GT/s, Width x1
+		LnkCap2: Supported Link Speeds: 2.5-8GT/s, Crosslink- Retimer- 2Retimers- DRS-
+		LnkCtl2: Target Link Speed: 8GT/s, EnterCompliance- SpeedDis-
+		LnkSta2: Current De-emphasis Level: -6dB, EqualizationComplete+ EqualizationPhase1+
+		UESta:	DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
+		CESta:	RxErr- BadTLP- BadDLLP- Rollover- Timeout- AdvNonFatalErr-
+		LnkCtl3: LnkEquIntrruptEn- PerformEqu-

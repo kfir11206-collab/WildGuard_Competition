@@ -1,0 +1,80 @@
+=== drive ===
+ST51271_WDC SanDisk SD Express SDSQXFN  fw=RO180S2P  pcie=0007:01:00.0
+=== kernel log (nvme / pcie / aer) ===
+[Fri Sep 11 19:52:51 2026] nvme nvme0: I/O tag 71 (8047) QID 2 timeout, completion polled
+=== card health ===
+Smart Log for NVME device:nvme0 namespace-id:ffffffff
+critical_warning			: 0
+temperature				: 53 °C (326 K)
+available_spare				: 100%
+available_spare_threshold		: 10%
+percentage_used				: 0%
+endurance group critical warning summary: 0
+Data Units Read				: 16143509 (8.27 TB)
+Data Units Written			: 5968385 (3.06 TB)
+host_read_commands			: 285170667
+host_write_commands			: 104642372
+controller_busy_time			: 2
+power_cycles				: 66
+power_on_hours				: 328
+unsafe_shutdowns			: 16
+media_errors				: 0
+num_err_log_entries			: 0
+Warning Temperature Time		: 335
+Critical Composite Temperature Time	: 58
+Thermal Management T1 Trans Count	: 753
+Thermal Management T2 Trans Count	: 871
+Thermal Management T1 Total Time	: 2949
+Thermal Management T2 Total Time	: 41800
+=== card error log (non-empty entries only) ===
+(no errors logged)
+=== autonomous power states ===
+get-feature:0x0c (Autonomous Power State Transition), Current value:0x00000001
+	Autonomous Power State Transition Enable (APSTE): Enabled
+	Auto PST Entries	.................
+	Entry[ 0]   
+	.................
+	Idle Time Prior to Transition (ITPT): 2000 ms
+	Idle Transition Power State   (ITPS): 4
+	.................
+	Entry[ 1]   
+	.................
+	Idle Time Prior to Transition (ITPT): 2000 ms
+	Idle Transition Power State   (ITPS): 4
+	.................
+	Entry[ 2]   
+	.................
+	Idle Time Prior to Transition (ITPT): 2000 ms
+	Idle Transition Power State   (ITPS): 4
+	.................
+	Entry[ 3]   
+	.................
+	Idle Time Prior to Transition (ITPT): 2000 ms
+	Idle Transition Power State   (ITPS): 4
+	.................
+	Entry[ 4]   
+=== power states / thermal limits / host memory buffer ===
+apsta     : 0x1
+wctemp    : 358
+cctemp    : 363
+hmpre     : 51200
+hmmin     : 823
+mntmt     : 303
+mxtmt     : 363
+hmminds   : 0
+ps      0 : mp:1.80W operational enlat:0 exlat:0 rrt:0 rrl:0
+ps      1 : mp:1.44W operational enlat:0 exlat:0 rrt:0 rrl:0
+ps      2 : mp:0.72W operational enlat:0 exlat:0 rrt:0 rrl:0
+ps      3 : mp:0.0200W non-operational enlat:11000 exlat:16000 rrt:3 rrl:3
+ps      4 : mp:0.0150W non-operational enlat:11000 exlat:45000 rrt:4 rrl:4
+=== pcie link ===
+		DevSta:	CorrErr- NonFatalErr- FatalErr- UnsupReq- AuxPwr- TransPend-
+		LnkCap:	Port #0, Speed 8GT/s, Width x1, ASPM L1, Exit Latency L1 <8us
+		LnkCtl:	ASPM Disabled; RCB 64 bytes, Disabled- CommClk+
+		LnkSta:	Speed 8GT/s, Width x1
+		LnkCap2: Supported Link Speeds: 2.5-8GT/s, Crosslink- Retimer- 2Retimers- DRS-
+		LnkCtl2: Target Link Speed: 8GT/s, EnterCompliance- SpeedDis-
+		LnkSta2: Current De-emphasis Level: -6dB, EqualizationComplete+ EqualizationPhase1+
+		UESta:	DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
+		CESta:	RxErr- BadTLP- BadDLLP- Rollover- Timeout- AdvNonFatalErr-
+		LnkCtl3: LnkEquIntrruptEn- PerformEqu-

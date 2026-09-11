@@ -1,0 +1,1 @@
+IoType: READ XferType: CPU_GPU Threads: 8 DataSetSize: 25564160/8388608(KiB) IOSize: 1024(KiB) Throughput: 0.816646 GiB/sec, Avg_Latency: 9565.638760 usecs ops: 24965 total_time 29.853665 secs

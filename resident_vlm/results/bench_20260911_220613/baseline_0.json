@@ -1,0 +1,11 @@
+{
+  "arm": "baseline",
+  "rep": 0,
+  "mht_alive": true,
+  "cooldown_seconds": 0.0,
+  "tj_start": 50.343,
+  "trigger_to_verdict_seconds": 129.756,
+  "tj_awake": 60.875,
+  "mht_alive_after_wake_cycle": true,
+  "mht_scores_during_arm": 80
+}

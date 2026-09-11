@@ -1,0 +1,85 @@
+{
+  "verdict": "STALLS, RESCUED: 1MB QD1 reads stall, but a 4K read on the same queue once a second releases them within ~1s -> the drive had already completed them; the completion interrupt was missed",
+  "runs": {
+    "qd1_1m_plain_a": {
+      "bs": "1M",
+      "qd": 1,
+      "mb_s": 612.9,
+      "ios": 17535,
+      "clat_max_ms": 3477.9,
+      "ios_over_100ms_pct": 0.02
+    },
+    "qd1_1m_rescue_a": {
+      "bs": "1M",
+      "qd": 1,
+      "mb_s": 687.0,
+      "ios": 19656,
+      "clat_max_ms": 645.9,
+      "ios_over_100ms_pct": 0.01
+    },
+    "qd1_1m_plain_b": {
+      "bs": "1M",
+      "qd": 1,
+      "mb_s": 12.2,
+      "ios": 354,
+      "clat_max_ms": 15404.3,
+      "ios_over_100ms_pct": 0.56
+    },
+    "qd1_1m_rescue_b": {
+      "bs": "1M",
+      "qd": 1,
+      "mb_s": 424.2,
+      "ios": 12138,
+      "clat_max_ms": 976.8,
+      "ios_over_100ms_pct": 0.09
+    },
+    "qd1_128k": {
+      "bs": "128k",
+      "qd": 1,
+      "mb_s": 481.7,
+      "ios": 110250,
+      "clat_max_ms": 9.2,
+      "ios_over_100ms_pct": 0.0
+    },
+    "qd1_256k": {
+      "bs": "256k",
+      "qd": 1,
+      "mb_s": 591.1,
+      "ios": 67647,
+      "clat_max_ms": 5.1,
+      "ios_over_100ms_pct": 0.0
+    },
+    "qd8_128k": {
+      "bs": "128k",
+      "qd": 8,
+      "mb_s": 888.6,
+      "ios": 203386,
+      "clat_max_ms": 6.1,
+      "ios_over_100ms_pct": 0.0
+    }
+  },
+  "host": {
+    "use_threaded_interrupts": "1",
+    "io_timeout_s": "30",
+    "apst_ps_max_latency_us": "100000",
+    "max_sectors_kb": "128",
+    "max_hw_sectors_kb": "128",
+    "cmdline": "root=PARTUUID=63d40707-bcc5-40c2-86e2-cc3fd0ddf488 rw rootwait rootfstype=ext4 mminit_loglevel=4 console=ttyTCU0,115200 firmware_class.path=/etc/firmware fbcon=map:0 video=efifb:off console=tty0 efi_pstore.pstore_disable=1 pstore.backend=ramoops efi=runtime pci=pcie_bus_perf nvme.use_threaded_interrupts=1 swiotlb=2048 nv-auto-config swapaccount=1 bl_prof_dataptr=2031616@0x267210000 bl_prof_ro_ptr=65536@0x267200000",
+    "nvme_irqs": [
+      "nvme0q0 940048384 Edge",
+      "nvme0q1 940048385 Edge",
+      "nvme0q2 940048386 Edge",
+      "nvme0q3 940048387 Edge",
+      "nvme0q4 940048388 Edge",
+      "nvme0q5 940048389 Edge",
+      "nvme0q6 940048390 Edge"
+    ]
+  },
+  "args": {
+    "size_gb": 2,
+    "runtime": 30,
+    "rest": 20,
+    "workdir": "/home/student/card_eval_work",
+    "out": null
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "args": {
+    "size_gb": 8,
+    "runtime": 30,
+    "rest": 20,
+    "cool_max": 120,
+    "workdir": "/home/student/card_eval_work",
+    "out": null
+  },
+  "fio_version": "fio-3.36",
+  "iostat_version": "sysstat version 12.6.1",
+  "gdsio_version": "gdsio version :1.12",
+  "apst_ps_max_latency_us": "100000",
+  "burst_mb": 128,
+  "burst_gap_us": 1000000,
+  "cool_margin_c": 5,
+  "steps": [
+    {
+      "name": "layout_seq_write_1m_qd8",
+      "cmd": [
+        "fio",
+        "--name=layout_seq_write_1m_qd8",
+        "--filename=/home/student/card_eval_work/testfile",
+        "--size=8G",
+        "--direct=1",
+        "--ioengine=libaio",
+        "--rw=write",
+        "--bs=1M",
+        "--iodepth=8",
+        "--output-format=json",
+        "--output=/home/student/Documents/projects/wildfire_detection/mmap_sandbox/results/card_eval/sd_express_20260911_150838/layout_seq_write_1m_qd8.json"
+      ],
+      "rc": 0,
+      "wall_start": 1789128518.4959936,
+      "wall_end": 1789128535.7209885,
+      "local_start": "15:08:38"
+    }
+  ]
+}
