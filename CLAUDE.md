@@ -69,6 +69,8 @@ Orientation for future sessions — what each top-level directory is for:
 - `hf-cache/` — the Hugging Face cache.
 - `mmap_sandbox/` — new sandbox for testing the SD card capabilities.
 - `fire_watcher/` — the wake service: MHT confidence triggers pre-warm/wake of the VLM+classifier sleeping on the SD (daemon, loaders, MHT simulator).
+- `resident_vlm/` — resident VLM daemon and the full-system benchmark (bench / sampler / analyze; `RUNBOOK.txt` for running it).
+- `mmap_sandbox/card_eval/` — standard-tool drive evaluation (fio / iostat / gdsio) and the stall probe. **SD Express vs SSD comparison in progress: read `mmap_sandbox/card_eval/HANDOFF.md` first.**
 
 ---
 
