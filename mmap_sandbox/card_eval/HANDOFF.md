@@ -5,6 +5,9 @@ Written 2026-09-11 on the SD Express card, for the Claude session that runs on t
 This file is the source of truth. Read all of it before running anything, and save the
 key points to memory.**
 
+**Status 2026-09-12: both sittings are done.** The SSD results are the last section of this
+file. What remains is the comparison write-up and the artifact (SSD procedure step 5).
+
 ## What this is for
 
 The project is entered in an SD-card competition. The competition managers asked for an
@@ -243,4 +246,64 @@ Kfir: power off, swap, boot, `git pull`, open VS Code, tell Claude to read this 
   card_eval's sustained read); the benchmark's 4.1 s pause cleared before a timeout. The drive read
   ~318 GB and wrote ~102 GB (host data units) during the sitting.
 
-**The SD side is complete.** Next: swap to the SSD and follow "SSD procedure" above.
+**The SD side is complete.**
+
+## SSD sitting, 2026-09-12
+
+Same procedure, same commands, 25 W via `set_25w_clocks.sh`, board booted 23:10 and nothing
+heavy run before STEP 0. The clone had **no fio and no sysstat** (they were installed on the SD
+on 2026-09-11, after the 09-10 clone): installed 23:58 from Ubuntu noble, giving fio 3.36 and
+sysstat 12.6.1, the same versions the SD sitting recorded, then a full 30 min rest before STEP 0.
+An aborted STEP 1 at 23:49 stopped at card_eval's pre-flight check ("fio not installed") before
+writing anything, and an aborted STEP 2 at 01:32 was killed 12 s in and deleted.
+
+- STEP 0 diagnostics: `nvme_diag_ssd_20260912_004211.txt`. Raw data that does not count:
+  `nvme_diag_ssd_20260912_004149.txt` (identical, taken 22 s earlier) and
+  `nvme_diag_ssd_20260911_234932.txt` (before the fio install).
+- STEP 1 card_eval: `mmap_sandbox/results/card_eval/ssd_20260912_004218/` — 19/19 steps, no
+  failures, host.json CPU 1344000 / GPU 918000000, drive resting at 42.85 °C.
+  Seq read 1M QD8 **2585.7 MB/s** (66% of the Gen3 x4 ceiling, against the card's 89% of x1);
+  `sustained_read` flat at **2563.3 MB/s** over the timed 120 s window, 48 → 69 °C, no throttling;
+  rand read 4K QD32 / QD1 **95,254 / 11,151 IOPS**; seq write 1M QD8 / QD1 2570.3 / 1431.6 MB/s;
+  rand write 4K QD32 / QD1 123,792 / 17,861 IOPS; gdsio 2621 / 2644 / 3077 MB/s (compat mode).
+  Idle rest-of-board 3.034 W with temperature polling, 3.031 W without.
+  `seq_read_1m_qd1` was hit hard by the stall: 6.2 MB/s, slowest read 30,095 ms (exactly
+  `nvme_core.io_timeout`), 26 s stuck; `continuous_read` lost 38 s, `burst_read` 3 s,
+  `gdsio_x2_cpu_gpu` 15 s. The 128K QD1 pair was clean on both drives (116.3 MB/s both arms,
+  J/GB ratio 1.0), so it stays the fair burst-vs-continuous pair.
+- STEP 2 benchmark: `resident_vlm/results/bench_20260912_013746/` — 6/6 reps, no errors.
+  trigger → verdict: baseline 116.4 / 107.1 / 109.4 s (median **109.41 s**, wake **737.5 J**);
+  resident 10.24 / 9.62 / 10.27 s (median **10.24 s**, wake **77.6 J**, read phase 31.5 J at
+  405–453 MB/s). Resident is 10.7× faster and 9.5× less energy. Free RAM at the trigger was
+  5601–5705 MB against the SD's 5280–5501, and the baseline swapped 0.95–1.1 GB — the extra RAM
+  slightly favours the SSD's baseline arm, so say so in the write-up. Run with the default
+  `MINRAM=5500`, which is stricter than the SD's 5300; `MINRAM` is only a pre-flight gate and
+  never reaches `bench.py`, so it changes no measurement.
+- STEP 3 diagnostics: `nvme_diag_ssd_20260912_021539.txt`. No new errors during the sitting
+  (error_count 19 before and after, all pre-existing "Invalid Field in Command"), 0 media errors,
+  and **no throttling at all** — thermal T1 transition count 10 → 10 and 0 s above the warning
+  temperature, where the SD entered level 1 five times for 69 s. Two `timeout, completion polled`
+  lines (00:49:26 and 01:00:50, both during card_eval) against the SD's one. The drive read
+  ~734 GB and wrote ~194 GB.
+- Stall probe: `mmap_sandbox/results/card_eval/stall_probe_ssd_20260912_021844/` — verdict
+  **STALLS, RESCUED**, the same as the SD. 1M QD1 unassisted 8.8 and 9.7 MB/s (slowest 26.5 s and
+  17.4 s); with a 4K read on the same queue once a second, 162.4 and 157.2 MB/s (slowest ~1.0 s).
+  128K QD1 879.0, 256K QD1 1141.5, 128K QD8 1933.6 MB/s, none slower than 8 ms.
+
+### What this changes
+
+- **Finding 1 is answered: the stall is the board's, not the card's.** A different drive, on the
+  same slot and kernel, produces the same verdict and the same 30 s `io_timeout` signature. Report
+  it as a platform issue and do not count it against the card. The suspect is unchanged
+  (`nvme.use_threaded_interrupts=1` with edge-triggered MSI); it is still not proven which side
+  drops the interrupt, and the kernel cmdline was not changed on either drive.
+- **Finding 3 holds and is now measured on both drives.** The SSD reads 2586 MB/s sequentially but
+  its resident wake pulls only 405–453 MB/s, against the card's 878 and 362–373. Roughly 3× the
+  raw sequential bandwidth buys about 1.2× on the wake and 9% on trigger → verdict (10.24 s vs
+  11.26 s) — the wake is software-bound, which is the card's strongest honest point.
+- **Idle comparison needs a caveat.** The SD sitting's idle had 1.156 W on the CPU/GPU rail against
+  the SSD's 0.498 W, so the host was not equally quiet. "Rest of board" subtracts that rail
+  (SD 2.539 W, SSD 3.034 W) and stays the metric to use, but say in the write-up that the two
+  sittings differed in host activity.
+- **Thermals reverse the expected story**: the card ran to 84.8 °C and throttled briefly during its
+  sitting, the SSD peaked at 69 °C and never throttled.

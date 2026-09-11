@@ -1,0 +1,151 @@
+=== drive ===
+CT1000P5PSSD8  fw=P7CR403  pcie=0004:01:00.0
+=== kernel log (nvme / pcie / aer) ===
+[Fri Sep 11 23:09:51 2026] tegra194-pcie 14100000.pcie: Adding to iommu group 4
+[Fri Sep 11 23:09:51 2026] tegra194-pcie 14100000.pcie: host bridge /bus@0/pcie@14100000 ranges:
+[Fri Sep 11 23:09:51 2026] tegra194-pcie 14100000.pcie:      MEM 0x2080000000..0x20a7ffffff -> 0x2080000000
+[Fri Sep 11 23:09:51 2026] tegra194-pcie 14100000.pcie:      MEM 0x20a8000000..0x20afffffff -> 0x0040000000
+[Fri Sep 11 23:09:51 2026] tegra194-pcie 14100000.pcie:       IO 0x0030100000..0x00301fffff -> 0x0030100000
+[Fri Sep 11 23:09:51 2026] tegra194-pcie 14100000.pcie: iATU: unroll T, 8 ob, 2 ib, align 64K, limit 32G
+[Fri Sep 11 23:09:51 2026] tegra194-pcie 14100000.pcie: PCIe Gen.1 x1 link up
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 14100000.pcie: PCIe Gen.1 x1 link up
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 14100000.pcie: PCI host bridge to bus 0001:00
+[Fri Sep 11 23:09:52 2026] pci 0001:00:00.0: [10de:229e] type 01 class 0x060400 PCIe Root Port
+[Fri Sep 11 23:09:52 2026] pci 0001:01:00.0: [10ec:c822] type 00 class 0x028000 PCIe Endpoint
+[Fri Sep 11 23:09:52 2026] pcieport 0001:00:00.0: Adding to iommu group 4
+[Fri Sep 11 23:09:52 2026] pcieport 0001:00:00.0: PME: Signaling with IRQ 179
+[Fri Sep 11 23:09:52 2026] pcieport 0001:00:00.0: AER: enabled with IRQ 179
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 14160000.pcie: Adding to iommu group 6
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 14160000.pcie: host bridge /bus@0/pcie@14160000 ranges:
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 14160000.pcie:      MEM 0x2140000000..0x2427ffffff -> 0x2140000000
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 14160000.pcie:      MEM 0x2428000000..0x242fffffff -> 0x0040000000
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 14160000.pcie:       IO 0x0036100000..0x00361fffff -> 0x0036100000
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 14160000.pcie: iATU: unroll T, 8 ob, 2 ib, align 64K, limit 32G
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 14160000.pcie: PCIe Gen.3 x4 link up
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 14160000.pcie: PCIe Gen.3 x4 link up
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 14160000.pcie: PCI host bridge to bus 0004:00
+[Fri Sep 11 23:09:52 2026] pci 0004:00:00.0: [10de:229c] type 01 class 0x060400 PCIe Root Port
+[Fri Sep 11 23:09:52 2026] pci 0004:01:00.0: [c0a9:5407] type 00 class 0x010802 PCIe Endpoint
+[Fri Sep 11 23:09:52 2026] pci 0004:01:00.0: 31.504 Gb/s available PCIe bandwidth, limited by 8.0 GT/s PCIe x4 link at 0004:00:00.0 (capable of 63.012 Gb/s with 16.0 GT/s PCIe x4 link)
+[Fri Sep 11 23:09:52 2026] pcieport 0004:00:00.0: Adding to iommu group 6
+[Fri Sep 11 23:09:52 2026] pcieport 0004:00:00.0: PME: Signaling with IRQ 182
+[Fri Sep 11 23:09:52 2026] pcieport 0004:00:00.0: AER: enabled with IRQ 182
+[Fri Sep 11 23:09:52 2026] nvme 0004:01:00.0: Adding to iommu group 6
+[Fri Sep 11 23:09:52 2026] nvme nvme0: pci function 0004:01:00.0
+[Fri Sep 11 23:09:52 2026] nvme 0004:01:00.0: enabling device (0000 -> 0002)
+[Fri Sep 11 23:09:52 2026] nvme nvme0: 6/0/0 default/read/poll queues
+[Fri Sep 11 23:09:52 2026]  nvme0n1: p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13 p14 p15
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 141e0000.pcie: Adding to iommu group 7
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 141e0000.pcie: host bridge /bus@0/pcie@141e0000 ranges:
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 141e0000.pcie:      MEM 0x3000000000..0x3227ffffff -> 0x3000000000
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 141e0000.pcie:      MEM 0x3228000000..0x322fffffff -> 0x0040000000
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 141e0000.pcie:       IO 0x003e100000..0x003e1fffff -> 0x003e100000
+[Fri Sep 11 23:09:52 2026] tegra194-pcie 141e0000.pcie: iATU: unroll T, 8 ob, 2 ib, align 64K, limit 32G
+[Fri Sep 11 23:09:52 2026] EXT4-fs (nvme0n1p1): mounted filesystem ce9fb08c-3a91-4989-829c-2be7e7c7afef r/w with ordered data mode. Quota mode: none.
+[Fri Sep 11 23:09:53 2026] systemd[1]: Starting modprobe@nvme_fabrics.service - Load Kernel Module nvme_fabrics...
+[Fri Sep 11 23:09:53 2026] EXT4-fs (nvme0n1p1): re-mounted ce9fb08c-3a91-4989-829c-2be7e7c7afef.
+[Fri Sep 11 23:09:53 2026] tegra194-pcie 141e0000.pcie: Phy link never came up
+[Fri Sep 11 23:09:54 2026] tegra194-pcie 141e0000.pcie: Phy link never came up
+[Fri Sep 11 23:09:54 2026] tegra194-pcie 141e0000.pcie: PCI host bridge to bus 0007:00
+[Fri Sep 11 23:09:54 2026] pci 0007:00:00.0: [10de:229a] type 01 class 0x060400 PCIe Root Port
+[Fri Sep 11 23:09:54 2026] pcieport 0007:00:00.0: Adding to iommu group 7
+[Fri Sep 11 23:09:54 2026] pcieport 0007:00:00.0: PME: Signaling with IRQ 191
+[Fri Sep 11 23:09:54 2026] pcieport 0007:00:00.0: AER: enabled with IRQ 191
+[Fri Sep 11 23:09:54 2026] tegra194-pcie 140a0000.pcie: Adding to iommu group 33
+[Fri Sep 11 23:09:55 2026] tegra194-pcie 140a0000.pcie: host bridge /bus@0/pcie@140a0000 ranges:
+[Fri Sep 11 23:09:55 2026] tegra194-pcie 140a0000.pcie:      MEM 0x3240000000..0x3527ffffff -> 0x3240000000
+[Fri Sep 11 23:09:55 2026] tegra194-pcie 140a0000.pcie:      MEM 0x3528000000..0x352fffffff -> 0x0040000000
+[Fri Sep 11 23:09:55 2026] tegra194-pcie 140a0000.pcie:       IO 0x002a100000..0x002a1fffff -> 0x002a100000
+[Fri Sep 11 23:09:55 2026] tegra194-pcie 140a0000.pcie: iATU: unroll T, 8 ob, 2 ib, align 64K, limit 32G
+[Fri Sep 11 23:09:55 2026] tegra194-pcie 140a0000.pcie: PCIe Gen.1 x1 link up
+[Fri Sep 11 23:09:55 2026] tegra194-pcie 140a0000.pcie: PCIe Gen.1 x1 link up
+[Fri Sep 11 23:09:55 2026] tegra194-pcie 140a0000.pcie: PCI host bridge to bus 0008:00
+[Fri Sep 11 23:09:55 2026] pci 0008:00:00.0: [10de:229c] type 01 class 0x060400 PCIe Root Port
+[Fri Sep 11 23:09:55 2026] pci 0008:01:00.0: [10ec:8168] type 00 class 0x020000 PCIe Endpoint
+[Fri Sep 11 23:09:55 2026] pcieport 0008:00:00.0: Adding to iommu group 33
+[Fri Sep 11 23:09:55 2026] pcieport 0008:00:00.0: PME: Signaling with IRQ 203
+[Fri Sep 11 23:09:55 2026] pcieport 0008:00:00.0: AER: enabled with IRQ 203
+[Fri Sep 11 23:09:57 2026] block nvme0n1: No UUID available providing old NGUID
+=== card health ===
+Smart Log for NVME device:nvme0 namespace-id:ffffffff
+critical_warning			: 0
+temperature				: 69 °C (342 K)
+available_spare				: 100%
+available_spare_threshold		: 5%
+percentage_used				: 0%
+endurance group critical warning summary: 0
+Data Units Read				: 661592 (338.74 GB)
+Data Units Written			: 4057557 (2.08 TB)
+host_read_commands			: 7466092
+host_write_commands			: 21697479
+controller_busy_time			: 63
+power_cycles				: 33
+power_on_hours				: 8
+unsafe_shutdowns			: 11
+media_errors				: 0
+num_err_log_entries			: 19
+Warning Temperature Time		: 0
+Critical Composite Temperature Time	: 0
+Temperature Sensor 1           : 69 °C (342 K)
+Thermal Management T1 Trans Count	: 10
+Thermal Management T2 Trans Count	: 0
+Thermal Management T1 Total Time	: 2350
+Thermal Management T2 Total Time	: 0
+=== card error log (non-empty entries only) ===
+ Entry[ 0]   
+.................
+error_count	: 19
+sqid		: 0
+cmdid		: 0x18
+status_field	: 0x4002(Invalid Field in Command: A reserved coded value or an unsupported value in a defined field)
+phase_tag	: 0
+=== autonomous power states ===
+get-feature:0x0c (Autonomous Power State Transition), Current value:0x00000001
+	Autonomous Power State Transition Enable (APSTE): Enabled
+	Auto PST Entries	.................
+	Entry[ 0]   
+	.................
+	Idle Time Prior to Transition (ITPT): 100 ms
+	Idle Transition Power State   (ITPS): 3
+	.................
+	Entry[ 1]   
+	.................
+	Idle Time Prior to Transition (ITPT): 100 ms
+	Idle Transition Power State   (ITPS): 3
+	.................
+	Entry[ 2]   
+	.................
+	Idle Time Prior to Transition (ITPT): 100 ms
+	Idle Transition Power State   (ITPS): 3
+	.................
+	Entry[ 3]   
+	.................
+	Idle Time Prior to Transition (ITPT): 2000 ms
+	Idle Transition Power State   (ITPS): 4
+	.................
+	Entry[ 4]   
+=== power states / thermal limits / host memory buffer ===
+apsta     : 0x1
+wctemp    : 353
+cctemp    : 355
+hmpre     : 0
+hmmin     : 0
+mntmt     : 273
+mxtmt     : 353
+hmminds   : 0
+ps      0 : mp:8.25W operational enlat:0 exlat:0 rrt:0 rrl:0
+ps      1 : mp:4.00W operational enlat:0 exlat:0 rrt:1 rrl:1
+ps      2 : mp:2.00W operational enlat:0 exlat:0 rrt:2 rrl:2
+ps      3 : mp:0.1000W non-operational enlat:5000 exlat:6000 rrt:3 rrl:3
+ps      4 : mp:0.0050W non-operational enlat:12000 exlat:35000 rrt:4 rrl:4
+=== pcie link ===
+		DevSta:	CorrErr- NonFatalErr- FatalErr- UnsupReq- AuxPwr- TransPend-
+		LnkCap:	Port #0, Speed 16GT/s, Width x4, ASPM L1, Exit Latency L1 <8us
+		LnkCtl:	ASPM Disabled; RCB 64 bytes, Disabled- CommClk+
+		LnkSta:	Speed 8GT/s (downgraded), Width x4
+		LnkCap2: Supported Link Speeds: 2.5-16GT/s, Crosslink- Retimer+ 2Retimers+ DRS-
+		LnkCtl2: Target Link Speed: 16GT/s, EnterCompliance- SpeedDis-
+		LnkSta2: Current De-emphasis Level: -6dB, EqualizationComplete+ EqualizationPhase1+
+		UESta:	DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
+		CESta:	RxErr- BadTLP- BadDLLP- Rollover- Timeout- AdvNonFatalErr-
+		LnkCtl3: LnkEquIntrruptEn- PerformEqu-
