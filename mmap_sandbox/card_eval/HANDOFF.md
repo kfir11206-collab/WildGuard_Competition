@@ -307,3 +307,48 @@ writing anything, and an aborted STEP 2 at 01:32 was killed 12 s in and deleted.
   sittings differed in host activity.
 - **Thermals reverse the expected story**: the card ran to 84.8 °C and throttled briefly during its
   sitting, the SSD peaked at 69 °C and never throttled.
+
+## Side-by-side results
+
+Both sittings ran the same procedure at 25 W with a cool-start before every test. The SD figures
+are its official evening sitting, the SSD figures its 2026-09-12 sitting.
+
+| | SD Express (Gen3 x1) | SSD (Gen3 x4) |
+|---|---|---|
+| seq read 1M QD8 | 877.6 MB/s — 89% of its link | 2585.7 MB/s — 66% of its link |
+| sustained read, timed 120 s | ~872 MB/s, peak 84.8 °C, brief throttle | 2563.3 MB/s, peak 69 °C, no throttle |
+| rand read 4K QD32 / QD1 | ~88,000 / 6,403 IOPS | 95,254 / 11,151 IOPS |
+| seq write 1M QD8 / QD1 | 578.5 / 490.4 MB/s | 2570.3 / 1431.6 MB/s |
+| rand write 4K QD32 / QD1 | 78,003 / 17,682 IOPS | 123,792 / 17,861 IOPS |
+| gdsio (compat mode) | ~877 MB/s all three | 2621 / 2644 / 3077 MB/s |
+| 128K QD1 burst vs continuous | J/GB ratio 0.999 | J/GB ratio 1.0 |
+| 1M QD1 stall probe | STALLS, RESCUED | STALLS, RESCUED |
+| idle, rest of board | 2.539 W | 3.034 W |
+| baseline trigger → verdict | 117.3 s, 797.6 J | 109.41 s, 737.5 J |
+| resident trigger → verdict | 11.26 s, 84.9 J | 10.24 s, 77.6 J |
+| resident drive-read phase | 362–373 MB/s, 37.4 J | 405–453 MB/s, 31.5 J |
+| resident vs baseline | 10.4× faster, 9.4× less energy | 10.7× faster, 9.5× less energy |
+
+The three claims worth building the write-up on:
+
+1. **The stall is the platform's, not the card's** — same verdict and same 30 s `io_timeout`
+   signature from a completely different drive in the same slot.
+2. **The wake is software-bound.** About 3× the sequential bandwidth buys ~1.2× on the drive-read
+   phase and 9% on trigger → verdict. On one lane the card nearly matches a four-lane SSD on the
+   workload that matters.
+3. **State the handicaps**: the SSD baseline had 5601–5705 MB free against the SD's 5280–5501 and
+   the baseline swaps; host activity differed at idle (CPU/GPU rail 1.156 W vs 0.498 W); the SSD
+   has ~510 GB of unpartitioned NAND for SLC caching and wear levelling that the full card lacks;
+   the two sittings ran on different days.
+
+## State of play — read this first
+
+Measurement is **finished on both drives**; nothing further needs to be run on either one. What
+remains is the comparison write-up and a **new** artifact dedicated to the card (cross-link the
+resident-VLM artifact, do not merge into it): standard-tool results first, the resident benchmark
+as the "what this means for a real AI system" section.
+
+Note for whichever drive is installed: each drive carries its own Claude memory, and they diverge
+after 2026-09-10. **This file is the shared record — `git pull` first, then read it.** Every number
+above is reproducible from the committed run directories with `summarize.py` and `analyze.py`.
+
