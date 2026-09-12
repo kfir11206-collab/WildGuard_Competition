@@ -102,11 +102,15 @@ STEP 3 - tell Claude the run is done. Claude runs analyze.py and checks each
      rep and the rep is void. (The daemon evicts them on SLEEP and bench.py
      drops them again before the trigger, so this should never trigger - it
      is there to prove it rather than assume it.)
-  b) NO STALL. Any rep whose wake window shows sd_max_stall_ms over 500 is
-     flagged and re-run, never folded into the median. This is the board's
-     30s lost-completion bug, proven on BOTH drives, not a card fault.
-     Watch the continuous arm especially: big sequential reads are closer to
-     the pattern that triggers it.
+  b) NO STALL. A stall is requests in flight while no bytes complete.
+     Claude checks the longest such stretch inside each wake (10Hz samples)
+     and maps every "completion polled" line between the STEP 0 and STEP 2
+     diagnostics onto the rep timelines. A stall inside a wake voids that
+     rep; one outside (daemon load, warm-up) does not touch the result.
+     This is the board's 30s lost-completion bug, proven on BOTH drives.
+     Do NOT judge this by analyze.py's stallms column: it sums read-ms over
+     every request finishing in a 100ms window, so a healthy read at queue
+     depth 5 already shows 500+ (every rep of the 2026-09-12 SD sitting did).
   c) SAME START TEMPERATURE. Every rep starts within 5C of the drive's own
      resting temperature. analyze.py prints cd_st and cd_pk per rep. In the
      old sitting the three reps started at 57.85 / 60.85 / 61.85 C, drifting
