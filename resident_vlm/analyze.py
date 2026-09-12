@@ -97,6 +97,9 @@ def main():
                 row[name] = window_stats(samples, marks[a], marks[b])
         rows.append(row)
 
+    if not rows:
+        print(f"no *.jsonl samples in {rundir} - analysis.json left untouched")
+        return
     (rundir / "analysis.json").write_text(json.dumps(rows, indent=2))
 
     hdr = (f"{'arm':<21}{'rep':<5}{'t2v_s':>8}{'wake_J':>9}{'wake_W':>8}"

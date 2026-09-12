@@ -53,5 +53,6 @@ MHT_TOP/
 
 !resident_vlm/results/**/*.jsonl
 resident_vlm/results/fused_state.pt*
+resident_vlm/results/daemon.jsonl
 
 .claude/settings.local.json

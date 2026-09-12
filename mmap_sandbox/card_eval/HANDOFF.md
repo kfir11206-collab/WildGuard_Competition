@@ -325,10 +325,10 @@ are its official evening sitting, the SSD figures its 2026-09-12 sitting.
 | 1M QD1 burst vs continuous | ratio 0.994, no stuck seconds | ratio 0.644 — 38 stuck seconds, an artifact, do not quote |
 | 1M QD1 stall probe | STALLS, RESCUED | STALLS, RESCUED |
 | idle, rest of board | 2.539 W | 3.034 W |
-| baseline trigger → verdict | 117.3 s, 797.6 J | 109.41 s, energy **pending recovery** |
-| resident trigger → verdict | 11.26 s, 84.9 J | 10.24 s, energy **pending recovery** |
-| resident drive-read phase | median 387.7 MB/s (262–405), 37.4 J | median 466.2 MB/s (442–493), energy **pending recovery** |
-| resident vs baseline | 10.4× faster, 9.4× less energy | 10.7× faster; energy ratio pending recovery |
+| baseline trigger → verdict | 117.3 s, 797.6 J | 109.41 s, 737.5 J |
+| resident trigger → verdict | 11.26 s, 84.9 J | 10.24 s, 77.6 J |
+| resident drive-read phase | median 362.1 MB/s (250–373), 37.4 J | median 426.5 MB/s (405–453), 31.5 J |
+| resident vs baseline | 10.4× faster, 9.4× less energy | 10.7× faster, 9.5× less energy |
 
 The three claims worth building the write-up on:
 
@@ -357,9 +357,14 @@ as the "what this means for a real AI system" section.
 Note for whichever drive is installed: each drive carries its own Claude memory, and they diverge
 after 2026-09-10. **This file is the shared record — `git pull` first, then read it.** Every number
 above is reproducible from the committed run directories with `summarize.py` and `analyze.py`,
-**with one exception**: the SSD benchmark (`resident_vlm/results/bench_20260912_013746/`) was committed
-without its `*.jsonl` samples and its `analysis.json` is an empty list, so that arm's joules and free-RAM
-figures are not reproducible; its trigger → verdict times and drive-read rates are, from `summary.json`.
+**with one caveat**: the SSD benchmark (`resident_vlm/results/bench_20260912_013746/`) was committed
+without its `*.jsonl` samples, so its per-window figures can be read from its committed `analysis.json`
+but cannot be recomputed from raw data the way the SD's can. Its trigger → verdict times and drive-read
+rates are recomputable from `summary.json` (the daemon's own byte counters give 387.7 MB/s for the SD
+and 466.2 MB/s for the SSD, measured slightly differently from the table's 362.1 / 426.5).
+(Running `analyze.py` on a directory with no samples used to overwrite `analysis.json` with an empty
+list — it now refuses and says so.)
+
 Kfir decided 2026-09-12 to recover them — with the SSD installed:
 
     cd ~/Documents/projects/wildfire_detection && git pull
