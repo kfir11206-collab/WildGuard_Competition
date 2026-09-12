@@ -18,6 +18,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 50.281,
       "tj_peak_c": 50.843,
+      "card_start_c": 57.85,
+      "card_peak_c": 57.85,
       "mem_available_min_mb": 5280
     },
     "wake": {
@@ -34,6 +36,8 @@
       "sd_stalls_over_500ms": 43,
       "tj_start_c": 50.25,
       "tj_peak_c": 54.656,
+      "card_start_c": 56.85,
+      "card_peak_c": 72.85,
       "mem_available_min_mb": 68
     },
     "awake": {
@@ -50,6 +54,8 @@
       "sd_stalls_over_500ms": 9,
       "tj_start_c": 53.375,
       "tj_peak_c": 61.781,
+      "card_start_c": 67.85,
+      "card_peak_c": 69.85,
       "mem_available_min_mb": 106
     },
     "sleep_transition": {
@@ -66,6 +72,8 @@
       "sd_stalls_over_500ms": 1,
       "tj_start_c": 60.281,
       "tj_peak_c": 62.906,
+      "card_start_c": 69.85,
+      "card_peak_c": 71.85,
       "mem_available_min_mb": 137
     },
     "idle_after": {
@@ -82,6 +90,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 59.093,
       "tj_peak_c": 59.375,
+      "card_start_c": 66.85,
+      "card_peak_c": 76.85,
       "mem_available_min_mb": 6161
     }
   },
@@ -104,6 +114,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 52.156,
       "tj_peak_c": 52.187,
+      "card_start_c": 58.85,
+      "card_peak_c": 58.85,
       "mem_available_min_mb": 5367
     },
     "wake": {
@@ -120,6 +132,8 @@
       "sd_stalls_over_500ms": 35,
       "tj_start_c": 51.812,
       "tj_peak_c": 55.0,
+      "card_start_c": 57.85,
+      "card_peak_c": 76.85,
       "mem_available_min_mb": 53
     },
     "awake": {
@@ -136,6 +150,8 @@
       "sd_stalls_over_500ms": 6,
       "tj_start_c": 55.281,
       "tj_peak_c": 61.656,
+      "card_start_c": 67.85,
+      "card_peak_c": 74.85,
       "mem_available_min_mb": 133
     },
     "sleep_transition": {
@@ -152,6 +168,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 60.875,
       "tj_peak_c": 63.5,
+      "card_start_c": 73.85,
+      "card_peak_c": 75.85,
       "mem_available_min_mb": 178
     },
     "idle_after": {
@@ -168,6 +186,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 59.468,
       "tj_peak_c": 59.906,
+      "card_start_c": 66.85,
+      "card_peak_c": 66.85,
       "mem_available_min_mb": 6173
     }
   },
@@ -190,6 +210,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 51.875,
       "tj_peak_c": 52.281,
+      "card_start_c": 57.85,
+      "card_peak_c": 57.85,
       "mem_available_min_mb": 5498
     },
     "wake": {
@@ -206,6 +228,8 @@
       "sd_stalls_over_500ms": 34,
       "tj_start_c": 51.937,
       "tj_peak_c": 55.531,
+      "card_start_c": 56.85,
+      "card_peak_c": 75.85,
       "mem_available_min_mb": 55
     },
     "awake": {
@@ -222,6 +246,8 @@
       "sd_stalls_over_500ms": 8,
       "tj_start_c": 55.093,
       "tj_peak_c": 62.156,
+      "card_start_c": 69.85,
+      "card_peak_c": 72.85,
       "mem_available_min_mb": 96
     },
     "sleep_transition": {
@@ -238,6 +264,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 61.031,
       "tj_peak_c": 63.656,
+      "card_start_c": 72.85,
+      "card_peak_c": 77.85,
       "mem_available_min_mb": 143
     },
     "idle_after": {
@@ -254,6 +282,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 59.875,
       "tj_peak_c": 60.125,
+      "card_start_c": 69.85,
+      "card_peak_c": 69.85,
       "mem_available_min_mb": 6205
     }
   },
@@ -276,6 +306,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 52.406,
       "tj_peak_c": 52.437,
+      "card_start_c": 58.85,
+      "card_peak_c": 58.85,
       "mem_available_min_mb": 1670
     },
     "wake": {
@@ -292,6 +324,8 @@
       "sd_stalls_over_500ms": 4,
       "tj_start_c": 51.937,
       "tj_peak_c": 55.0,
+      "card_start_c": 57.85,
+      "card_peak_c": 64.85,
       "mem_available_min_mb": 367
     },
     "wake_read": {
@@ -308,6 +342,8 @@
       "sd_stalls_over_500ms": 4,
       "tj_start_c": 51.875,
       "tj_peak_c": 52.406,
+      "card_start_c": 57.85,
+      "card_peak_c": 64.85,
       "mem_available_min_mb": 367
     },
     "camera_open": null,
@@ -325,6 +361,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 51.906,
       "tj_peak_c": 55.0,
+      "card_start_c": 64.85,
+      "card_peak_c": 64.85,
       "mem_available_min_mb": 370
     },
     "awake": {
@@ -341,6 +379,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 54.062,
       "tj_peak_c": 64.187,
+      "card_start_c": 64.85,
+      "card_peak_c": 67.85,
       "mem_available_min_mb": 362
     },
     "sleep_transition": {
@@ -357,6 +397,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 63.812,
       "tj_peak_c": 64.25,
+      "card_start_c": 58.85,
+      "card_peak_c": 59.85,
       "mem_available_min_mb": 386
     },
     "idle_after": {
@@ -373,6 +415,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 56.656,
       "tj_peak_c": 56.656,
+      "card_start_c": 59.85,
+      "card_peak_c": 62.85,
       "mem_available_min_mb": 1624
     }
   },
@@ -395,6 +439,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 52.125,
       "tj_peak_c": 52.375,
+      "card_start_c": 60.85,
+      "card_peak_c": 62.85,
       "mem_available_min_mb": 1654
     },
     "wake": {
@@ -411,6 +457,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 51.812,
       "tj_peak_c": 55.0,
+      "card_start_c": 60.85,
+      "card_peak_c": 65.85,
       "mem_available_min_mb": 223
     },
     "wake_read": {
@@ -427,6 +475,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 51.906,
       "tj_peak_c": 52.281,
+      "card_start_c": 59.85,
+      "card_peak_c": 65.85,
       "mem_available_min_mb": 328
     },
     "camera_open": null,
@@ -444,6 +494,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 51.906,
       "tj_peak_c": 55.0,
+      "card_start_c": 65.85,
+      "card_peak_c": 65.85,
       "mem_available_min_mb": 223
     },
     "awake": {
@@ -460,6 +512,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 54.437,
       "tj_peak_c": 64.406,
+      "card_start_c": 63.85,
+      "card_peak_c": 69.85,
       "mem_available_min_mb": 240
     },
     "sleep_transition": {
@@ -476,6 +530,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 63.312,
       "tj_peak_c": 63.312,
+      "card_start_c": 58.85,
+      "card_peak_c": 59.85,
       "mem_available_min_mb": 355
     },
     "idle_after": {
@@ -492,6 +548,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 57.093,
       "tj_peak_c": 57.093,
+      "card_start_c": 58.85,
+      "card_peak_c": 59.85,
       "mem_available_min_mb": 1678
     }
   },
@@ -514,6 +572,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 52.031,
       "tj_peak_c": 52.375,
+      "card_start_c": 59.85,
+      "card_peak_c": 61.85,
       "mem_available_min_mb": 1832
     },
     "wake": {
@@ -530,6 +590,8 @@
       "sd_stalls_over_500ms": 1,
       "tj_start_c": 52.125,
       "tj_peak_c": 55.156,
+      "card_start_c": 61.85,
+      "card_peak_c": 65.85,
       "mem_available_min_mb": 227
     },
     "wake_read": {
@@ -546,6 +608,8 @@
       "sd_stalls_over_500ms": 1,
       "tj_start_c": 51.968,
       "tj_peak_c": 52.406,
+      "card_start_c": 59.85,
+      "card_peak_c": 65.85,
       "mem_available_min_mb": 373
     },
     "camera_open": null,
@@ -563,6 +627,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 52.218,
       "tj_peak_c": 55.156,
+      "card_start_c": 65.85,
+      "card_peak_c": 65.85,
       "mem_available_min_mb": 227
     },
     "awake": {
@@ -579,6 +645,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 53.906,
       "tj_peak_c": 64.781,
+      "card_start_c": 63.85,
+      "card_peak_c": 69.85,
       "mem_available_min_mb": 272
     },
     "sleep_transition": {
@@ -595,6 +663,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 63.75,
       "tj_peak_c": 64.0,
+      "card_start_c": 59.85,
+      "card_peak_c": 60.85,
       "mem_available_min_mb": 389
     },
     "idle_after": {
@@ -611,6 +681,8 @@
       "sd_stalls_over_500ms": 0,
       "tj_start_c": 56.906,
       "tj_peak_c": 57.25,
+      "card_start_c": 59.85,
+      "card_peak_c": 59.85,
       "mem_available_min_mb": 1802
     }
   }

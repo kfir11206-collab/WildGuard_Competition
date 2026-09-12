@@ -103,7 +103,7 @@ class Resident:
 
     def _paced_preread(self):
         budget = self.args.pace_mbps * 1e6
-        chunk = 16 << 20
+        chunk = self.args.chunk_mb << 20
         t0 = time.monotonic()
         total = 0
         with open(self.args.fused, "rb", buffering=0) as f:
@@ -117,6 +117,18 @@ class Resident:
                 if target > now:
                     time.sleep(target - now)
         return round(time.monotonic() - t0, 3), total
+
+    def _prefetch(self):
+        chunk = self.args.prefetch_mb << 20
+        t0 = time.monotonic()
+        total = 0
+        with open(self.args.fused, "rb", buffering=0) as f:
+            while True:
+                b = f.read(chunk)
+                if not b:
+                    break
+                total += len(b)
+        self.prefetch_stats = (round(time.monotonic() - t0, 3), total)
 
     def _load_from_card(self):
         sd = torch.load(self.args.fused, map_location="cpu", mmap=True)
@@ -180,8 +192,15 @@ class Resident:
             t0 = time.monotonic()
             preread_s, preread_b = (self._paced_preread()
                                     if self.args.pace_mbps > 0 else (None, None))
+            self.prefetch_stats = (None, None)
+            pf = None
+            if self.args.prefetch_mb > 0:
+                pf = threading.Thread(target=self._prefetch, daemon=True)
+                pf.start()
             t_load = time.monotonic()
             missing, unexpected = self._load_from_card()
+            if pf is not None:
+                pf.join(timeout=120)
             sd_read = round(time.monotonic() - t_load, 3)
             t1 = time.monotonic()
             self.state = "AWAKE"
@@ -201,6 +220,8 @@ class Resident:
             out = {
                 "preread_seconds": preread_s,
                 "preread_bytes": preread_b,
+                "prefetch_seconds": self.prefetch_stats[0],
+                "prefetch_bytes": self.prefetch_stats[1],
                 "sd_read_seconds": sd_read,
                 "camera_open_seconds": cam_open,
                 "first_verdict_seconds": first_verdict,
@@ -271,6 +292,8 @@ def main():
     p.add_argument("--prompt", default="describe the scene in detail, and what is happening in it. "
                                        "do you see any signs of smoke? is smoke present?")
     p.add_argument("--pace-mbps", type=float, default=0.0)
+    p.add_argument("--prefetch-mb", type=int, default=0)
+    p.add_argument("--chunk-mb", type=int, default=64)
     p.add_argument("--sleep-on-start", action="store_true")
     args = p.parse_args()
 

@@ -132,14 +132,16 @@ def drop_cache(paths):
         os.close(fd)
 
 
-def cooldown(tj_target, max_seconds, poll=2.0):
+def cooldown(tj_target, max_seconds, card_ref=None, card_margin=5.0, poll=2.0):
     t0 = time.monotonic()
     while time.monotonic() - t0 < max_seconds:
-        tj = S.read_tj()
-        if tj is None or tj <= tj_target:
+        tj, card = S.read_tj(), S.read_card_temp()
+        tj_ok = tj is None or tj <= tj_target
+        card_ok = card_ref is None or card is None or card <= card_ref + card_margin
+        if tj_ok and card_ok:
             break
         time.sleep(poll)
-    return round(time.monotonic() - t0, 1), S.read_tj()
+    return round(time.monotonic() - t0, 1), S.read_tj(), S.read_card_temp()
 
 
 def out_txt_size():
@@ -210,12 +212,15 @@ def mark_wake_phases(smp, t0, reply):
         smp.mark(key[: -len("_seconds")] + "_end", t)
 
 
-def run_arm(arm, rep, args, outdir, sink):
+def run_arm(arm, rep, args, outdir, sink, card_ref=None):
     tag = f"{arm}_{rep}"
     rec = {"arm": arm, "rep": rep}
     resident = arm.startswith("resident")
-    pace = (["--pace-mbps", str(args.pace_mbps)]
-            if arm == "resident_continuous" else [])
+    extra = []
+    if arm == "resident_continuous":
+        extra = ["--pace-mbps", str(args.pace_mbps)]
+    elif arm == "resident_burst":
+        extra = ["--prefetch-mb", str(args.prefetch_mb)]
     daemon = None
     smp = S.Sampler(outdir / f"{tag}.jsonl", hz=args.hz)
 
@@ -227,7 +232,7 @@ def run_arm(arm, rep, args, outdir, sink):
         mht_stop()
 
         if resident:
-            daemon = start_daemon(outdir / f"{tag}.daemon.log", extra=pace)
+            daemon = start_daemon(outdir / f"{tag}.daemon.log", extra=extra)
             rec["load"] = send("STATS")
             # Unmeasured warm-up: the camera's first open costs ~6s and every
             # later one ~0.1s. A continuously-running daemon pays that once at
@@ -244,7 +249,8 @@ def run_arm(arm, rep, args, outdir, sink):
         mht_scores_at_trigger = len(sink.scores)
 
         drop_cache([FUSED] if resident else default_model_files())
-        rec["cooldown_seconds"], rec["tj_start"] = cooldown(args.tj_target, args.cooldown_max)
+        rec["cooldown_seconds"], rec["tj_start"], rec["card_start_c"] = cooldown(
+            args.tj_target, args.cooldown_max, card_ref)
 
         smp.start()
         smp.mark("idle_start")
@@ -314,6 +320,7 @@ def main():
     p.add_argument("--verdict-timeout", type=float, default=420.0)
     p.add_argument("--hz", type=float, default=10.0)
     p.add_argument("--pace-mbps", type=float, default=185.0)
+    p.add_argument("--prefetch-mb", type=int, default=64)
     p.add_argument("--out", default=None)
     args = p.parse_args()
 
@@ -332,6 +339,10 @@ def main():
           f"nvpmodel={power['nvpmodel_service']} "
           f"cpu_max={power['cpu_max_khz']} kHz", flush=True)
 
+    card_ref = S.read_card_temp()
+    print(f"[bench] drive resting at {card_ref} C - every rep starts within "
+          f"5 C of that, or after {args.cooldown_max:.0f}s", flush=True)
+
     sink = MhtSink(WATCHER_SOCK)
     sink.start()
     print(f"[bench] listening on {WATCHER_SOCK} for MHT scores", flush=True)
@@ -340,7 +351,7 @@ def main():
     try:
         for rep in range(args.reps):
             for arm in args.arms:
-                all_recs.append(run_arm(arm, rep, args, outdir, sink))
+                all_recs.append(run_arm(arm, rep, args, outdir, sink, card_ref))
     finally:
         compose("stop", "-t", "30", *STACK)
         subprocess.run(["docker", "rm", "-f", "resident_vlm"], capture_output=True, text=True)

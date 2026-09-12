@@ -49,6 +49,7 @@ def window_stats(samples, t0, t1):
         for i in range(len(inside) - 1)
     ]
     tj = [s["temp_tj_c"] for s in inside if "temp_tj_c" in s]
+    card = [s["temp_card_c"] for s in inside if "temp_card_c" in s]
     avail = [s["mem_available_mb"] for s in inside if "mem_available_mb" in s]
     return {
         "seconds": round(span, 3),
@@ -66,6 +67,8 @@ def window_stats(samples, t0, t1):
         "sd_stalls_over_500ms": sum(1 for j in jumps if j > 500),
         "tj_start_c": tj[0] if tj else None,
         "tj_peak_c": max(tj) if tj else None,
+        "card_start_c": card[0] if card else None,
+        "card_peak_c": max(card) if card else None,
         "mem_available_min_mb": min(avail) if avail else None,
     }
 
@@ -105,7 +108,7 @@ def main():
     hdr = (f"{'arm':<21}{'rep':<5}{'t2v_s':>8}{'wake_J':>9}{'wake_W':>8}"
            f"{'rd_s':>7}{'rd_J':>7}{'rdMB/s':>8}"
            f"{'SD_MB':>8}{'MB/s':>8}{'swapIn':>8}{'stallms':>9}{'sleepW':>8}"
-           f"{'tj_pk':>7}{'freeMB':>8}")
+           f"{'tj_pk':>7}{'cd_st':>7}{'cd_pk':>7}{'freeMB':>8}")
     print(hdr)
     print("-" * len(hdr))
     for r in rows:
@@ -121,7 +124,9 @@ def main():
               f"{str(w.get('sd_read_mb_s')):>8}{str(w.get('swap_in_mb')):>8}"
               f"{str(w.get('sd_max_stall_ms')):>9}"
               f"{str(idle.get('mean_power_w')):>8}"
-              f"{str(w.get('tj_peak_c')):>7}{str(idle.get('mem_available_min_mb')):>8}")
+              f"{str(w.get('tj_peak_c')):>7}{str(w.get('card_start_c')):>7}"
+              f"{str(w.get('card_peak_c')):>7}"
+              f"{str(idle.get('mem_available_min_mb')):>8}")
 
     for arm in sorted({r["arm"] for r in rows if r["arm"]}):
         vals = [r["trigger_to_verdict_s"] for r in rows

@@ -47,6 +47,14 @@ def read_tj():
         return None
 
 
+def read_card_temp(dev="nvme0n1"):
+    card = next(Path(f"/sys/block/{dev}/device").glob("hwmon*/temp1_input"), None)
+    try:
+        return int(card.read_text()) / 1000.0 if card else None
+    except (OSError, ValueError):
+        return None
+
+
 DRIVE_LABELS = {"SDSQXFN": "sd_express", "CT1000P5PSSD8": "ssd"}
 
 
@@ -70,6 +78,11 @@ def device_stamp(dev="nvme0n1"):
         out["pcie_width"] = int((pci / "current_link_width").read_text())
     except (OSError, ValueError):
         out["pcie_addr"] = out["pcie_speed"] = out["pcie_width"] = None
+    for knob in ("read_ahead_kb", "max_sectors_kb", "max_hw_sectors_kb", "nr_requests"):
+        try:
+            out[knob] = int((base / "queue" / knob).read_text())
+        except (OSError, ValueError):
+            out[knob] = None
     model = out["model"] or ""
     out["label"] = next(
         (label for key, label in DRIVE_LABELS.items() if key in model), "unknown"
