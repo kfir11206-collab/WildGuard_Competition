@@ -349,10 +349,13 @@ The three claims worth building the write-up on:
 
 ## State of play — read this first
 
-Measurement is **finished on both drives**; nothing further needs to be run on either one. What
-remains is the comparison write-up and a **new** artifact dedicated to the card (cross-link the
-resident-VLM artifact, do not merge into it): standard-tool results first, the resident benchmark
-as the "what this means for a real AI system" section.
+Measurement is **finished on both drives**; nothing further needs to be run on either one, and
+the comparison write-up is **published**: "One Lane Against Four",
+https://claude.ai/code/artifact/746549ba-ae80-48d2-a115-0dcac1a32518 (2026-09-12) — standard-tool
+results first, the resident benchmark as the "what this means for a real AI system" section,
+cross-linked to the older resident-VLM artifact rather than merged into it. Every figure on that
+page comes from the official runs named above; if a number here is corrected, update the page too.
+The one open item is the SSD raw-sample recovery described at the end of this file.
 
 Note for whichever drive is installed: each drive carries its own Claude memory, and they diverge
 after 2026-09-10. **This file is the shared record — `git pull` first, then read it.** Every number
