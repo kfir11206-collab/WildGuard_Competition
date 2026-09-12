@@ -102,15 +102,25 @@ STEP 3 - tell Claude the run is done. Claude runs analyze.py and checks each
      rep and the rep is void. (The daemon evicts them on SLEEP and bench.py
      drops them again before the trigger, so this should never trigger - it
      is there to prove it rather than assume it.)
-  b) NO STALL. A stall is requests in flight while no bytes complete.
-     Claude checks the longest such stretch inside each wake (10Hz samples)
-     and maps every "completion polled" line between the STEP 0 and STEP 2
-     diagnostics onto the rep timelines. A stall inside a wake voids that
-     rep; one outside (daemon load, warm-up) does not touch the result.
-     This is the board's 30s lost-completion bug, proven on BOTH drives.
-     Do NOT judge this by analyze.py's stallms column: it sums read-ms over
-     every request finishing in a 100ms window, so a healthy read at queue
-     depth 5 already shows 500+ (every rep of the 2026-09-12 SD sitting did).
+  b) NO STALL. A stall is one read request left waiting while the rest of
+     the wake carries on. Claude runs
+        python3 resident_vlm/wake_checks.py resident_vlm/results/bench_<timestamp>
+     For every 100ms sample inside the wake it takes the read-time that
+     finished in that sample, minus what that many reads normally cost.
+     More than 1s left over means one request waited that long: the rep is
+     VOID. Healthy reps stay under 0.7s; the stalls found showed 1.6-4.4s.
+     Claude also maps every "completion polled" line between the STEP 0 and
+     STEP 2 diagnostics onto the rep times. A stall outside a wake (daemon
+     load, warm-up) does not touch the result.
+     This is the board's lost-completion bug, proven on BOTH drives. Most
+     stalls are released before the 30s timeout, so they leave NO kernel
+     log line - the diagnostics alone cannot rule a stall out.
+     CORRECTED 2026-09-13: this rule first looked for requests in flight
+     while NO bytes complete. That misses a stuck request whenever other
+     reads keep flowing past it: it passed SD resident_continuous_0 (stuck
+     1.6s) and would have passed SSD resident_0 (stuck 4.4s).
+     Do NOT rule a stall out from analyze.py's stallms column or from the
+     average ms per read - one stuck request hides inside both.
   c) SAME START TEMPERATURE. Every rep starts within 5C of the drive's own
      resting temperature. analyze.py prints cd_st and cd_pk per rep. In the
      old sitting the three reps started at 57.85 / 60.85 / 61.85 C, drifting
@@ -124,6 +134,57 @@ THEN - the SSD half
   Note: device.json now records max_hw_sectors_kb. The SD's is 128KB, which
   is the largest single command it will accept. If the SSD's is bigger it
   gets larger commands for free and the write-up has to say so.
+
+TOP-UP - WHEN STALLS LEAVE AN ARM BELOW 3 VALID REPS  (added 2026-09-13)
+
+  WHY
+    Kfir's standard is 3 valid reps per arm per drive. The board's stall hit
+    2 of 9 reps in the SSD sitting (resident_0, resident_continuous_1) and
+    1 of 9 in the SD Express sitting (resident_continuous_0). At that rate a
+    fresh 3-rep sitting comes out with all 9 reps clean only ~10-20% of the
+    time, so a full re-run would most likely come up short again. Instead:
+    2 more reps of every arm, same code, same flags, same order.
+
+  RULES - fixed and committed BEFORE the top-up ran
+    1. An arm below 3 valid reps takes its FIRST valid top-up reps, in run
+       order, until it has 3. Never the better of two, never replacing a
+       rep from the original sitting.
+    2. An arm that already has 3 valid reps does NOT use its top-up reps.
+       They are the drift check: if their median is within 0.5s of that
+       arm's median in the original sitting, the top-up joins the sitting.
+       If not, the day has drifted, the top-up does not count, and that
+       drive gets a full re-run.
+         SSD         burst   (sitting median 10.69s)
+         SD Express  demand  (11.73s) and burst (12.01s)
+    3. Every top-up rep goes through wake_checks.py exactly like the
+       sitting. Void reps are listed in the write-up with the reason, never
+       dropped silently.
+    4. If the top-up still leaves an arm below 3, report that arm at the n
+       it has and say so. Do not run a third batch to chase it.
+
+  WHICH DRIVE NEEDS WHAT
+    SSD         demand +1, continuous +1     (run 2026-09-13)
+    SD Express  continuous +1                (next time it is in the slot -
+                                              same command, so both drives
+                                              get the identical top-up)
+
+  PROCEDURE - identical to the sitting, only STEP 1 changes
+    BEFORE RUNNING exactly as above: VS Code closed, helpers killed, 25W
+    clocks after any reboot, free -m written down. 30 min of nothing heavy
+    before STEP 0 - the end of the previous sitting counts as heavy.
+
+    STEP 0  bash ~/Documents/projects/wildfire_detection/mmap_sandbox/card_eval/nvme_diag.sh
+
+    STEP 1  bash ~/Documents/projects/wildfire_detection/resident_vlm/run_loadtime_topup.sh
+            ~40 min (3 arms x 2 reps, interleaved). Detaches like STEP 1
+            above; to stop it: pkill -f bench.py; docker rm -f resident_vlm
+            The pre-flight line "running: bench.py ..." must show --reps 2
+            and --pace-mbps 100000.
+
+    STEP 2  bash ~/Documents/projects/wildfire_detection/mmap_sandbox/card_eval/nvme_diag.sh
+
+    STEP 3  tell Claude. Claude runs wake_checks.py on the sitting AND the
+            top-up together and applies the four rules above.
 
 WHAT WE EXPECT, SO A SURPRISE IS INFORMATIVE
   Today's demand-paged wake reads at ~400 MB/s while fio gets 871 MB/s out

@@ -5,11 +5,13 @@ Written 2026-09-11 on the SD Express card, for the Claude session that runs on t
 This file is the source of truth. Read all of it before running anything, and save the
 key points to memory.**
 
-**Status 2026-09-12, late evening: the card comparison is done and published, and a NEW test is
-half done.** Kfir asked for a wake read-strategy test — demand paging vs 64 MB bursts vs continuous,
-uncapped, on the real resident wake. The SD Express half ran 22:52–23:45. **The SSD half is next: go
-straight to the last section, "Wake read-strategy test", which has the context, the SD results and the
-SSD to-do list.** The earlier SSD results are in "SSD sitting, 2026-09-12".
+**Status 2026-09-13, 03:00: the card comparison is done and published; the wake read-strategy test has
+run on both drives and is being topped up.** Kfir asked for a wake read-strategy test — demand paging vs
+64 MB bursts vs continuous, uncapped, on the real resident wake. SD Express half 2026-09-12 22:52–23:45,
+SSD half 2026-09-13 01:28–02:23. The board's rescued stalls voided 3 of the 18 reps, leaving three arms
+at 2 valid reps, so a pre-registered **top-up** (2 more reps per arm, same code) runs on the SSD
+2026-09-13 and **on the SD Express next time it is in the slot**. Go straight to the last section, "Wake
+read-strategy test", and its "Top-up" part. The earlier SSD results are in "SSD sitting, 2026-09-12".
 
 ## What this is for
 
@@ -491,9 +493,13 @@ Why:
 - Free RAM at the trigger was 1.66–1.92 GB in every rep, and every arm swapped out 238–505 MB during
   the wake — a board property, not specific to C.
 
-Acceptance checks — all passed:
+Acceptance checks — **CORRECTED 2026-09-13: `resident_continuous_0` is VOID** (a read request waited
+~1.6 s inside the wake). The check (b) below passed it because it only looks for requests in flight
+while no bytes complete, and other reads kept flowing past the stuck one. The replacement is committed
+as `resident_vlm/wake_checks.py` — see "Top-up". With that rep removed, continuous is 16.28 / 15.67 s,
+**median 15.97 s, n=2**; demand and burst keep n=3 and their medians. The ranking is unchanged.
 - **(a) nothing warm:** every rep read ≥ 2.26 GB off the drive.
-- **(b) no stall inside a wake:** the longest stretch with `disk_io_in_flight > 0` and no change in
+- **(b) no stall inside a wake (the original, insufficient check):** the longest stretch with `disk_io_in_flight > 0` and no change in
   `disk_read_bytes` between consecutive 10 Hz samples, `wake_sent` → `first_verdict`, was 0.23 s. The
   one `timeout, completion polled` line (23:35:42, stuck since ~23:35:12) maps, by the samples' `wall`
   times, into the gap between `resident_2` (sampling ended 23:32:52) and `resident_burst_2` (started
@@ -504,7 +510,8 @@ Acceptance checks — all passed:
 - **(c) temperature:** `cd_st` 51.85–53.85 °C at the start of every wake, peaks 57.85–61.85 °C.
 
 These checks and the phase breakdown were ad-hoc Python over `summary.json` (`wake_reply`),
-`<tag>.jsonl` and `<tag>.marks.json` — no committed script — so compute them the same way on the SSD.
+`<tag>.jsonl` and `<tag>.marks.json`. Since 2026-09-13 `resident_vlm/wake_checks.py <run dir>...` computes
+the phase breakdown, the corrected stall test and (a)/(c) the same way for every run — use it.
 Fields: `wake_reply.preread_seconds/bytes`, `prefetch_seconds/bytes`, `sd_read_seconds`,
 `camera_open_seconds`, `first_verdict_seconds`, `wake_seconds`, `bytes_read`; per record
 `cooldown_seconds`, `card_start_c`, `trigger_to_verdict_seconds`. In-flight depth and MB/s come from
@@ -552,6 +559,89 @@ Committed as raw data only.
 What to expect: the SSD's earlier demand wake was 10.24 s with a ~426 MB/s read phase. If the
 shallow-queue explanation is right, the SSD's advantage stays small in all three arms and C
 double-reads again (same board, same RAM). Either outcome is worth reporting.
+
+### SSD half — `resident_vlm/results/bench_20260913_012802/` (2026-09-13)
+
+25 W verified (CPU 1344000, GPU 918000000), 9/9 reps, no errors, 01:28–02:23, same wrapper and flags as
+the SD. Drive resting at 41.85 °C. Diagnostics `nvme_diag_ssd_20260913_012747.txt` (before) and
+`nvme_diag_ssd_20260913_022319.txt` (after): **0 `completion polled` lines and no new kernel lines at all**,
+0 media errors, error log 20 → 20, thermal T1 10 → 10, 0 s above warning temperature.
+`device.json`: **`max_hw_sectors_kb` 128 and `read_ahead_kb` 128, identical to the SD Express** — the SSD
+gets no larger commands, so item 5's confound does not exist.
+
+Boot note: on this boot `nvpmodel.service` did **not** fail (`inactive`, `Result=success`) and the clocks
+came up at 25 W before `set_25w_clocks.sh` ran, so `host.json` says `nvpmodel_service: inactive` where the
+SD says `failed`. Every clock knob matched the SD sitting (CPU online 0-5, CPU max 1344000 / min 729600,
+schedutil, GPU max 918000000, EMC 3199000000) — the route differed, not the state. Fairness rule 7's "fails
+at every boot" is not always true.
+
+A false start at 00:55 (launched before STEP 0, stopped ~2 min in during the daemon load, no rep
+measured) was deleted; the drive then rested 30 min before STEP 0.
+
+| arm | trigger → verdict per rep | valid median | `wake_seconds` median | read phase | `bytes_read` | wake J median |
+|---|---|---|---|---|---|---|
+| A — demand | **VOID 14.90** / 10.25 / 10.16 s | **10.20 s** (n=2) | 7.36 s | 4.69–4.89 s | 2.33–2.35 GB | 77.6 |
+| B — burst 64 MB | 10.61 / 10.69 / 10.84 s | **10.69 s** (n=3) | 8.03 s | 5.29–5.54 s | 2.36–2.41 GB | 82.5 |
+| C — continuous | 13.63 / **VOID 16.05** / 13.62 s | **13.62 s** (n=2) | 10.87 s | pre-read 3.52–3.54 s + load 4.64–4.74 s | 4.25–4.27 GB | 99.3 |
+
+**Same ranking as the SD Express: demand ≤ burst < continuous, and every valid range is disjoint.**
+- **Voids:** `resident_0` (a request waited ~4.4 s; its read phase 9.74 s at 255 MB/s) and
+  `resident_continuous_1` (~2.3 s). Both were released before the 30 s timeout, hence no kernel line.
+  During `resident_0`'s stuck request the other reads kept completing at 0.14–0.30 ms each but only ~13 KB
+  apiece — which briefly looked like a host-side access-pattern effect. It was not: average ms/read per
+  sample hides one stuck request. Same signature as the SD 09-11 official `resident_0` (~3.8 s), whose
+  original stall attribution is confirmed.
+- **Burst is slower than demand on the SSD, but tied on the SD — and the reason is the join.** `wake()`
+  waits for the prefetch thread to finish the whole file (`pf.join`, `resident_daemon.py`). On the SSD
+  burst's read phase equals the prefetch thread's time exactly (5.29 / 5.52 / 5.54 s both): the load had
+  finished and the wake waited for a thread running at only 305–320 MB/s. On the SD the load outlasted the
+  thread (6.23–6.83 vs 5.14–5.76 s), so the join cost nothing. The SD half ran the same code, so it must
+  NOT change before the top-ups — but the write-up must say burst's SSD figure is "load + wait for the
+  prefetch", not "64 MB reads are slower". Nothing suggests burst could beat demand without the join: on
+  the SD the loader with a prefetch thread was no faster than alone. Burst also swapped out more during
+  the wake (SSD 449–507 MB vs demand 180–337; SD 414–494 vs 250–385).
+- **Continuous double-reads on the SSD too** (4.25–4.27 GB vs ~2.34), so it is the shared RAM, not the
+  drive. Uncapped 64 MB buffered streaming reached only **~478 MB/s — 18% of the SSD's 2586 MB/s fio
+  figure** (SD: ~420 MB/s, 48% of its 871), with 1–2 requests in flight: the shallow-queue explanation
+  holds on both drives. All three arms send the drive 128 KB commands a few at a time; they differ in
+  wasted work, not in what the drive sees.
+- **The SD-vs-SSD wake gap is real, not drift.** The SSD's demand arm reproduced its 09-12 sitting
+  (9.62 / 10.24 / 10.27 s) to ~0.05 s median, where the SD moved 0.47 s between its two sittings. All 5
+  valid SSD demand reps (9.62–10.27 s) beat all 5 valid SD ones (11.10–11.89 s). The ~1.3–1.5 s gap sits
+  in the read phase (median 6.22 vs 4.79 s). Kfir had questioned whether 9% was noise; with a second SSD
+  sitting it is not. Small for four lanes, which is the point the published page already makes.
+- **Check (c):** bench.py's cooldown gate passed every rep at 46.85–47.85 °C (5–6 °C over resting), but
+  the drive then warmed to 53.85–54.85 °C by the trigger, so the literal "within 5 °C of resting" is not
+  met. Start temperature was within 1 °C across all arms, peaks ≤ 56.85 °C, no throttling: the rule's
+  purpose (no arm starting warmer than another) holds. Report both.
+- Free RAM at the trigger 1719–1871 MB (SD 1659–1924), swap-out during the wake 180–507 MB (SD 250–505) —
+  comparable.
+
+### Top-up — rules fixed and committed 2026-09-13 BEFORE it ran
+
+Three arms now have 2 valid reps (SSD demand, SSD continuous, SD Express continuous); Kfir's standard is 3.
+The stall hit 2/9 SSD reps and 1/9 SD reps, so a fresh 3-rep sitting is clean on all 9 reps only ~10–20% of
+the time — a full re-run would most likely come up short again. Kfir agreed (2026-09-13) to a top-up: 2 more
+reps of every arm, same code and order, via `resident_vlm/run_loadtime_topup.sh` (`--reps 2`, otherwise
+identical to `run_loadtime.sh`). Procedure: `resident_vlm/RUNBOOK_LOADTIME.txt`, section "TOP-UP".
+
+1. An arm below 3 valid reps takes its **first** valid top-up reps, in run order, until it has 3 — never
+   the better of two, never replacing a rep from the original sitting.
+2. An arm that already has 3 valid reps does not use its top-up reps; they are the **drift check**. If
+   their median is within 0.5 s of that arm's median in the original sitting, the top-up joins the
+   sitting; if not, the top-up does not count and that drive gets a full re-run.
+   SSD: burst (10.69 s). SD Express: demand (11.73 s) and burst (12.01 s).
+3. Every top-up rep goes through `wake_checks.py` exactly like the sitting; void reps are listed with the
+   reason, never dropped silently.
+4. If an arm is still below 3 after the top-up, report it at the n it has and say so — no third batch.
+
+**SSD top-up:** 2026-09-13, STEP 0 no earlier than 02:53. Results go here when done.
+
+**SD Express top-up — to-do for the SD session:** `git pull`, read this section, save it to memory, then
+the RUNBOOK "TOP-UP" procedure with the identical command. Afterwards
+`python3 resident_vlm/wake_checks.py resident_vlm/results/bench_20260912_225203 resident_vlm/results/bench_<top-up>`,
+apply rules 1–4, map `completion polled` lines, commit the folder (check its `*.jsonl` are staged) and both
+diagnostics files, and update this section.
 
 ### How Kfir works — the SSD memory does not know this
 
