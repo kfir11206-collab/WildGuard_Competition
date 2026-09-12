@@ -330,6 +330,19 @@ are its official evening sitting, the SSD figures its 2026-09-12 sitting.
 | resident drive-read phase | median 362.1 MB/s (250–373), 37.4 J | median 426.5 MB/s (405–453), 31.5 J |
 | resident vs baseline | 10.4× faster, 9.4× less energy | 10.7× faster, 9.5× less energy |
 
+**The energy trade — the SD Express's actual case.** Per wake the SSD saves 7.29 J and 1.02 s. At idle
+the board draws 0.495 W less on the non-compute rails with the SD Express installed, so the SSD's
+per-wake saving only repays that above ~5,900 wakes/day — one every 15 s. At 24 wakes/day the SD
+Express is ~42.6 kJ/day ahead. State the mechanism, or the claim is not honest: both drives sleep at
+hundredths of a watt (SD Express PS4 0.015 W, SSD PS4 0.005 W, APST enabled on both, ITPT 2 s and
+100 ms→PS3/2 s→PS4), so **the 0.5 W is not the flash**. It is most likely the interface — this board
+runs `LnkCtl: ASPM Disabled` on both drives, so an idle link stays powered, and the SSD holds up four
+lanes against the SD Express's one. Note the whole-board idle favours the SSD by 0.151 W, because the
+two sittings' CPU/GPU rails differed (1.156 vs 0.498 W); that confound runs AGAINST the SD Express,
+which still measured lower on the rail group that contains the drive. Other places it is competitive:
+4K random writes one at a time 18,247 vs 17,861 IOPS (102%), 4K random reads at QD32 84% of the SSD on
+a quarter of the lanes, 88.4% of its own link against 65.6%, spec maximum draw 1.80 W against 8.25 W.
+
 The three claims worth building the write-up on:
 
 1. **The stall is the platform's, not the card's** — same verdict and same 30 s `io_timeout`
