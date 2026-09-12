@@ -51,4 +51,7 @@ MHT_TOP/
 !mmap_sandbox/results/
 !mmap_sandbox/results/**
 
+!resident_vlm/results/**/*.jsonl
+resident_vlm/results/fused_state.pt*
+
 .claude/settings.local.json

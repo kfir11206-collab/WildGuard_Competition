@@ -21,7 +21,7 @@ are in "Fairness rules" below — do not relax them on the SSD side.
 
 The two drives take turns in the same M.2 slot. Only one can be installed at a time.
 
-| | SD Express card | SSD |
+| | SD Express (Gen3 x1, slot 0007:01:00.0) | SSD (Gen3 x4, slot 0004:01:00.0) |
 |---|---|---|
 | model string | `ST51271_WDC SanDisk SD Express SDSQXFN` | `CT1000P5PSSD8` |
 | `device.json` label | `sd_express` | `ssd` |
@@ -313,33 +313,39 @@ writing anything, and an aborted STEP 2 at 01:32 was killed 12 s in and deleted.
 Both sittings ran the same procedure at 25 W with a cool-start before every test. The SD figures
 are its official evening sitting, the SSD figures its 2026-09-12 sitting.
 
-| | SD Express (Gen3 x1) | SSD (Gen3 x4) |
+| | SD Express (Gen3 x1, slot 0007:01:00.0) | SSD (Gen3 x4, slot 0004:01:00.0) |
 |---|---|---|
-| seq read 1M QD8 | 877.6 MB/s — 89% of its link | 2585.7 MB/s — 66% of its link |
-| sustained read, timed 120 s | ~872 MB/s, peak 84.8 °C, brief throttle | 2563.3 MB/s, peak 69 °C, no throttle |
-| rand read 4K QD32 / QD1 | ~88,000 / 6,403 IOPS | 95,254 / 11,151 IOPS |
-| seq write 1M QD8 / QD1 | 578.5 / 490.4 MB/s | 2570.3 / 1431.6 MB/s |
-| rand write 4K QD32 / QD1 | 78,003 / 17,682 IOPS | 123,792 / 17,861 IOPS |
-| gdsio (compat mode) | ~877 MB/s all three | 2621 / 2644 / 3077 MB/s |
-| 128K QD1 burst vs continuous | J/GB ratio 0.999 | J/GB ratio 1.0 |
+| seq read 1M QD8 | 871.0 MB/s — 88% of its x1 link | 2585.7 MB/s — 66% of its x4 link |
+| sustained read, timed 120 s | 870.6 MB/s, peak 84.8 °C, no throttle | 2563.3 MB/s, peak 69 °C, no throttle |
+| rand read 4K QD32 / QD1 | 80,114 / 6,482 IOPS | 95,254 / 11,151 IOPS |
+| seq write 1M QD8 / QD1 | 569.3 / 523.9 MB/s | 2570.3 / 1431.6 MB/s |
+| rand write 4K QD32 / QD1 | 82,850 / 18,247 IOPS | 123,792 / 17,861 IOPS |
+| gdsio (compat mode) | 878.3 / 878.5 / 878.1 MB/s | 2621 / 2644 / 3077 MB/s — the x2 step lost 15 s to a stall, treat it as suspect |
+| 128K QD1 burst vs continuous (the fair pair) | J/GB ratio 0.999 | J/GB ratio 1.0 |
+| 1M QD1 burst vs continuous | ratio 0.994, no stuck seconds | ratio 0.644 — 38 stuck seconds, an artifact, do not quote |
 | 1M QD1 stall probe | STALLS, RESCUED | STALLS, RESCUED |
 | idle, rest of board | 2.539 W | 3.034 W |
-| baseline trigger → verdict | 117.3 s, 797.6 J | 109.41 s, 737.5 J |
-| resident trigger → verdict | 11.26 s, 84.9 J | 10.24 s, 77.6 J |
-| resident drive-read phase | 362–373 MB/s, 37.4 J | 405–453 MB/s, 31.5 J |
-| resident vs baseline | 10.4× faster, 9.4× less energy | 10.7× faster, 9.5× less energy |
+| baseline trigger → verdict | 117.3 s, 797.6 J | 109.41 s, energy **pending recovery** |
+| resident trigger → verdict | 11.26 s, 84.9 J | 10.24 s, energy **pending recovery** |
+| resident drive-read phase | median 387.7 MB/s (262–405), 37.4 J | median 466.2 MB/s (442–493), energy **pending recovery** |
+| resident vs baseline | 10.4× faster, 9.4× less energy | 10.7× faster; energy ratio pending recovery |
 
 The three claims worth building the write-up on:
 
 1. **The stall is the platform's, not the card's** — same verdict and same 30 s `io_timeout`
-   signature from a completely different drive in the same slot.
+   signature from a completely different drive on a DIFFERENT PCIe controller (card 0007:01:00.0 x1,
+   SSD 0004:01:00.0 x4 — they are not the same slot). Two controllers showing the same fault makes the
+   platform explanation stronger, not weaker.
 2. **The wake is software-bound.** About 3× the sequential bandwidth buys ~1.2× on the drive-read
    phase and 9% on trigger → verdict. On one lane the card nearly matches a four-lane SSD on the
    workload that matters.
 3. **State the handicaps**: the SSD baseline had 5601–5705 MB free against the SD's 5280–5501 and
    the baseline swaps; host activity differed at idle (CPU/GPU rail 1.156 W vs 0.498 W); the SSD
    has ~510 GB of unpartitioned NAND for SLC caching and wear levelling that the full card lacks;
-   the two sittings ran on different days.
+   the two sittings ran on different days; the SSD's cool-start gate timed out on 3 of 16 tests and
+   waited ~100 s on most of the rest, where the SD waited 0-11 s except its write tests, so the SSD's
+   tests began further above its own resting temperature; and the SSD's 1M `continuous_read` and
+   `gdsio_x2_cpu_gpu` steps were disrupted by stalls (38 s and 15 s stuck) and must not be quoted.
 
 ## State of play — read this first
 
@@ -350,5 +356,17 @@ as the "what this means for a real AI system" section.
 
 Note for whichever drive is installed: each drive carries its own Claude memory, and they diverge
 after 2026-09-10. **This file is the shared record — `git pull` first, then read it.** Every number
-above is reproducible from the committed run directories with `summarize.py` and `analyze.py`.
+above is reproducible from the committed run directories with `summarize.py` and `analyze.py`,
+**with one exception**: the SSD benchmark (`resident_vlm/results/bench_20260912_013746/`) was committed
+without its `*.jsonl` samples and its `analysis.json` is an empty list, so that arm's joules and free-RAM
+figures are not reproducible; its trigger → verdict times and drive-read rates are, from `summary.json`.
+Kfir decided 2026-09-12 to recover them — with the SSD installed:
+
+    cd ~/Documents/projects/wildfire_detection && git pull
+    git add -f resident_vlm/results/bench_20260912_013746/*.jsonl
+    python3 resident_vlm/analyze.py resident_vlm/results/bench_20260912_013746
+    git add resident_vlm/results/bench_20260912_013746/analysis.json
+    git commit -m 'Add the SSD benchmark raw samples and analysis' && git push
+
+`.gitignore` now keeps `resident_vlm/results/**/*.jsonl` tracked, so this cannot happen again.
 
