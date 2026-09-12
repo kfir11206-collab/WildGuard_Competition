@@ -73,13 +73,14 @@ This is where the 29% energy figure comes from, and it is a genuine A/B: the sam
 
 ## 4. Burst vs steady reads
 
-Two experiments, different scopes, and they agree:
+Three experiments, different scopes. None finds an advantage for bursts:
 
 | File | What it gives the report |
 |---|---|
 | `mmap_sandbox/results/burst_vs_continuous_run1/summary.json` + `latency.png`, `timeseries.png`, `summary_panel.png` | **July, whole wake.** 150.6 s burst vs 152.7 s paced at 703 MB/s vs 162.1 s at 350 MB/s — pacing the read barely moved anything, because the wake was CUDA-bound. |
 | `mmap_sandbox/results/card_eval/*/analysis.json` → `burst_vs_continuous` | **September, drive level with fio.** Same bytes in the same time: energy per GB ratio 0.999 on the card, 1.000 on the SSD. The supplier's "good at bursts" claim is not visible at this level. |
 | `mmap_sandbox/burst_vs_continuous/*.py` | How the July run worked. |
+| `resident_vlm/results/bench_20260912_225203/analysis.json` + HANDOFF.md → "Wake read-strategy test" | **September, the real wake, uncapped** (SD Express done, SSD pending). Demand paging 11.73 s, 64 MB bursts 12.01 s, continuous 16.28 s. Buffered reads keep 2–3 requests in flight whatever the chunk size, and the continuous stream is evicted by the GPU copy and read twice. |
 
 ---
 

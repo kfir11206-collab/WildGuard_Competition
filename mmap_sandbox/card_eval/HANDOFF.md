@@ -5,8 +5,11 @@ Written 2026-09-11 on the SD Express card, for the Claude session that runs on t
 This file is the source of truth. Read all of it before running anything, and save the
 key points to memory.**
 
-**Status 2026-09-12: both sittings are done.** The SSD results are the last section of this
-file. What remains is the comparison write-up and the artifact (SSD procedure step 5).
+**Status 2026-09-12, late evening: the card comparison is done and published, and a NEW test is
+half done.** Kfir asked for a wake read-strategy test — demand paging vs 64 MB bursts vs continuous,
+uncapped, on the real resident wake. The SD Express half ran 22:52–23:45. **The SSD half is next: go
+straight to the last section, "Wake read-strategy test", which has the context, the SD results and the
+SSD to-do list.** The earlier SSD results are in "SSD sitting, 2026-09-12".
 
 ## What this is for
 
@@ -362,13 +365,15 @@ The three claims worth building the write-up on:
 
 ## State of play — read this first
 
-Measurement is **finished on both drives**; nothing further needs to be run on either one, and
+The standard-tool comparison and resident benchmark are **finished on both drives** — do not re-run
+them — and
 the comparison write-up is **published**: "One Lane Against Four",
 https://claude.ai/code/artifact/746549ba-ae80-48d2-a115-0dcac1a32518 (2026-09-12) — standard-tool
 results first, the resident benchmark as the "what this means for a real AI system" section,
 cross-linked to the older resident-VLM artifact rather than merged into it. Every figure on that
 page comes from the official runs named above; if a number here is corrected, update the page too.
-The one open item is the SSD raw-sample recovery described at the end of this file.
+Two open items, both needing the SSD installed, so do them in one session: the SSD half of the wake
+read-strategy test (last section of this file), and the SSD raw-sample recovery described below.
 
 Note for whichever drive is installed: each drive carries its own Claude memory, and they diverge
 after 2026-09-10. **This file is the shared record — `git pull` first, then read it.** Every number
@@ -391,3 +396,168 @@ Kfir decided 2026-09-12 to recover them — with the SSD installed:
 
 `.gitignore` now keeps `resident_vlm/results/**/*.jsonl` tracked, so this cannot happen again.
 
+## Wake read-strategy test — burst vs continuous (2026-09-12 evening)
+
+Written on the SD Express right after its half ran, for the Claude session on the SSD.
+**This is the only measurement left to run.** Nothing earlier in this file needs re-running.
+
+### What Kfir asked for, and why the earlier "burst vs continuous" did not answer it
+
+Kfir's question: **when the MHT hands off, how long until the model gives its first verdict, and
+how many MB/s come off the drive? Is burst reading faster than continuous, does the answer change
+between the SD Express and the SSD, and which configuration is fastest?** On the real system (the
+resident wake), not a lab test, and with **no rate cap on any arm** ("what is the point if we are
+restricting it?").
+
+Neither earlier test answered that:
+- card_eval's `burst_read` / `continuous_read` (and the 128K pair) ran continuous at `--rate=` the
+  burst arm's own average, so both took the same time by construction and only energy could differ
+  (J/GB ratio 0.999 / 1.0). A synthetic file, not the wake.
+- the `resident_continuous` wake arm was capped at 185 MB/s (bench.py's `--pace-mbps` default), ran
+  once as a smoke test, and was dropped.
+
+Kfir also said: **do not re-measure what already exists** — no card_eval, no idle power, no dedicated
+energy tests, no baseline container arm (wake energy still falls out of the same 10 Hz samples at no
+extra cost). He wants the design discussed with him and a runbook before anything runs.
+
+### The three arms, and what "burst" means here
+
+| arm | bench.py name | how the 1.689 GB `fused_state.pt` comes off the drive |
+|---|---|---|
+| A — demand | `resident` | `torch.load(mmap=True)` page faults, 128 KB readahead. What ships. The reference, and the sitting's self-check against the official 11.26 s (SD) / 10.24 s (SSD) |
+| B — burst 64 MB | `resident_burst` | daemon `--prefetch-mb 64`: a thread reads the file in 64 MB `read()` chunks while the load runs |
+| C — continuous | `resident_continuous` | daemon `--pace-mbps 100000` (so high the pacing sleep never fires = uncapped) with `--chunk-mb 64`: stream the whole file, then load |
+
+"Burst" took several rounds to settle with Kfir — do not reopen it:
+- It does **not** mean read-then-rest. Idle inserted into a latency path can only slow the handoff; a
+  wake never takes the drive near throttling (≤ 62 °C against 84.85 °C) and fio already showed resting
+  saves no energy. Kfir agreed: no read-rest arm.
+- 64 MB is the SD Association guidance Kfir cited: hand the drive large contiguous requests.
+  `max_hw_sectors_kb` is 128 on the SD, so a 64 MB request is ~512 queued 128 KB commands, never one
+  transfer.
+- B and C differ only in overlap: B reads while the load runs; C finishes reading, then loads.
+
+### Code (commits `f287e80`, `5e14783`, and the commits carrying this section)
+
+- `resident_daemon.py`: `_prefetch()` + `--prefetch-mb` (default 0 = off); `_paced_preread`'s chunk
+  is now `--chunk-mb` (default 64); the wake reply adds `prefetch_seconds` / `prefetch_bytes`.
+- `bench.py`: per-arm daemon flags, `--prefetch-mb` (default 64). The cooldown now also waits for the
+  **drive** to be within 5 °C of its temperature when bench.py started, inside the same
+  `--cooldown-max` 240 s budget as the Tj ≤ 52 °C wait, and records `card_start_c`. Reason: in the
+  official SD sitting the drive started the three resident reps at 57.85 / 60.85 / 61.85 °C, and
+  because arms interleave, that drift always lands on whichever arm runs later.
+- `analyze.py`: `card_start_c` / `card_peak_c` per window (`cd_st`, `cd_pk` columns).
+- `sampler.py`: `read_card_temp()`; `device.json` records `read_ahead_kb`, `max_sectors_kb`,
+  `max_hw_sectors_kb`, `nr_requests`.
+- `resident_vlm/run_loadtime.sh`: `--reps 3 --arms resident resident_burst resident_continuous
+  --pace-mbps 100000 --prefetch-mb 64`. **Always launch through it** — bench.py's `--pace-mbps`
+  default of 185 silently caps arm C.
+- `resident_vlm/RUNBOOK_LOADTIME.txt`: Kfir's procedure, same shape as `RUNBOOK.txt`.
+
+Every default keeps the old behaviour: re-running analyze.py on `bench_20260911_220613` reproduced
+11.26 s / 84.9 J exactly and only added the two temperature fields.
+
+### SD Express half — `resident_vlm/results/bench_20260912_225203/`
+
+25 W verified (CPU 1344000, GPU 918000000), 9/9 reps, no errors, 22:52–23:45. Drive resting at
+51.85 °C. Diagnostics `nvme_diag_sd_express_20260912_225135.txt` (before) and `..._234556.txt`
+(after). `device.json`: `max_hw_sectors_kb` 128, `read_ahead_kb` 128.
+
+| arm | trigger → verdict per rep | **median** | daemon `wake_seconds` median | `bytes_read` | read-phase MB/s | wake J median |
+|---|---|---|---|---|---|---|
+| A — demand | 11.73 / 11.89 / 11.53 s | **11.73 s** | 8.90 s | 2.28–2.32 GB | 341–364 | 88.7 |
+| B — burst 64 MB | 12.01 / 13.93 / 11.85 s | **12.01 s** | 8.99 s | 2.26–2.36 GB | 304–338 | 90.8 |
+| C — continuous | 16.72 / 16.28 / 15.67 s | **16.28 s** | 13.25 s | 4.24–4.30 GB | 381–403 | 116.7 |
+
+**On the SD Express, demand paging (what ships) is fastest; 64 MB bursts tie with it; continuous is
+~4.5 s slower.** Camera open (~0.12 s) and first inference (~2.5 s) were identical in every arm, so
+the whole difference is in the read. `resident_burst_1`'s 13.93 s carries 2.3 s extra **before**
+`wake_sent` (MHT stop / classifier start), not in the read — always report `wake_seconds` beside
+trigger → verdict. `bytes_read` exceeds the 1.689 GB file in every arm (other I/O during the wake; the
+source was not established); what matters is that C reads ~2 GB more than A and B.
+
+Why:
+- **Buffered reads keep the queue shallow, whatever the chunk size.** During arm C's uncapped stream:
+  requests in flight median 2–3, max 7; 10 Hz MB/s median ~490–500, peak ~600; over the whole file
+  412–422 MB/s (`preread_seconds` 4.0–4.1 s). fio's O_DIRECT 1M QD8 keeps ~64 in flight and reaches
+  871 MB/s. The page cache issues 128 KB readahead a few at a time no matter how much Python asks for —
+  consistent with the July chunk-size sweep (1–64 MB, all within noise, `mmap_sandbox/results/20260705_*_sweep/`).
+  The prediction that 64 MB would approach 871 MB/s and save ~2.7 s per wake was wrong.
+- **Burst:** the prefetch thread (293–328 MB/s) and the page faults shared one budget (in-flight median
+  3 against demand's 5), read the same bytes, and gained nothing.
+- **Continuous:** the stream finishes in ~4 s, but the GPU copy of the weights lives in the same
+  unified RAM, the kernel evicts the cached file, and the load reads it again. C = demand + ~4 s of
+  discarded reading. It is the same double read as the 185 MB/s smoke, so the cap never caused it.
+- Free RAM at the trigger was 1.66–1.92 GB in every rep, and every arm swapped out 238–505 MB during
+  the wake — a board property, not specific to C.
+
+Acceptance checks — all passed:
+- **(a) nothing warm:** every rep read ≥ 2.26 GB off the drive.
+- **(b) no stall inside a wake:** the longest stretch with `disk_io_in_flight > 0` and no change in
+  `disk_read_bytes` between consecutive 10 Hz samples, `wake_sent` → `first_verdict`, was 0.23 s. The
+  one `timeout, completion polled` line (23:35:42, stuck since ~23:35:12) maps, by the samples' `wall`
+  times, into the gap between `resident_2` (sampling ended 23:32:52) and `resident_burst_2` (started
+  23:36:20) — burst_2's unmeasured daemon load and warm-up. **Do not use analyze.py's `stallms` column
+  for this**: it sums read-ms over every request finishing in a 100 ms window, so a healthy read at
+  queue depth 5 shows 500+ (all 9 reps did). The runbook's rule (b) was first written that way and is
+  now corrected.
+- **(c) temperature:** `cd_st` 51.85–53.85 °C at the start of every wake, peaks 57.85–61.85 °C.
+
+These checks and the phase breakdown were ad-hoc Python over `summary.json` (`wake_reply`),
+`<tag>.jsonl` and `<tag>.marks.json` — no committed script — so compute them the same way on the SSD.
+Fields: `wake_reply.preread_seconds/bytes`, `prefetch_seconds/bytes`, `sd_read_seconds`,
+`camera_open_seconds`, `first_verdict_seconds`, `wake_seconds`, `bytes_read`; per record
+`cooldown_seconds`, `card_start_c`, `trigger_to_verdict_seconds`. In-flight depth and MB/s come from
+the jsonl between `wake_sent` and `preread_end` (arm C) or `sd_read_end` (A, B).
+
+Runs that do not count: `resident_vlm/results/bench_20260911_115331/` — aborted during `baseline_0`
+on 2026-09-11 (configured with the 185 MB/s continuous arm; only `baseline_0.jsonl`, no summary).
+Committed as raw data only.
+
+### SSD half — to-do, in order
+
+1. **Kfir:** power off, swap, boot, `git pull`, open VS Code, tell Claude to read this file.
+   **Claude: save the key points to memory** — the SSD's memory predates all of this.
+2. **Claude:** confirm the model is `CT1000P5PSSD8`, `pgrep -af bench.py` is empty and no containers
+   run. Check the live clocks — after every boot they are 1728000 / 1020000000 (full power) even though
+   `pmode:0001` says 25 W:
+   `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq /sys/class/devfreq/17000000.gpu/max_freq`.
+   Walk Kfir through `resident_vlm/RUNBOOK_LOADTIME.txt`.
+3. **Kfir, VS Code closed:** `set_25w_clocks.sh` (must print 1344000 / 918000000), kill the four
+   desktop helpers, `free -m` (write it down), STEP 0 `nvme_diag.sh`, STEP 1
+   `bash resident_vlm/run_loadtime.sh` (~55 min on the SD), STEP 2 `nvme_diag.sh`.
+   Same arms, reps and flags as the SD — do not edit bench.py defaults or the launcher between drives.
+4. **Claude:** `python3 resident_vlm/analyze.py resident_vlm/results/bench_<timestamp>`; check
+   `device.json` label is `ssd` and `host.json` shows CPU 1344000 / GPU 918000000; build the phase
+   breakdown and run checks (a)–(c) exactly as above, mapping every `completion polled` line from the
+   before/after diagnostics onto the rep timelines. A stall inside a wake voids that rep — tell Kfir;
+   any re-run only after a 30 min rest.
+5. **Record the SSD's `max_hw_sectors_kb` and `read_ahead_kb`** from `device.json`. If they exceed
+   128, the SSD gets larger commands for free and the comparison must say so.
+6. **Compare**, three arms × two drives. Kfir's headline: burst vs continuous on each drive and whether
+   the ranking changes between drives, with demand as the reference, plus which configuration is
+   fastest overall. Per arm: all three reps and the median of trigger → verdict and `wake_seconds`,
+   read-phase MB/s, in-flight depth during C's stream, `bytes_read` (does C double-read on the SSD
+   too?), free RAM at the trigger (SD: 1.66–1.92 GB), swap-out during the wake. Only compare
+   within-sitting figures against each other; the two sittings ran on different days.
+7. **Also with the SSD installed:** the raw-sample recovery in "State of play" —
+   `bench_20260912_013746`'s `*.jsonl` (still 0 files in git as of 2026-09-12 23:50). Do it after STEP 2,
+   never before STEP 0.
+8. **Commit and push** the SSD run folder (check `git status` shows its `*.jsonl` staged — last time
+   they were missed), both diagnostics files, and an update to this section.
+9. **Then the graph Kfir asked for:** per arm per drive, MB/s over time from 5 s before the trigger to
+   5 s after the first verdict (the samples already cover 20 s before and 60 s after). Ask Kfir whether it
+   goes on a new artifact or onto "One Lane Against Four"; publish it as an Artifact, not a local HTML file.
+
+What to expect: the SSD's earlier demand wake was 10.24 s with a ~426 MB/s read phase. If the
+shallow-queue explanation is right, the SSD's advantage stays small in all three arms and C
+double-reads again (same board, same RAM). Either outcome is worth reporting.
+
+### How Kfir works — the SSD memory does not know this
+
+Explain each command before running it, and end with a short summary of what the code does and how.
+Discuss the design and give him a runbook before any test; explain and get a go-ahead before patching.
+No explanatory comments in code or config edits — explain in chat. Always write "SD Express", never
+"card" alone. Kfir is a beginner working on VLM/classifier/integration; Ori owns all of MHT_TOP. Time
+before the competition is short, but he wants data he can defend: three reps per configuration, no
+single-measurement conclusions.
