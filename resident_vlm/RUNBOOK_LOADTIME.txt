@@ -1,0 +1,133 @@
+BURST vs CONTINUOUS LOAD TIME - RUNBOOK
+=======================================
+cat this file any time:
+  cat ~/Documents/projects/wildfire_detection/resident_vlm/RUNBOOK_LOADTIME.txt
+
+THE QUESTION
+  When the MHT hands off, how long until the model gives its first verdict,
+  and how many MB/s comes off the drive while it does?
+  Three ways of getting the 1.689GB fused checkpoint off the card, no rate
+  cap on any of them:
+
+    resident             DEMAND. Page faults, 128KB at a time. What the
+                         system does today. The reference the other two are
+                         measured against. SD median was 11.26s.
+    resident_burst       BURST. 64MB reads (the SD Association's recommended
+                         size) running at the same time as the load, so the
+                         drive gets 64MB of contiguous work while the loader
+                         digests the previous 64MB. No deliberate idling.
+    resident_continuous  CONTINUOUS. The whole file streamed front to back,
+                         uninterrupted, and only then the load. The drive
+                         never pauses, but nothing overlaps.
+
+  Measured per rep: trigger -> first verdict (wall clock, the headline),
+  MB/s at 10Hz across the whole wake, energy, peak drive temperature.
+  The sampler runs 20s before the trigger and 60s after the verdict, so
+  there is plenty of margin around the wake for graphing.
+
+  ONE SITTING PER DRIVE. Six configurations = 3 arms x 2 drives, 3 reps each.
+  This sitting is the SD Express. The SSD repeat uses this same file.
+
+  NOT RUN, DELIBERATELY: card_eval (fio/iostat/gdsio), the baseline container
+  arm, idle power, thermals-under-load. All of that is already measured on
+  both drives and re-running it would only cost time. See
+  mmap_sandbox/card_eval/HANDOFF.md for those results.
+
+BEFORE RUNNING
+  1. Close VS Code and the browser. Keep the DESKTOP LOGGED IN.
+
+  2. Kill the desktop's background helpers. They have no window, so closing
+     everything does not close them. Together they free ~270MB:
+        pkill -f gnome-software; pkill -f update-notifier
+        pkill -f evolution-; pkill -f tracker-miner-fs-3
+     Do this on BOTH drives - the SSD clone autostarts the same helpers.
+
+  3. POWER MODE, after EVERY reboot. The board comes up at full power while
+     /var/lib/nvpmodel/status still says pmode:0001. Checked again
+     2026-09-12: cpu was 1728000 and gpu 1020000000, i.e. NOT 25W.
+        bash ~/Documents/projects/wildfire_detection/mmap_sandbox/card_eval/set_25w_clocks.sh
+     It asks for your password and must print cpu 1344000 and gpu 918000000.
+     Do NOT use "sudo nvpmodel -m 1" - on this board it asks for a reboot
+     every time and answering "no" changes nothing. The limits last until
+     the next reboot. The run refuses to start without them.
+
+  4. Nothing heavy on the board for 30 min before STEP 0 - no containers, no
+     other Claude sessions, no MHT GUI. If STEP 1 stops for any reason, wait
+     30 min and start again from STEP 0, never straight away.
+
+  5. RAM MATTERS MORE THAN IN THE EARLIER SITTINGS. The continuous arm holds
+     the whole 1.689GB in memory while the GPU copy of the same weights
+     competes for it. If the two drives start from different free RAM the
+     continuous arm is not comparable between them. Run:
+        free -m
+     Want MemAvailable >= 5300. WRITE THE NUMBER DOWN and aim for the same
+     on the SSD.
+
+STEP 0 - drive diagnostics BEFORE the run (asks for your password, ~1 min):
+
+  bash ~/Documents/projects/wildfire_detection/mmap_sandbox/card_eval/nvme_diag.sh
+
+  This is what tells us afterwards whether a lost-completion stall landed
+  inside one of the reps. Worth the minute.
+
+STEP 1 - the benchmark, ~65 min (3 arms x 3 reps, interleaved).
+
+  bash ~/Documents/projects/wildfire_detection/resident_vlm/run_loadtime.sh
+
+  Use the wrapper, not bench.py directly: the continuous arm's speed cap
+  defaults to 185 MB/s, and forgetting that one flag silently wastes the
+  whole hour. The wrapper passes the no-cap value and the 64MB burst size.
+
+  It detaches (setsid): safe to close the terminal. Keep VS Code CLOSED.
+  Progress:  tail -f <the log path it prints>
+
+  GOOD: pre-flight all ok, "detached as pid N", then one line per arm per rep.
+        Early on it prints the drive's resting temperature - every rep after
+        that waits until the drive is back within 5C of it.
+  CHECK: the "resident" arm should land near 11.3s on the SD. That is the
+        median from the official 2026-09-11 sitting. If it is far off, stop
+        and tell Claude - the other two arms cannot be trusted that day.
+  BAD:  any "error" line -> let it finish, keep the results dir, tell Claude.
+
+STEP 2 - drive diagnostics AFTER the run (~1 min):
+
+  bash ~/Documents/projects/wildfire_detection/mmap_sandbox/card_eval/nvme_diag.sh
+
+STEP 3 - tell Claude the run is done. Claude runs analyze.py and checks each
+         rep against the three acceptance rules below before believing it.
+
+  ACCEPTANCE RULES
+  a) NOTHING WAS WARM. Every rep must read at least ~1.6GB off the drive.
+     Less than that means the weights were still in memory from the previous
+     rep and the rep is void. (The daemon evicts them on SLEEP and bench.py
+     drops them again before the trigger, so this should never trigger - it
+     is there to prove it rather than assume it.)
+  b) NO STALL. Any rep whose wake window shows sd_max_stall_ms over 500 is
+     flagged and re-run, never folded into the median. This is the board's
+     30s lost-completion bug, proven on BOTH drives, not a card fault.
+     Watch the continuous arm especially: big sequential reads are closer to
+     the pattern that triggers it.
+  c) SAME START TEMPERATURE. Every rep starts within 5C of the drive's own
+     resting temperature. analyze.py prints cd_st and cd_pk per rep. In the
+     old sitting the three reps started at 57.85 / 60.85 / 61.85 C, drifting
+     warmer each time - that is what this rule now prevents.
+
+THEN - the SSD half
+
+  Power off, swap the drive, boot, git pull, and work through this same file
+  from BEFORE RUNNING. Same commands, same flags, same order, same helpers
+  killed, same 25W fix. Record free -m again.
+  Note: device.json now records max_hw_sectors_kb. The SD's is 128KB, which
+  is the largest single command it will accept. If the SSD's is bigger it
+  gets larger commands for free and the write-up has to say so.
+
+WHAT WE EXPECT, SO A SURPRISE IS INFORMATIVE
+  Today's demand-paged wake reads at ~400 MB/s while fio gets 871 MB/s out
+  of the same card - because 128KB faults with 4-8 requests in flight do not
+  give the drive enough contiguous work. 64MB requests should close most of
+  that gap, which is worth roughly 2.7s per wake on the SD.
+  Burst should beat continuous, because continuous pays read time PLUS load
+  time instead of overlapping them, and because holding the whole file in
+  RAM collides with the GPU copy - the earlier smoke run read the file 2.7x
+  over and swapped out 486MB. If continuous does NOT blow up on the SSD,
+  that difference between the drives is itself a result.
