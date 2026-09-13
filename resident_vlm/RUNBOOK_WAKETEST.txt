@@ -12,7 +12,7 @@ THE QUESTION
     burst       64MB reads by a helper thread while the model loads.
     continuous  the whole weights file streamed first, then the model loads.
 
-WHAT ONE SITTING DOES (about 12-15 min in total)
+WHAT ONE SITTING DOES (the run itself ~11 min; ~17 min with rest and checks)
   1. Pre-flight checks, then the daemon loads the model ONCE (~2 min).
   2. One warm-up wake and sleep, not measured: the camera's first-ever
      open is slow, and a running system pays that once at boot.
@@ -53,7 +53,7 @@ BEFORE RUNNING
         pkill -f gnome-software; pkill -f update-notifier
         pkill -f evolution-; pkill -f tracker-miner-fs-3
 
-  3. Nothing heavy on the board for 30 min before STEP 0 - no containers,
+  3. Nothing heavy on the board for 3 min before STEP 0 - no containers,
      no other tests, no MHT GUI. Booting counts as heavy.
 
   4. Close VS Code and the browser. Then:
@@ -64,7 +64,10 @@ STEP 0 - drive diagnostics BEFORE the run (asks for your password, ~1 min):
 
   bash ~/Documents/projects/wildfire_detection/mmap_sandbox/card_eval/nvme_diag.sh
 
-STEP 1 - the test, about 10-12 min:
+STEP 1 - the test, about 11 min. Measured in the 2026-09-13 test run: model
+         load + warm-up ~2.6 min, the first rep ~2 min (the board is still
+         warm from loading, so its cool-down is long), then ~40 s per rep.
+         Longer cool-downs can stretch it towards ~15 min.
 
   bash ~/Documents/projects/wildfire_detection/resident_vlm/run_waketest.sh
 

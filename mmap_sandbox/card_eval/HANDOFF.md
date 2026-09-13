@@ -23,9 +23,29 @@ Consequences for "START HERE" below:
   (checked 2026-09-13; its wake figures are `bench_20260911_220613` / `bench_20260912_013746`, which stay in
   use), but its stall-wording evidence cites wakes from the superseded runs — settle that with Kfir.
 
-**Replacement, being designed with Kfir, nothing built yet:** a short wake test, burst vs continuous only
-(no demand arm), on both drives, 3 counted reps per arm, 5 s before and after each wake, no per-rep model
-load and no MHT.
+**Replacement — the wake test, BUILT and test-run 2026-09-13 (commit efea293 and after):** burst vs
+continuous only (no demand arm), on both drives. `resident_vlm/wake_test.py` loads the model ONCE, does one
+unmeasured warm-up wake (camera first open), then alternates `WAKE BURST` / `WAKE CONTINUOUS` for 5 reps
+each: evict + cool-down, 5 s sampled before the trigger, wake until first verdict, 5 s after, sleep. No
+MHT, no classifier container, no 60 s awake period. The daemon's WAKE takes the method; plain WAKE is
+unchanged. Rules fixed before the first run (in `resident_vlm/RUNBOOK_WAKETEST.txt`): the first 3 valid
+reps per method in run order count; VOID = a request stuck > 1 s or < 1.6 GB read; list voids; no extra
+batch. Rest before STEP 0 is 3 min (Kfir's decision). `wake_checks.py` prints energy / average power
+and the first-3-valid line.
+
+Test run on the SD Express (1 rep per method, VS Code open, results in the session scratchpad, not
+committed): pre-flight ok; model loaded 140 s; burst 8.99 s (1.85 GB read), continuous 13.41 s (3.47 GB
+— still reads the file twice) with a genuine 1.8 s stall (2002 ms over 270 reads, 3 in flight, no swap),
+which `wake_checks.py` voided correctly; 5.0 s before / 5.0 s after exactly; daemon stopped cleanly.
+Timing: start → warm-up done 157 s, first rep 123 s (cool-down 103 s after the load), second rep 41 s.
+Numbers are NOT comparable with `bench.py` wakes (no MHT stop / classifier start ~2.6 s, more free RAM).
+
+**To-do: (1) the real SD Express run, (2) swap, (3) the real SSD run** — each is
+`resident_vlm/RUNBOOK_WAKETEST.txt` start to finish (25 W clocks, kill helpers, 3 min rest, VS Code
+closed, STEP 0 `nvme_diag.sh`, STEP 1 `bash resident_vlm/run_waketest.sh`, STEP 2 `nvme_diag.sh`). Then
+`python3 resident_vlm/wake_checks.py resident_vlm/results/waketest_<timestamp>`, apply the rules, map any
+`completion polled` lines onto rep times, commit the run folder (check its `*.jsonl` are staged) and both
+diagnostics files, and push.
 
 ## START HERE — SD Express session (written 2026-09-13 ~04:15 on the SSD)
 
