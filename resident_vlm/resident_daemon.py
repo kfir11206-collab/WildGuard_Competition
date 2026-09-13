@@ -101,8 +101,8 @@ class Resident:
         with open(meta_path, "w") as f:
             json.dump({"stamp": self.stamp, "model": self.args.model}, f)
 
-    def _paced_preread(self):
-        budget = self.args.pace_mbps * 1e6
+    def _paced_preread(self, pace_mbps):
+        budget = pace_mbps * 1e6
         chunk = self.args.chunk_mb << 20
         t0 = time.monotonic()
         total = 0
@@ -118,8 +118,8 @@ class Resident:
                     time.sleep(target - now)
         return round(time.monotonic() - t0, 3), total
 
-    def _prefetch(self):
-        chunk = self.args.prefetch_mb << 20
+    def _prefetch(self, prefetch_mb):
+        chunk = prefetch_mb << 20
         t0 = time.monotonic()
         total = 0
         with open(self.args.fused, "rb", buffering=0) as f:
@@ -184,18 +184,24 @@ class Resident:
         with open(self.args.log, "a") as f:
             f.write(json.dumps(rec) + "\n")
 
-    def wake(self):
+    def wake(self, method=None):
+        methods = {None: (self.args.pace_mbps, self.args.prefetch_mb),
+                   "BURST": (0.0, self.args.chunk_mb),
+                   "CONTINUOUS": (float("inf"), 0)}
+        if method not in methods:
+            return {"error": f"unknown wake method {method!r}"}
+        pace_mbps, prefetch_mb = methods[method]
         with self.lock:
             if self.state == "AWAKE":
                 return {"error": "already awake"}
             d0 = diskstats(self.args.dev)
             t0 = time.monotonic()
-            preread_s, preread_b = (self._paced_preread()
-                                    if self.args.pace_mbps > 0 else (None, None))
+            preread_s, preread_b = (self._paced_preread(pace_mbps)
+                                    if pace_mbps > 0 else (None, None))
             self.prefetch_stats = (None, None)
             pf = None
-            if self.args.prefetch_mb > 0:
-                pf = threading.Thread(target=self._prefetch, daemon=True)
+            if prefetch_mb > 0:
+                pf = threading.Thread(target=self._prefetch, args=(prefetch_mb,), daemon=True)
                 pf.start()
             t_load = time.monotonic()
             missing, unexpected = self._load_from_card()
@@ -218,6 +224,7 @@ class Resident:
                 self._emit(text)
             d1 = diskstats(self.args.dev)
             out = {
+                "method": method,
                 "preread_seconds": preread_s,
                 "preread_bytes": preread_b,
                 "prefetch_seconds": self.prefetch_stats[0],
@@ -315,13 +322,14 @@ def main():
     while True:
         conn, _ = srv.accept()
         try:
-            cmd = conn.makefile().readline().strip().upper()
+            parts = conn.makefile().readline().strip().upper().split()
+            cmd = parts[0] if parts else ""
             if cmd == "QUIT":
                 conn.sendall(b'{"ok": true}\n')
                 break
             fn = handlers.get(cmd)
             try:
-                reply = fn() if fn else {"error": f"unknown command {cmd!r}"}
+                reply = fn(*parts[1:]) if fn else {"error": f"unknown command {cmd!r}"}
             except Exception as exc:
                 reply = {"error": repr(exc)[:300]}
                 res.log("command_failed", command=cmd, error=reply["error"])

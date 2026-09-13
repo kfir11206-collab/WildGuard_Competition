@@ -1,0 +1,104 @@
+WAKE TEST - BURST vs CONTINUOUS - RUNBOOK
+=========================================
+cat this file any time:
+  cat ~/Documents/projects/wildfire_detection/resident_vlm/RUNBOOK_WAKETEST.txt
+
+THE QUESTION
+  How long does the resident model take from our trigger to its first
+  verdict, how many MB/s come off the drive, and how much power does the
+  board draw - with BURST reading vs CONTINUOUS reading, on the SD Express
+  and on the SSD. Four configurations: 2 methods x 2 drives.
+
+    burst       64MB reads by a helper thread while the model loads.
+    continuous  the whole weights file streamed first, then the model loads.
+
+WHAT ONE SITTING DOES (about 12-15 min in total)
+  1. Pre-flight checks, then the daemon loads the model ONCE (~2 min).
+  2. One warm-up wake and sleep, not measured: the camera's first-ever
+     open is slow, and a running system pays that once at boot.
+  3. Ten reps, alternating burst, continuous, burst, continuous, ...
+     Each rep:
+       a. throw the weights out of memory, wait until chip and drive are
+          back near their resting temperature
+       b. 5 s of sampling before the trigger
+       c. trigger: WAKE, until the first verdict
+       d. 5 s of sampling after the verdict (the model keeps working)
+       e. sleep
+     Power, drive MB/s, temperature and RAM are sampled 10 times a second
+     from (b) to (d).
+  4. The daemon is stopped.
+
+  NOT in this test: the MHT, the classifier container, reloading the
+  model for every rep, the 60s awake period. The full-system numbers
+  already exist (One Lane Against Four).
+
+RULES - FIXED BEFORE THE FIRST RUN
+  1. 5 reps per method, alternating. The FIRST 3 VALID reps of each method,
+     in run order, are the ones counted. Never the best 3.
+  2. A rep is VOID if one read request waited more than 1 s (the board's
+     stall bug, about 1 wake in 6) or if it read less than 1.6 GB off the
+     drive (the weights were still in memory). wake_checks.py decides.
+  3. Every void rep is listed with its reason, never dropped silently.
+  4. If a method has fewer than 3 valid reps, report it at the n it has and
+     say so. No extra batch.
+  5. Same command, same flags, same order on both drives.
+
+BEFORE RUNNING
+  1. POWER MODE, after EVERY reboot - the board comes up at full power:
+        bash ~/Documents/projects/wildfire_detection/mmap_sandbox/card_eval/set_25w_clocks.sh
+     Must print cpu 1344000 and gpu 918000000. The run refuses without it.
+
+  2. Kill the desktop's background helpers (no window, so closing
+     everything does not close them):
+        pkill -f gnome-software; pkill -f update-notifier
+        pkill -f evolution-; pkill -f tracker-miner-fs-3
+
+  3. Nothing heavy on the board for 30 min before STEP 0 - no containers,
+     no other tests, no MHT GUI. Booting counts as heavy.
+
+  4. Close VS Code and the browser. Then:
+        free -m
+     Want MemAvailable >= 5300. WRITE THE NUMBER DOWN.
+
+STEP 0 - drive diagnostics BEFORE the run (asks for your password, ~1 min):
+
+  bash ~/Documents/projects/wildfire_detection/mmap_sandbox/card_eval/nvme_diag.sh
+
+STEP 1 - the test, about 10-12 min:
+
+  bash ~/Documents/projects/wildfire_detection/resident_vlm/run_waketest.sh
+
+  GOOD: "=== pre-flight ===" with "all ok", then "detached as pid N".
+        It detaches: safe to close the terminal. Keep VS Code CLOSED.
+  Progress:  tail -f <the .log path it prints>
+        "[waketest] model loaded in ...", "warm-up wake done", then one line
+        per rep, e.g.  [burst_0] trigger->verdict = 8.912s (cool-down 20.1s, drive 53.85 C)
+        and finally "[waketest] done -> ...".
+  BAD:  pre-flight FAILED -> fix what it lists, nothing was started.
+        A rep line with an error -> let it finish, tell Claude.
+  To stop it:  pkill -f wake_test.py; docker rm -f resident_vlm
+
+STEP 2 - drive diagnostics AFTER the run (~1 min):
+
+  bash ~/Documents/projects/wildfire_detection/mmap_sandbox/card_eval/nvme_diag.sh
+
+STEP 3 - open VS Code and tell Claude. Claude runs
+
+  python3 resident_vlm/wake_checks.py resident_vlm/results/waketest_<timestamp>
+
+  applies the rules above, maps any "completion polled" kernel lines from
+  STEP 0 / STEP 2 onto the rep times, and commits the results.
+
+THEN - the other drive
+  Power off, swap, boot, git pull, and follow this same file from
+  BEFORE RUNNING. Same command. Write free -m down again.
+
+READING THE NUMBERS
+  - Not comparable with the older benchmark's 10-12 s wakes: that trigger
+    also stopped the MHT and started the classifier (~2.6 s), and less RAM
+    was free. Compare only waketest runs with each other.
+  - More RAM is free here than in the real handoff. Continuous depends on
+    RAM, so its result may look better here than in the full system.
+    wake_checks.py prints free RAM at every trigger.
+  - Both methods use the same PyTorch loader underneath; they differ only
+    in what reads the file before or alongside it.
