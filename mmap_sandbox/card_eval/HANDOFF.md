@@ -19,9 +19,7 @@ Consequences for "START HERE" below:
   (6/6 clean, no kernel lines) and failed its drift check: burst 11.56 s against 12.01 s passed, demand
   11.09 s against 11.73 s did not.
 - **Items 4 (graph from those runs) and 5 (the parked real-burst probe) are cancelled.**
-- **Item 3 still stands:** correcting "One Lane Against Four". The page quotes none of the four runs
-  (checked 2026-09-13; its wake figures are `bench_20260911_220613` / `bench_20260912_013746`, which stay in
-  use), but its stall-wording evidence cites wakes from the superseded runs — settle that with Kfir.
+- **Item 3 is DONE (2026-09-13 evening), see "Testing phase closed" below.**
 
 **Replacement — the wake test, BUILT and test-run 2026-09-13 (commit efea293 and after):** burst vs
 continuous only (no demand arm), on both drives. `resident_vlm/wake_test.py` loads the model ONCE, does one
@@ -63,8 +61,38 @@ rep (3.46 → 2.05 GB total) and sped up 9.18 → 7.83 s, the same pattern as th
 (by 2.17 s on the SD Express, 1.18 s on the SSD). The burst gap is the read phase: read 5.92 → 4.61 s, the rest of the
 wake ~2.6 s on both. **RAM trajectory:** same shape on both (available at trigger ~1130 → ~2250 MB over the 10 reps);
 the SSD had 8–199 MB more at every trigger, 92–199 MB more at the three counted continuous triggers. Burst is flat on
-both drives so it is unaffected; the SSD's continuous gain may include a small RAM advantage — not yet discussed with
-Kfir.
+both drives so it is unaffected; the SSD's continuous gain may include a small RAM advantage. Kfir's `free -m` before
+STEP 0: **SSD 5730 MB, SD Express 5475 MB** (the SD session had noted 5460) — the SSD started ~255 MB ahead.
+
+**Read rate in the wake test, checked 2026-09-13.** `wake_checks.py`'s MB/s divides by the whole read phase, which
+for burst includes ~1 s of GPU copy after the last read. While the drive is actually reading: SD Express burst
+335–371 MB/s, continuous pre-read 581–623; SSD burst 448–515, continuous 681–733. The older benchmark's demand wakes
+(362–373 MB/s SD, same calculation) read at 437–454 MB/s while reading, so **burst reads slower than demand paging
+did**: its 64 MB helper and `torch.load`'s page faults compete for the same file and CPU. Every method still reaches
+the drive as ≤ 128 KB requests (burst 109–114 KB average, continuous 108–128 KB, 1–3 in flight) — no 64 MB burst ever
+reaches the drive. **Continuous − burst per pair tracks free RAM:** SD Express 3.15 / 2.17 / 1.01 / 0.40 / −0.09 s
+as RAM at the trigger rose ~1130 → 2210 MB; SSD 1.84 / 1.18 / 1.22 / 1.16 / 0.74 s over ~1140 → 2290 MB. The SD
+Express's larger counted gap (2.17 vs 1.18 s) holds only while RAM is tight. Kfir's decision: the report quotes the
+counted medians and does not discuss the RAM effect; the free-memory figures stay as a neutral limit.
+
+**Testing phase closed, 2026-09-13 evening. The report is written next, with `REPORT_HANDOFF.md` as the entry point.**
+- **MB/s fixed.** `wake_checks.py` MB/s and a new `analyze.py` field `sd_read_mb_s_while_reading` both measure from the
+  first to the last percent of the bytes read, so the GPU copy after the last read no longer dilutes it (a speed
+  threshold was tried and rejected: it moved the SSD burst figure 384 → 480 MB/s). The old `sd_read_mb_s` is kept
+  unchanged. `analysis.json` of `bench_20260911_220613` and `bench_20260912_013746` regenerated — additions only.
+  Full-system read speed while reading: SD Express 437 MB/s (clean reps), SSD 540 MB/s.
+- **"One Lane Against Four" corrected, version 3.** Void rule applied retroactively (Kfir's decision): SD Express wake
+  11.18 s / 84.4 J (median of the two clean reps), SSD advantage 0.94 s / 6.8 J, "eight percent", break-even ~6,300
+  wakes/day, day table 507 / 2,027 / 8,106 J. Read-speed note 437 vs 540 MB/s, factor 1.24. Stall wording now cites
+  only the page's own six wakes (Kfir: the load-time runs are not to be cited anywhere). Provenance gap sentence
+  removed; link added to the new page.
+- **New page "Waking on One Lane"** — https://claude.ai/code/artifact/78d26989-52a0-4f33-8110-94eb420ef68d — the wake
+  test only: MB/s traces of the median wakes, phase bars, counted medians, idle energy trade (break-even ~4,900
+  wakes/day with burst), all 20 wakes, a table separating it from the full-system benchmark. Optimistic wording per
+  Kfir; no RAM discussion.
+- **Report focus (Kfir, to develop with the report Claude, not started):** show what was unique about the SD Express
+  in this project — nearly the SSD's wake despite one lane, idle power suiting the resident design — starting with a
+  check of both drives' label/datasheet specs against the measurements. Recorded in `REPORT_HANDOFF.md` section 2.
 
 ## START HERE — SD Express session (written 2026-09-13 ~04:15 on the SSD)
 
