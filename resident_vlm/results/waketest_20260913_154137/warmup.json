@@ -1,0 +1,30 @@
+{
+  "wake": {
+    "method": null,
+    "preread_seconds": null,
+    "preread_bytes": null,
+    "prefetch_seconds": null,
+    "prefetch_bytes": null,
+    "sd_read_seconds": 3.897,
+    "camera_open_seconds": 4.706,
+    "first_verdict_seconds": 2.941,
+    "wake_seconds": 11.546,
+    "bytes_read": 2280865792,
+    "missing_keys": 0,
+    "unexpected_keys": 0,
+    "fuse_calls_total": 1,
+    "params_still_meta": 0,
+    "gpu_mb": 3946,
+    "rss_mb": 6007,
+    "verdict": "1. The image is blurry and difficult to make out. 2. There is no visible smoke in the image. 3. The image does not provide enough information to determine if</s>"
+  },
+  "sleep": {
+    "camera_close_seconds": 0.26,
+    "sleep_seconds": 1.449,
+    "gpu_mb_freed": 1689,
+    "rss_mb_freed": 1689,
+    "gpu_mb_asleep": 2265,
+    "rss_mb_asleep": 4292,
+    "params_evicted": 67
+  }
+}

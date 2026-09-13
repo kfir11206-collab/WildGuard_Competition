@@ -52,11 +52,19 @@ the SSD identically (no RAM-settling change): **compare the drives rep by rep an
 side by side; if the SSD's RAM trajectory is clearly different, discuss with Kfir before trusting the continuous
 comparison.**
 
-**To-do: the real SSD run** — `resident_vlm/RUNBOOK_WAKETEST.txt` start to finish (25 W clocks, kill helpers, 3 min rest, VS Code
-closed, STEP 0 `nvme_diag.sh`, STEP 1 `bash resident_vlm/run_waketest.sh`, STEP 2 `nvme_diag.sh`). Then
-`python3 resident_vlm/wake_checks.py resident_vlm/results/waketest_<timestamp>`, apply the rules, map any
-`completion polled` lines onto rep times, commit the run folder (check its `*.jsonl` are staged) and both
-diagnostics files, and push.
+**SSD wake test DONE — `resident_vlm/results/waketest_20260913_154137/`** (15:41–15:51, 25 W, 10/10 reps valid,
+no stall, no `completion polled` lines before or after, drive resting 42.85 °C, model load 153 s). Counted (first 3
+valid): **burst 7.34 / 7.18 / 7.00 s, median 7.18 s, 56.4 J; continuous 9.18 / 8.36 / 8.22 s, median 8.36 s, 63.3 J.**
+Burst 1.71–1.78 GB read at 363–406 MB/s; continuous pre-read in 2.31–2.51 s at 681–733 MB/s, then re-read less each
+rep (3.46 → 2.05 GB total) and sped up 9.18 → 7.83 s, the same pattern as the SD Express. Burst flat (6.73–7.34 s).
+
+**Drive comparison, same test, counted medians:** burst SD Express 8.58 s / 65.2 J → SSD 7.18 s / 56.4 J (−1.40 s,
+−8.8 J); continuous 10.75 s / 76.2 J → 8.36 s / 63.3 J (−2.39 s, −12.9 J). Burst beats continuous on both drives
+(by 2.17 s on the SD Express, 1.18 s on the SSD). The burst gap is the read phase: read 5.92 → 4.61 s, the rest of the
+wake ~2.6 s on both. **RAM trajectory:** same shape on both (available at trigger ~1130 → ~2250 MB over the 10 reps);
+the SSD had 8–199 MB more at every trigger, 92–199 MB more at the three counted continuous triggers. Burst is flat on
+both drives so it is unaffected; the SSD's continuous gain may include a small RAM advantage — not yet discussed with
+Kfir.
 
 ## START HERE — SD Express session (written 2026-09-13 ~04:15 on the SSD)
 

@@ -1,0 +1,36 @@
+{
+  "arm": "burst",
+  "rep": 3,
+  "cooldown_seconds": 30.1,
+  "tj_start": 51.125,
+  "card_start_c": 47.85,
+  "wake_reply": {
+    "method": "BURST",
+    "preread_seconds": null,
+    "preread_bytes": null,
+    "prefetch_seconds": 3.119,
+    "prefetch_bytes": 1689241949,
+    "sd_read_seconds": 4.234,
+    "camera_open_seconds": 0.104,
+    "first_verdict_seconds": 2.387,
+    "wake_seconds": 6.726,
+    "bytes_read": 1754230784,
+    "missing_keys": 0,
+    "unexpected_keys": 0,
+    "fuse_calls_total": 1,
+    "params_still_meta": 0,
+    "gpu_mb": 3954,
+    "rss_mb": 5145,
+    "verdict": "1. The image is blurry, making it difficult to discern specific details.\n2. There is no visible smoke in the image.\n3. The image does not provide enough</s>"
+  },
+  "trigger_to_verdict_seconds": 6.733,
+  "sleep": {
+    "camera_close_seconds": 0.259,
+    "sleep_seconds": 1.503,
+    "gpu_mb_freed": 1689,
+    "rss_mb_freed": 1691,
+    "gpu_mb_asleep": 2265,
+    "rss_mb_asleep": 3420,
+    "params_evicted": 67
+  }
+}
