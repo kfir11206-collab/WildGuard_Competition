@@ -5,6 +5,7 @@ from pathlib import Path
 
 MIN_BYTES = 1.6e9
 MAX_EXCESS_S = 1.0
+WEIGHTS_BYTES = 1_689_241_949
 
 
 def rep_checks(d, rec):
@@ -34,6 +35,7 @@ def rep_checks(d, rec):
         "tag": tag, "arm": rec["arm"], "t2v": rec["trigger_to_verdict_seconds"],
         "wake_s": w["wake_seconds"], "read_s": w["sd_read_seconds"],
         "pre_s": w.get("preread_seconds") or w.get("prefetch_seconds"), "gb": w["bytes_read"] / 1e9,
+        "tput_mbs": WEIGHTS_BYTES / 1e6 / ((w.get("preread_seconds") or 0) + w["sd_read_seconds"]),
         "read_mbs": 0.98 * rd_bytes / 1e6 / (at(0.99) - at(0.01)),
         "inflight_md": statistics.median(s["disk_io_in_flight"] for s in rd),
         "excess_s": excess_s, "wake_j": wake_j, "wake_w": wake_j / (pw[-1][0] - pw[0][0]),
@@ -50,14 +52,14 @@ def main():
         label = json.load(open(d / "device.json"))["label"]
         rows = [rep_checks(d, r) for r in json.load(open(d / "summary.json")) if "wake_reply" in r]
         print(f"\n{d.name} ({label})")
-        print(f"{'rep':<24}{'t2v':>7}{'wake':>7}{'read':>7}{'pre':>6}{'GB':>6}{'MB/s':>6}{'infl':>5}"
+        print(f"{'rep':<24}{'t2v':>7}{'wake':>7}{'read':>7}{'pre':>6}{'GB':>6}{'tput':>6}{'MB/s':>6}{'infl':>5}"
               f"{'excess':>7}{'J':>6}{'W':>5}{'gate':>6}{'trig':>6}{'availMB':>8}{'swapMB':>7}  verdict")
         for r in rows:
             pre = f"{r['pre_s']:.2f}" if r["pre_s"] else "-"
             gate = f"{r['gate_c']:.1f}" if r["gate_c"] is not None else "-"
             trig = f"{r['trig_c']:.1f}" if r["trig_c"] is not None else "-"
             print(f"{r['tag']:<24}{r['t2v']:7.2f}{r['wake_s']:7.2f}{r['read_s']:7.2f}{pre:>6}{r['gb']:6.2f}"
-                  f"{r['read_mbs']:6.0f}{r['inflight_md']:5.0f}{r['excess_s']:7.2f}{r['wake_j']:6.1f}{r['wake_w']:5.1f}{gate:>6}"
+                  f"{r['tput_mbs']:6.0f}{r['read_mbs']:6.0f}{r['inflight_md']:5.0f}{r['excess_s']:7.2f}{r['wake_j']:6.1f}{r['wake_w']:5.1f}{gate:>6}"
                   f"{trig:>6}{r['avail_mb']:8}{r['swapout_mb']:7.0f}  {r['verdict']}")
         for arm in dict.fromkeys(r["arm"] for r in rows):
             ok = [r for r in rows if r["arm"] == arm and r["verdict"] == "ok"]
@@ -68,7 +70,8 @@ def main():
                 first = ok[:3]
                 print(f"  {'':<22} first 3 valid in run order: t2v {' / '.join(f'{r[chr(116)+chr(50)+chr(118)]:.2f}' for r in first)}"
                       f"  median {statistics.median(r['t2v'] for r in first):.2f}"
-                      f"  J median {statistics.median(r['wake_j'] for r in first):.1f}")
+                      f"  J median {statistics.median(r['wake_j'] for r in first):.1f}"
+                      f"  throughput median {statistics.median(r['tput_mbs'] for r in first):.0f} MB/s")
 
 
 if __name__ == "__main__":

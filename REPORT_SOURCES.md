@@ -38,7 +38,7 @@ comparisons come first, and the single-drive characterisation is evidence they d
 | `resident_vlm/results/bench_20260912_013746/analysis.json` | Same on the SSD: 109.41 s / 737.5 J and 10.24 s / 77.6 J. |
 | `.../stall_probe_sd_express_20260911_141641/summary.json` and `.../stall_probe_ssd_20260912_021844/summary.json` | The 30-second stall, reproduced on **both** drives — the evidence it belongs to the board, not the card. |
 | `mmap_sandbox/results/card_eval/nvme_diag_*.txt` | Drive health, power states, thermal counters, PCIe link state, before and after each sitting. |
-| Published page | https://claude.ai/code/artifact/746549ba-ae80-48d2-a115-0dcac1a32518 (version 3, 2026-09-13: void rule, read speed while reading, stall wording) |
+| Published page | https://claude.ai/code/artifact/746549ba-ae80-48d2-a115-0dcac1a32518 (version 4, 2026-09-13: void rule, weights throughput, stall wording) |
 
 The card's case in one line: it gives up 0.94 s and 6.8 J per wake, and saves 0.50 W
 continuously, so the SSD only repays its idle draw above ~6,300 wakes a day.

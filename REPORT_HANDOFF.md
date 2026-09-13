@@ -98,7 +98,7 @@ parts); One Lane Against Four explains why it is read as the drive's PCIe link.
 | Resident wake, trigger → verdict | **11.18 s** (median of 2) | 10.24 s (median of 3) |
 | Energy per resident wake | **84.4 J** | 77.6 J |
 | Cold start (old design) | 117.3 s, 797.6 J | 109.4 s, 737.6 J |
-| Drive read speed while reading the weights | 437 MB/s | 540 MB/s |
+| Weights throughput (demand paging) | 292 MB/s | 340 MB/s |
 
 One SD wake (`resident_0`, 15.12 s) was hit by the board's stall (a request held 3.8 s) and is
 excluded under the void rule — Kfir's decision 2026-09-13, applied to the published page.
@@ -113,14 +113,20 @@ The resident design itself: ~11 s against ~117 s cold start, ~10× faster and ~9
 | Burst: trigger → verdict | **8.58 s**, 65.2 J | 7.18 s, 56.4 J |
 | Continuous: trigger → verdict | 10.75 s, 76.2 J | 8.36 s, 63.3 J |
 | Burst saves over continuous | **2.17 s, 11.0 J** | 1.18 s, 6.9 J |
-| Read speed while reading, burst | 346 MB/s | 482 MB/s |
-| Read speed, continuous pre-read | 599 MB/s = **69% of its 871** | 723 MB/s = 28% of its 2,586 |
+| Weights throughput, burst | **285 MB/s** = 78% of the SSD's | 366 MB/s |
+| Weights throughput, continuous | 210 MB/s | 292 MB/s |
+| Burst adds to throughput | **+36%** | +25% |
 | Weights phase / camera + first verdict (burst) | 5.92 s / 2.64 s | 4.61 s / 2.56 s |
 
 All 20 measured wakes were valid (no request held > 1 s, all read ≥ 1.6 GB), no drive errors.
 Energy trade with the idle figure from A: a burst wake costs the card 8.8 J more, repaid by
 18 s of idle; the SSD wins on energy only above ~4,900 wakes a day.
 Free memory before each sitting: SD 5,475 MB, SSD 5,730 MB.
+
+**Throughput is the headline speed measure (Kfir's decision 2026-09-13):** the 1.69 GB weights file
+(1,689,241,949 bytes) divided by the time from the wake command until the model holds it on the GPU —
+`tput` in `resident_vlm/wake_checks.py`. The file counts once, so bytes read twice cost time without
+adding throughput. It is the wake time expressed as MB/s, so it agrees with the times by construction.
 
 **Burst** = a helper thread reads the 1.7 GB weights file in 64 MB pieces while the model loads
 from it. **Continuous** = the whole file is streamed first, then the model loads. In both, the
@@ -137,8 +143,8 @@ line `timeout, completion polled`; a tiny read once a second clears it. Blamed o
 
 | Page | Link | What it holds |
 |---|---|---|
-| **One Lane Against Four** | https://claude.ai/code/artifact/746549ba-ae80-48d2-a115-0dcac1a32518 | Tests A and B: throughput, idle power, energy break-even, thermals, the stall, full results, limits. Version 3 (2026-09-13) applies the void rule (11.18 s / 84.4 J), the corrected read speeds (437 / 540 MB/s) and the corrected stall wording. |
-| **Waking on One Lane** | https://claude.ai/code/artifact/78d26989-52a0-4f33-8110-94eb420ef68d | Test C: MB/s traces from trigger to verdict, where the seconds go, burst vs continuous, idle trade, all 20 wakes, how C differs from B. |
+| **One Lane Against Four** | https://claude.ai/code/artifact/746549ba-ae80-48d2-a115-0dcac1a32518 | Tests A and B: throughput, idle power, energy break-even, thermals, the stall, full results, limits. Version 4 (2026-09-13) applies the void rule (11.18 s / 84.4 J), weights throughput (292 / 340 MB/s) and the corrected stall wording. |
+| **Waking on One Lane** | https://claude.ai/code/artifact/78d26989-52a0-4f33-8110-94eb420ef68d | Test C (version 2: throughput as the headline): drive-activity traces from trigger to verdict, where the seconds go, burst vs continuous, idle trade, all 20 wakes, how C differs from B. |
 | The Card Did Not Stall | https://claude.ai/code/artifact/c72988e6-e5b9-4c89-ba68-262d76b44cc7 | How the 117 s cold start became an ~11 s resident wake. |
 
 ## 6. Guardrails — what the data supports
@@ -146,11 +152,13 @@ line `timeout, completion polled`; a tiny read once a second clears it. Blamed o
 **Supported, say it confidently:**
 - The card nearly fills its lane (88%); on the real wake it is within 0.94 s (B) / 1.40 s (C)
   of an SSD with four lanes and ~3× the sequential speed.
-- The wake is software-bound: 2.97× the bandwidth buys 1.24× the read speed in B.
+- The wake is software-bound: 2.97× the bandwidth buys 1.16× the weights throughput in B.
+- With bursts the card delivers 78% of the SSD's weights throughput (285 vs 366 MB/s) from 34% of its
+  sequential speed (871 vs 2,586 MB/s).
 - The card draws 0.50 W less at idle (attribution, see A); for a sleeping sensor that outweighs
   the few joules per wake below thousands of wakes a day.
-- Burst beats continuous on both drives; on the card it saves 2.17 s and 11.0 J, on the SSD
-  1.18 s and 6.9 J (C's counted medians).
+- Burst beats continuous on both drives; on the card it saves 2.17 s and 11.0 J and adds 36%
+  throughput, on the SSD 1.18 s, 6.9 J and 25% (C's counted medians).
 - On single small writes the card is marginally ahead (18,247 vs 17,861 IOPS).
 - The stall is the board's, reproduced on both drives.
 
@@ -173,10 +181,13 @@ line `timeout, completion polled`; a tiny read once a second clears it. Blamed o
   of `mmap_sandbox/card_eval/HANDOFF.md`. Kfir dropped it on 2026-09-13.
 - `mmap_sandbox/showcase/SD_EXPRESS_SHOWCASE.md` §7 wake numbers (~118 s): the old cold-start
   design, usable only as the "before" state.
-- `analyze.py`'s older `sd_read_mb_s` field and any "362 / 427 MB/s" or "278–291 MB/s" figure:
-  those divided by a window that included the GPU copy after the last read. Use
-  `sd_read_mb_s_while_reading` (fixed 2026-09-13: time from the first to the last percent of
-  the bytes).
+- Any "read speed" MB/s as the headline: `analyze.py`'s `sd_read_mb_s` (362 / 427 MB/s, a window
+  average), and the drive-busy speed (`wake_checks.py` `MB/s` column, `analyze.py`
+  `sd_read_mb_s_while_reading`: 437 / 540, 346 / 482, 599 / 723 MB/s). The busy speed is a
+  diagnostic only — it flatters continuous reading, which streams uninterrupted and then reads
+  much of the file again. Quote weights throughput instead (section 4).
+- Throughput figures from different tests side by side (B's demand-paged 292 MB/s next to C's
+  burst 285 MB/s): the conditions differ, so that comparison was never tested.
 
 ## 8. Words to define in the report
 
@@ -187,5 +198,6 @@ line `timeout, completion polled`; a tiny read once a second clears it. Blamed o
   are read back from the drive on wake. **Cold start** — load everything from scratch.
 - **Demand paging** — the model reads each part of the weights file the moment it needs it.
 - **Void wake** — excluded by the rule fixed before the run (a request held > 1 s, or < 1.6 GB read).
+- **Weights throughput** — MB of model weights delivered into the model per second of loading.
 - **J (joule)** — energy; W × s. **Break-even** — the number of wakes a day at which the SSD's
   cheaper wakes would pay for its higher idle power.

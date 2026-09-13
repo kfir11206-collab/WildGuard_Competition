@@ -81,6 +81,10 @@ counted medians and does not discuss the RAM effect; the free-memory figures sta
   threshold was tried and rejected: it moved the SSD burst figure 384 → 480 MB/s). The old `sd_read_mb_s` is kept
   unchanged. `analysis.json` of `bench_20260911_220613` and `bench_20260912_013746` regenerated — additions only.
   Full-system read speed while reading: SD Express 437 MB/s (clean reps), SSD 540 MB/s.
+- **Superseded the same evening — weights throughput is the headline (Kfir: the busy speed is unfair to bursts).**
+  `wake_checks.py` `tput` = 1,689,241,949 bytes ÷ (pre-read + load seconds from the daemon's reply). Counted medians:
+  wake test burst SD Express 285 / SSD 366 MB/s, continuous 210 / 292 (burst +36% / +25%); full system SD Express 292
+  (clean reps) / SSD 340. The busy-speed column stays as a diagnostic. Both pages and `REPORT_HANDOFF.md` updated.
 - **"One Lane Against Four" corrected, version 3.** Void rule applied retroactively (Kfir's decision): SD Express wake
   11.18 s / 84.4 J (median of the two clean reps), SSD advantage 0.94 s / 6.8 J, "eight percent", break-even ~6,300
   wakes/day, day table 507 / 2,027 / 8,106 J. Read-speed note 437 vs 540 MB/s, factor 1.24. Stall wording now cites
