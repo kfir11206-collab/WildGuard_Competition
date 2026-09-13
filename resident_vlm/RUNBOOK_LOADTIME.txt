@@ -1,3 +1,6 @@
+SUPERSEDED 2026-09-13 - DO NOT RUN. Kfir decided not to use this test; see the
+STATUS block at the top of mmap_sandbox/card_eval/HANDOFF.md.
+
 BURST vs CONTINUOUS LOAD TIME - RUNBOOK
 =======================================
 cat this file any time:

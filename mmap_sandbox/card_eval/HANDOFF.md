@@ -5,6 +5,28 @@ Written 2026-09-11 on the SD Express card, for the Claude session that runs on t
 This file is the source of truth. Read all of it before running anything, and save the
 key points to memory.**
 
+## STATUS 2026-09-13 afternoon (SD Express session) — read this before "START HERE"
+
+**Kfir decided not to use the wake read-strategy load-time test.** Its four runs —
+`bench_20260912_225203` and `bench_20260913_125256` (SD Express), `bench_20260913_012802` and
+`bench_20260913_030701` (SSD) — are superseded and not used. Each folder has a `SUPERSEDED.txt`. They
+were not faulty and are kept as raw data, not deleted. `resident_vlm/READ_STRATEGIES.md`,
+`resident_vlm/RUNBOOK_LOADTIME.txt` and the "Wake read-strategy test" section below all describe that
+superseded test.
+
+Consequences for "START HERE" below:
+- **Item 2 is done and superseded.** The SD Express continuous top-up ran as `bench_20260913_125256`
+  (6/6 clean, no kernel lines) and failed its drift check: burst 11.56 s against 12.01 s passed, demand
+  11.09 s against 11.73 s did not.
+- **Items 4 (graph from those runs) and 5 (the parked real-burst probe) are cancelled.**
+- **Item 3 still stands:** correcting "One Lane Against Four". The page quotes none of the four runs
+  (checked 2026-09-13; its wake figures are `bench_20260911_220613` / `bench_20260912_013746`, which stay in
+  use), but its stall-wording evidence cites wakes from the superseded runs — settle that with Kfir.
+
+**Replacement, being designed with Kfir, nothing built yet:** a short wake test, burst vs continuous only
+(no demand arm), on both drives, 3 counted reps per arm, 5 s before and after each wake, no per-rep model
+load and no MHT.
+
 ## START HERE — SD Express session (written 2026-09-13 ~04:15 on the SSD)
 
 Kfir swaps the SD Express back in on 2026-09-13. **Your memory stops at the SD Express half of the
@@ -476,6 +498,8 @@ reproduced every stored value (0 changed; it only added the drive-temperature fi
 `.gitignore` now keeps `resident_vlm/results/**/*.jsonl` tracked, so this cannot happen again.
 
 ## Wake read-strategy test — burst vs continuous (2026-09-12 evening)
+
+**SUPERSEDED 2026-09-13 — not used.** See the STATUS block at the top of this file.
 
 Written on the SD Express right after its half ran, for the Claude session on the SSD.
 **This is the only measurement left to run.** Nothing earlier in this file needs re-running.

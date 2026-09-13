@@ -1,5 +1,9 @@
 # How the weights come off the drive — demand, burst, continuous
 
+> **SUPERSEDED 2026-09-13 — not used.** Kfir decided not to use the load-time test this document
+> describes (demand / burst / continuous, run with `bench.py`). Its four runs are kept as raw data only.
+> See the STATUS block at the top of `mmap_sandbox/card_eval/HANDOFF.md`.
+
 This explains the three ways the resident wake reads the model weights, step by step, and why they
 finished in the order they did. Every number comes from the committed runs listed at the end; anything
 that is an explanation rather than a measurement is marked **(reasoned)**.
