@@ -40,8 +40,19 @@ which `wake_checks.py` voided correctly; 5.0 s before / 5.0 s after exactly; dae
 Timing: start → warm-up done 157 s, first rep 123 s (cool-down 103 s after the load), second rep 41 s.
 Numbers are NOT comparable with `bench.py` wakes (no MHT stop / classifier start ~2.6 s, more free RAM).
 
-**To-do: (1) the real SD Express run, (2) swap, (3) the real SSD run** — each is
-`resident_vlm/RUNBOOK_WAKETEST.txt` start to finish (25 W clocks, kill helpers, 3 min rest, VS Code
+**SD Express wake test DONE — `resident_vlm/results/waketest_20260913_150739/`** (15:07–15:16, 25 W, 10/10
+reps valid, no stall, no new kernel lines, RAM available 5460 MB at start, drive resting 55.85 °C, model load
+135 s). Counted (first 3 valid): **burst 8.76 / 8.58 / 8.44 s, median 8.58 s, 65.2 J; continuous 11.91 / 10.75 /
+9.45 s, median 10.75 s, 76.2 J.** Every wake read the full file off the drive (burst 1.74–1.78 GB; continuous
+pre-read 1.69 GB in 2.73–2.92 s at 578–623 MB/s; page cache at every trigger 100–319 MB; drive idle in the 5 s
+before). **Continuous sped up every rep — 11.91 → 10.75 → 9.45 → 8.82 → 8.52 s — because free RAM at the
+trigger grew 1353 → 2213 MB** (swap in use 4737 → 5775 MB as each wake pushed idle memory out), so more of the
+pre-read survived and the load re-read less (1.74 → 0.43 GB). Burst stayed flat (8.42–8.76 s). Kfir chose to run
+the SSD identically (no RAM-settling change): **compare the drives rep by rep and put free RAM at each trigger
+side by side; if the SSD's RAM trajectory is clearly different, discuss with Kfir before trusting the continuous
+comparison.**
+
+**To-do: the real SSD run** — `resident_vlm/RUNBOOK_WAKETEST.txt` start to finish (25 W clocks, kill helpers, 3 min rest, VS Code
 closed, STEP 0 `nvme_diag.sh`, STEP 1 `bash resident_vlm/run_waketest.sh`, STEP 2 `nvme_diag.sh`). Then
 `python3 resident_vlm/wake_checks.py resident_vlm/results/waketest_<timestamp>`, apply the rules, map any
 `completion polled` lines onto rep times, commit the run folder (check its `*.jsonl` are staged) and both

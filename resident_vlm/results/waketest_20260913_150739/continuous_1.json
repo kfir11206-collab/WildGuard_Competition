@@ -1,0 +1,36 @@
+{
+  "arm": "continuous",
+  "rep": 1,
+  "cooldown_seconds": 18.1,
+  "tj_start": 51.906,
+  "card_start_c": 57.85,
+  "wake_reply": {
+    "method": "CONTINUOUS",
+    "preread_seconds": 2.878,
+    "preread_bytes": 1689241949,
+    "prefetch_seconds": null,
+    "prefetch_bytes": null,
+    "sd_read_seconds": 5.179,
+    "camera_open_seconds": 0.12,
+    "first_verdict_seconds": 2.557,
+    "wake_seconds": 10.741,
+    "bytes_read": 3229724672,
+    "missing_keys": 0,
+    "unexpected_keys": 0,
+    "fuse_calls_total": 1,
+    "params_still_meta": 0,
+    "gpu_mb": 3954,
+    "rss_mb": 5336,
+    "verdict": "The image is blurry and out of focus, making it difficult to discern specific details. However, it appears to depict a scene with a red object, possibly a bag or</s>"
+  },
+  "trigger_to_verdict_seconds": 10.752,
+  "sleep": {
+    "camera_close_seconds": 0.258,
+    "sleep_seconds": 1.434,
+    "gpu_mb_freed": 1689,
+    "rss_mb_freed": 1691,
+    "gpu_mb_asleep": 2265,
+    "rss_mb_asleep": 3619,
+    "params_evicted": 67
+  }
+}

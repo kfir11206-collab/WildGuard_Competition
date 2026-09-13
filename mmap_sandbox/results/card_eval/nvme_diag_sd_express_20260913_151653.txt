@@ -1,0 +1,90 @@
+=== drive ===
+ST51271_WDC SanDisk SD Express SDSQXFN  fw=RO180S2P  pcie=0007:01:00.0
+=== kernel log (nvme / pcie / aer) ===
+[Sun Sep 13 12:07:33 2026] tegra194-pcie 140a0000.pcie: PCIe Gen.1 x1 link up
+[Sun Sep 13 12:07:33 2026] tegra194-pcie 140a0000.pcie: PCI host bridge to bus 0008:00
+[Sun Sep 13 12:07:33 2026] pci 0008:00:00.0: [10de:229c] type 01 class 0x060400 PCIe Root Port
+[Sun Sep 13 12:07:33 2026] pci 0008:01:00.0: [10ec:8168] type 00 class 0x020000 PCIe Endpoint
+[Sun Sep 13 12:07:34 2026] pcieport 0008:00:00.0: Adding to iommu group 8
+[Sun Sep 13 12:07:34 2026] pcieport 0008:00:00.0: PME: Signaling with IRQ 193
+[Sun Sep 13 12:07:34 2026] pcieport 0008:00:00.0: AER: enabled with IRQ 193
+[Sun Sep 13 12:07:34 2026] systemd[1]: Starting modprobe@nvme_fabrics.service - Load Kernel Module nvme_fabrics...
+[Sun Sep 13 12:07:34 2026] EXT4-fs (nvme0n1p1): re-mounted ce9fb08c-3a91-4989-829c-2be7e7c7afef.
+[Sun Sep 13 12:07:38 2026] block nvme0n1: No UUID available providing old NGUID
+[Sun Sep 13 13:56:14 2026] nvme nvme0: I/O tag 656 (d290) QID 6 timeout, completion polled
+=== card health ===
+Smart Log for NVME device:nvme0 namespace-id:ffffffff
+critical_warning			: 0
+temperature				: 55 °C (328 K)
+available_spare				: 100%
+available_spare_threshold		: 10%
+percentage_used				: 0%
+endurance group critical warning summary: 0
+Data Units Read				: 17285016 (8.85 TB)
+Data Units Written			: 6429528 (3.29 TB)
+host_read_commands			: 298342372
+host_write_commands			: 110699538
+controller_busy_time			: 2
+power_cycles				: 69
+power_on_hours				: 337
+unsafe_shutdowns			: 16
+media_errors				: 0
+num_err_log_entries			: 0
+Warning Temperature Time		: 335
+Critical Composite Temperature Time	: 58
+Thermal Management T1 Trans Count	: 758
+Thermal Management T2 Trans Count	: 871
+Thermal Management T1 Total Time	: 3018
+Thermal Management T2 Total Time	: 41800
+=== card error log (non-empty entries only) ===
+(no errors logged)
+=== autonomous power states ===
+get-feature:0x0c (Autonomous Power State Transition), Current value:0x00000001
+	Autonomous Power State Transition Enable (APSTE): Enabled
+	Auto PST Entries	.................
+	Entry[ 0]   
+	.................
+	Idle Time Prior to Transition (ITPT): 2000 ms
+	Idle Transition Power State   (ITPS): 4
+	.................
+	Entry[ 1]   
+	.................
+	Idle Time Prior to Transition (ITPT): 2000 ms
+	Idle Transition Power State   (ITPS): 4
+	.................
+	Entry[ 2]   
+	.................
+	Idle Time Prior to Transition (ITPT): 2000 ms
+	Idle Transition Power State   (ITPS): 4
+	.................
+	Entry[ 3]   
+	.................
+	Idle Time Prior to Transition (ITPT): 2000 ms
+	Idle Transition Power State   (ITPS): 4
+	.................
+	Entry[ 4]   
+=== power states / thermal limits / host memory buffer ===
+apsta     : 0x1
+wctemp    : 358
+cctemp    : 363
+hmpre     : 51200
+hmmin     : 823
+mntmt     : 303
+mxtmt     : 363
+hmminds   : 0
+ps      0 : mp:1.80W operational enlat:0 exlat:0 rrt:0 rrl:0
+ps      1 : mp:1.44W operational enlat:0 exlat:0 rrt:0 rrl:0
+ps      2 : mp:0.72W operational enlat:0 exlat:0 rrt:0 rrl:0
+ps      3 : mp:0.0200W non-operational enlat:11000 exlat:16000 rrt:3 rrl:3
+ps      4 : mp:0.0150W non-operational enlat:11000 exlat:45000 rrt:4 rrl:4
+=== pcie link ===
+		DevSta:	CorrErr- NonFatalErr- FatalErr- UnsupReq- AuxPwr- TransPend-
+		LnkCap:	Port #0, Speed 8GT/s, Width x1, ASPM L1, Exit Latency L1 <8us
+		LnkCtl:	ASPM Disabled; RCB 64 bytes, Disabled- CommClk+
+		LnkSta:	Speed 8GT/s, Width x1
+		LnkCap2: Supported Link Speeds: 2.5-8GT/s, Crosslink- Retimer- 2Retimers- DRS-
+		LnkCtl2: Target Link Speed: 8GT/s, EnterCompliance- SpeedDis-
+		LnkSta2: Current De-emphasis Level: -6dB, EqualizationComplete+ EqualizationPhase1+
+		UESta:	DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
+		CESta:	RxErr- BadTLP- BadDLLP- Rollover- Timeout- AdvNonFatalErr-
+		LnkCtl3: LnkEquIntrruptEn- PerformEqu-

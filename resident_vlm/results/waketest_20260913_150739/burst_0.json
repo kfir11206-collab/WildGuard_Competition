@@ -1,0 +1,36 @@
+{
+  "arm": "burst",
+  "rep": 0,
+  "cooldown_seconds": 52.3,
+  "tj_start": 50.281,
+  "card_start_c": 60.85,
+  "wake_reply": {
+    "method": "BURST",
+    "preread_seconds": null,
+    "preread_bytes": null,
+    "prefetch_seconds": 5.014,
+    "prefetch_bytes": 1689241949,
+    "sd_read_seconds": 6.087,
+    "camera_open_seconds": 0.174,
+    "first_verdict_seconds": 2.488,
+    "wake_seconds": 8.751,
+    "bytes_read": 1775517696,
+    "missing_keys": 0,
+    "unexpected_keys": 0,
+    "fuse_calls_total": 1,
+    "params_still_meta": 0,
+    "gpu_mb": 3954,
+    "rss_mb": 5834,
+    "verdict": "The image is blurry and out of focus, making it difficult to discern specific details. However, it appears to show a room with a red object, possibly a piece of cl</s>"
+  },
+  "trigger_to_verdict_seconds": 8.758,
+  "sleep": {
+    "camera_close_seconds": 0.258,
+    "sleep_seconds": 1.385,
+    "gpu_mb_freed": 1689,
+    "rss_mb_freed": 1691,
+    "gpu_mb_asleep": 2265,
+    "rss_mb_asleep": 4114,
+    "params_evicted": 67
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "arm": "burst",
+  "rep": 2,
+  "cooldown_seconds": 8.1,
+  "tj_start": 51.906,
+  "card_start_c": 57.85,
+  "wake_reply": {
+    "method": "BURST",
+    "preread_seconds": null,
+    "preread_bytes": null,
+    "prefetch_seconds": 4.885,
+    "prefetch_bytes": 1689241949,
+    "sd_read_seconds": 5.908,
+    "camera_open_seconds": 0.088,
+    "first_verdict_seconds": 2.423,
+    "wake_seconds": 8.427,
+    "bytes_read": 1744756736,
+    "missing_keys": 0,
+    "unexpected_keys": 0,
+    "fuse_calls_total": 1,
+    "params_still_meta": 0,
+    "gpu_mb": 3954,
+    "rss_mb": 5226,
+    "verdict": "The image is blurry and out of focus, making it difficult to discern specific details. However, it appears to depict a scene with a person sitting on a bench.</s>"
+  },
+  "trigger_to_verdict_seconds": 8.436,
+  "sleep": {
+    "camera_close_seconds": 0.259,
+    "sleep_seconds": 1.433,
+    "gpu_mb_freed": 1689,
+    "rss_mb_freed": 1691,
+    "gpu_mb_asleep": 2265,
+    "rss_mb_asleep": 3501,
+    "params_evicted": 67
+  }
+}
