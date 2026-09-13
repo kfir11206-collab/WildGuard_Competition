@@ -5,8 +5,10 @@ Written 2026-09-11 on the SD Express card, for the Claude session that runs on t
 This file is the source of truth. Read all of it before running anything, and save the
 key points to memory.**
 
-**Status 2026-09-13, 03:00: the card comparison is done and published; the wake read-strategy test has
-run on both drives and is being topped up.** Kfir asked for a wake read-strategy test — demand paging vs
+**Status 2026-09-13, 04:00: the card comparison is done and published; the wake read-strategy test is
+complete on the SSD (3 counted reps per arm after the top-up) and needs one more SD Express continuous rep.**
+Step-by-step explanations of the three read methods and the reasoning for the results:
+`resident_vlm/READ_STRATEGIES.md`. Kfir asked for a wake read-strategy test — demand paging vs
 64 MB bursts vs continuous, uncapped, on the real resident wake. SD Express half 2026-09-12 22:52–23:45,
 SSD half 2026-09-13 01:28–02:23. The board's rescued stalls voided 3 of the 18 reps, leaving three arms
 at 2 valid reps, so a pre-registered **top-up** (2 more reps per arm, same code) runs on the SSD
@@ -374,21 +376,24 @@ https://claude.ai/code/artifact/746549ba-ae80-48d2-a115-0dcac1a32518 (2026-09-12
 results first, the resident benchmark as the "what this means for a real AI system" section,
 cross-linked to the older resident-VLM artifact rather than merged into it. Every figure on that
 page comes from the official runs named above; if a number here is corrected, update the page too.
-Two open items, both needing the SSD installed, so do them in one session: the SSD half of the wake
-read-strategy test (last section of this file), and the SSD raw-sample recovery described below.
+Both SSD-side open items were done 2026-09-13: the SSD half of the wake read-strategy test with its
+top-up (last section of this file), and the SSD raw-sample recovery described below. Still open: the SD
+Express continuous top-up, which needs the SD Express in the slot.
 
 Note for whichever drive is installed: each drive carries its own Claude memory, and they diverge
 after 2026-09-10. **This file is the shared record — `git pull` first, then read it.** Every number
 above is reproducible from the committed run directories with `summarize.py` and `analyze.py`,
-**with one caveat**: the SSD benchmark (`resident_vlm/results/bench_20260912_013746/`) was committed
-without its `*.jsonl` samples, so its per-window figures can be read from its committed `analysis.json`
+**with no caveats since 2026-09-13** (the samples below were recovered). Before that, the SSD benchmark
+(`resident_vlm/results/bench_20260912_013746/`) had been committed without its `*.jsonl` samples, so its per-window figures can be read from its committed `analysis.json`
 but cannot be recomputed from raw data the way the SD's can. Its trigger → verdict times and drive-read
 rates are recomputable from `summary.json` (the daemon's own byte counters give 387.7 MB/s for the SD
 and 466.2 MB/s for the SSD, measured slightly differently from the table's 362.1 / 426.5).
 (Running `analyze.py` on a directory with no samples used to overwrite `analysis.json` with an empty
 list — it now refuses and says so.)
 
-Kfir decided 2026-09-12 to recover them — with the SSD installed:
+**DONE 2026-09-13** after the top-up's STEP 2: all 6 `*.jsonl` committed, and re-running `analyze.py`
+reproduced every stored value (0 changed; it only added the drive-temperature fields), including baseline
+109.41 s / 737.5 J and resident 10.24 s / 77.6 J. The steps Kfir had approved 2026-09-12:
 
     cd ~/Documents/projects/wildfire_detection && git pull
     git add -f resident_vlm/results/bench_20260912_013746/*.jsonl
@@ -635,7 +640,36 @@ identical to `run_loadtime.sh`). Procedure: `resident_vlm/RUNBOOK_LOADTIME.txt`,
    reason, never dropped silently.
 4. If an arm is still below 3 after the top-up, report it at the n it has and say so — no third batch.
 
-**SSD top-up:** 2026-09-13, STEP 0 no earlier than 02:53. Results go here when done.
+**SSD top-up — `resident_vlm/results/bench_20260913_030701/`, done 2026-09-13.** STEP 0
+`nvme_diag_ssd_20260913_030640.txt` 03:06:40, run 03:07:01–03:44, STEP 2 `nvme_diag_ssd_20260913_034445.txt`
+03:44:45. 6/6 reps, no errors, `--reps 2` and `--pace-mbps 100000` confirmed in `args.json`, 25 W, drive
+resting at 43.85 °C. 0 `completion polled` lines, no new kernel lines, SMART unchanged, no throttling.
+
+| rep | trigger → verdict | `wake_checks.py` | used? |
+|---|---|---|---|
+| `resident_0` | 10.29 s | ok (excess 0.22 s) | **yes** — rule 1, demand's first valid top-up rep |
+| `resident_burst_0` | 10.78 s | ok | drift check only (rule 2) |
+| `resident_continuous_0` | 14.19 s | ok | **yes** — rule 1, continuous's first valid top-up rep (not the faster 13.97 s) |
+| `resident_1` | 12.22 s | **VOID stall 1.1 s** — read phase 6.72 s against 4.69–4.89 s | no |
+| `resident_burst_1` | 10.62 s | ok | drift check only |
+| `resident_continuous_1` | 13.97 s | ok | no — continuous already had 3 |
+
+Rule 2: the top-up's burst median 10.70 s against the sitting's 10.69 s — within 0.5 s, so **the top-up
+joins the sitting.** Rule 4 not needed.
+
+**SSD, final (counted reps):**
+
+| arm | reps | median | `wake_seconds` median | read phase | wake J median |
+|---|---|---|---|---|---|
+| A — demand | 10.25 / 10.16 / 10.29 s | **10.25 s** | 7.48 s | 4.69–4.89 s | 78.0 |
+| B — burst 64 MB | 10.61 / 10.69 / 10.84 s | **10.69 s** | 8.03 s | 5.29–5.54 s | 82.5 |
+| C — continuous | 13.63 / 13.62 / 14.19 s | **13.63 s** | 10.94 s | pre-read 3.52–3.58 s + load 4.64–4.74 s | 100.2 |
+
+**Correction to the continuous explanation** (measured 2026-09-13, both drives): the file is not first
+cached and then evicted by the GPU copy — **it never fits**. During the SSD pre-read ~1.7 GB came off the
+drive while the kernel's `Cached:` grew only ~450 MB (SD Express: 1963 MB read, +507 MB), so most of the
+file was already gone before the load began, and the load then read 2.55–2.61 GB again. Details and the
+per-second tables: `resident_vlm/READ_STRATEGIES.md`, section 5.
 
 **SD Express top-up — to-do for the SD session:** `git pull`, read this section, save it to memory, then
 the RUNBOOK "TOP-UP" procedure with the identical command. Afterwards

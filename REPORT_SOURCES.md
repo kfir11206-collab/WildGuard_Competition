@@ -80,7 +80,8 @@ Three experiments, different scopes. None finds an advantage for bursts:
 | `mmap_sandbox/results/burst_vs_continuous_run1/summary.json` + `latency.png`, `timeseries.png`, `summary_panel.png` | **July, whole wake.** 150.6 s burst vs 152.7 s paced at 703 MB/s vs 162.1 s at 350 MB/s — pacing the read barely moved anything, because the wake was CUDA-bound. |
 | `mmap_sandbox/results/card_eval/*/analysis.json` → `burst_vs_continuous` | **September, drive level with fio.** Same bytes in the same time: energy per GB ratio 0.999 on the card, 1.000 on the SSD. The supplier's "good at bursts" claim is not visible at this level. |
 | `mmap_sandbox/burst_vs_continuous/*.py` | How the July run worked. |
-| `resident_vlm/results/bench_20260912_225203/analysis.json` + HANDOFF.md → "Wake read-strategy test" | **September, the real wake, uncapped** (SD Express done, SSD pending). Demand paging 11.73 s, 64 MB bursts 12.01 s, continuous 16.28 s. Buffered reads keep 2–3 requests in flight whatever the chunk size, and the continuous stream is evicted by the GPU copy and read twice. |
+| `resident_vlm/READ_STRATEGIES.md` | **Start here for the wake read methods.** Step by step what demand paging, 64 MB bursts and continuous reading each do, why they finished in that order, and why the SSD is only ~1.4 s faster. |
+| `resident_vlm/results/bench_20260912_225203/` (SD Express), `bench_20260913_012802/` + top-up `bench_20260913_030701/` (SSD) + HANDOFF.md → "Wake read-strategy test" | **September, the real wake, uncapped.** SD Express: demand 11.73 s, burst 12.01 s, continuous 15.97 s (n=2, top-up pending). SSD: 10.25 / 10.69 / 13.63 s. Same order on both drives. Every method sends the drive ~128 KB requests a few at a time; continuous cannot fit the file in RAM and reads it twice. Stall-hit reps excluded with `resident_vlm/wake_checks.py`. |
 
 ---
 
@@ -127,6 +128,7 @@ the "before" state, or the report will contradict itself.
     python3 mmap_sandbox/card_eval/summarize.py mmap_sandbox/results/card_eval/<run>
     python3 resident_vlm/analyze.py resident_vlm/results/<run>
 
-One gap: the SSD benchmark's raw samples were never committed, so its energy figures
-can be read from its stored `analysis.json` but not recomputed. Recovery steps are at
-the end of `mmap_sandbox/card_eval/HANDOFF.md`.
+    python3 resident_vlm/wake_checks.py resident_vlm/results/<run> [<top-up run>]
+
+The SSD benchmark's raw samples, once missing, were recovered on 2026-09-13; every
+committed run can now be recomputed from its samples.
