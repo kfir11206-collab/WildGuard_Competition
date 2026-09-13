@@ -29,10 +29,10 @@ def rep_checks(d, rec):
     return {
         "tag": tag, "arm": rec["arm"], "t2v": rec["trigger_to_verdict_seconds"],
         "wake_s": w["wake_seconds"], "read_s": w["sd_read_seconds"],
-        "pre_s": w["preread_seconds"] or w["prefetch_seconds"], "gb": w["bytes_read"] / 1e9,
+        "pre_s": w.get("preread_seconds") or w.get("prefetch_seconds"), "gb": w["bytes_read"] / 1e9,
         "read_mbs": (rd[-1]["disk_read_bytes"] - rd[0]["disk_read_bytes"]) / 1e6 / (rd[-1]["t"] - rd[0]["t"]),
         "inflight_md": statistics.median(s["disk_io_in_flight"] for s in rd),
-        "excess_s": excess_s, "gate_c": rec["card_start_c"], "trig_c": trig["temp_card_c"],
+        "excess_s": excess_s, "gate_c": rec.get("card_start_c"), "trig_c": trig.get("temp_card_c"),
         "avail_mb": trig["mem_available_mb"],
         "swapout_mb": (near(marks["first_verdict"])["pswpout_bytes"] - trig["pswpout_bytes"]) / 1e6,
         "verdict": verdict,
@@ -49,9 +49,11 @@ def main():
               f"{'excess':>7}{'gate':>6}{'trig':>6}{'availMB':>8}{'swapMB':>7}  verdict")
         for r in rows:
             pre = f"{r['pre_s']:.2f}" if r["pre_s"] else "-"
+            gate = f"{r['gate_c']:.1f}" if r["gate_c"] is not None else "-"
+            trig = f"{r['trig_c']:.1f}" if r["trig_c"] is not None else "-"
             print(f"{r['tag']:<24}{r['t2v']:7.2f}{r['wake_s']:7.2f}{r['read_s']:7.2f}{pre:>6}{r['gb']:6.2f}"
-                  f"{r['read_mbs']:6.0f}{r['inflight_md']:5.0f}{r['excess_s']:7.2f}{r['gate_c']:6.1f}"
-                  f"{r['trig_c']:6.1f}{r['avail_mb']:8}{r['swapout_mb']:7.0f}  {r['verdict']}")
+                  f"{r['read_mbs']:6.0f}{r['inflight_md']:5.0f}{r['excess_s']:7.2f}{gate:>6}"
+                  f"{trig:>6}{r['avail_mb']:8}{r['swapout_mb']:7.0f}  {r['verdict']}")
         for arm in dict.fromkeys(r["arm"] for r in rows):
             ok = [r for r in rows if r["arm"] == arm and r["verdict"] == "ok"]
             if ok:

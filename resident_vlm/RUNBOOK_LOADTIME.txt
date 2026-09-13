@@ -155,7 +155,9 @@ TOP-UP - WHEN STALLS LEAVE AN ARM BELOW 3 VALID REPS  (added 2026-09-13)
        If not, the day has drifted, the top-up does not count, and that
        drive gets a full re-run.
          SSD         burst   (sitting median 10.69s)
-         SD Express  demand  (11.73s) and burst (12.01s)
+         SD Express  demand  (11.73s) and burst (12.01s) - BOTH must pass,
+                     or the top-up does not count (clarified 2026-09-13,
+                     before the SD Express top-up ran)
     3. Every top-up rep goes through wake_checks.py exactly like the
        sitting. Void reps are listed in the write-up with the reason, never
        dropped silently.

@@ -5,15 +5,85 @@ Written 2026-09-11 on the SD Express card, for the Claude session that runs on t
 This file is the source of truth. Read all of it before running anything, and save the
 key points to memory.**
 
-**Status 2026-09-13, 04:00: the card comparison is done and published; the wake read-strategy test is
-complete on the SSD (3 counted reps per arm after the top-up) and needs one more SD Express continuous rep.**
-Step-by-step explanations of the three read methods and the reasoning for the results:
-`resident_vlm/READ_STRATEGIES.md`. Kfir asked for a wake read-strategy test — demand paging vs
-64 MB bursts vs continuous, uncapped, on the real resident wake. SD Express half 2026-09-12 22:52–23:45,
-SSD half 2026-09-13 01:28–02:23. The board's rescued stalls voided 3 of the 18 reps, leaving three arms
-at 2 valid reps, so a pre-registered **top-up** (2 more reps per arm, same code) runs on the SSD
-2026-09-13 and **on the SD Express next time it is in the slot**. Go straight to the last section, "Wake
-read-strategy test", and its "Top-up" part. The earlier SSD results are in "SSD sitting, 2026-09-12".
+## START HERE — SD Express session (written 2026-09-13 ~04:15 on the SSD)
+
+Kfir swaps the SD Express back in on 2026-09-13. **Your memory stops at the SD Express half of the
+read-strategy test (2026-09-12 23:45) and is now wrong in places.** `git pull`, read this block, then the
+last section of this file, then save the points below to memory.
+
+**What happened on the SSD, 2026-09-13 00:10–04:15:**
+- The SSD half of the wake read-strategy test ran (`bench_20260913_012802`), then a top-up
+  (`bench_20260913_030701`). **SSD final, 3 counted reps each: demand 10.25 s, burst 10.69 s, continuous
+  13.63 s.** Same order as the SD Express (11.73 / 12.01 / 15.97 s).
+- **Check (b) was broken.** "Requests in flight with no bytes completing" misses a stuck request whenever
+  other reads keep flowing past it. Replaced by `resident_vlm/wake_checks.py` (excess waiting per 100 ms
+  sample; > 1 s = void). It voids **your own `resident_continuous_0`** (stuck ~1.6 s), which the SD half
+  had passed — SD Express continuous is now **15.97 s, n=2**. Your memory says all SD checks passed: wrong.
+- Pre-registered top-up rules committed before the SSD top-up ran (`322063e`); the SSD top-up joined its
+  sitting. **The SD Express continuous top-up is still to run — that is your first job.**
+- `resident_vlm/READ_STRATEGIES.md`: Kfir asked for committed, step-by-step explanations of demand / burst /
+  continuous and the reasoning for the results. Point him there; keep it in step with any new numbers.
+- Measured corrections: continuous's file **never fits in RAM** (cache +450–507 MB while 1.7–2.0 GB is
+  pre-read), it is not "cached then evicted by the GPU copy"; the SSD's wake advantage is its per-request
+  time (0.35–0.37 ms vs the SD Express's 0.64–0.70 ms); the SD-vs-SSD wake gap is real (the SSD's demand
+  arm repeated to ~0.05 s across two days).
+- The `bench_20260912_013746` raw samples were recovered and committed (`bdae8cd`); every value reproduced.
+- On the 2026-09-13 boot `nvpmodel.service` did not fail and the clocks came up at 25 W. **Check the live
+  clocks after your boot anyway** — do not assume either way.
+
+**To-do, in order:**
+
+1. **Confirm and prepare.** Model `SDSQXFN`; no containers; live clocks
+   `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq /sys/class/devfreq/17000000.gpu/max_freq`
+   must end up 1344000 / 918000000 (Kfir runs `set_25w_clocks.sh`). Save the memory points above.
+2. **SD Express continuous top-up.** Walk Kfir through `resident_vlm/RUNBOOK_LOADTIME.txt`, section
+   "TOP-UP": 30 min rest, VS Code closed, helpers killed, `free -m`, STEP 0 `nvme_diag.sh`, STEP 1
+   `bash resident_vlm/run_loadtime_topup.sh` (~40 min), STEP 2 `nvme_diag.sh`. Then
+   `python3 resident_vlm/wake_checks.py resident_vlm/results/bench_20260912_225203 resident_vlm/results/bench_<top-up>`
+   and apply the rules exactly (section "Top-up" at the end of this file):
+   - continuous takes its **first** valid top-up rep;
+   - demand and burst are the drift check — **both** top-up medians must be within 0.5 s of 11.73 s and
+     12.01 s, or the top-up does not count (clarified 2026-09-13, before the SD top-up existed);
+   - list every void rep; no third batch.
+   Map `completion polled` lines onto the rep times. Commit the run folder (check its `*.jsonl` are
+   staged) and both diagnostics files. Update the SD rows in `READ_STRATEGIES.md` (sections 6 and 8), the
+   "Top-up" section here, and `REPORT_SOURCES.md` section 4.
+3. **Correct "One Lane Against Four"** (https://claude.ai/code/artifact/746549ba-ae80-48d2-a115-0dcac1a32518)
+   — it quotes no read-strategy figure, but two statements are out of date. Show Kfir the new wording
+   before republishing:
+   - the stall section says "Requests of 128 KB or 256 KB, and anything with several requests in flight,
+     are unaffected." Not true: every wake request is ≤ 128 KB with 1–5 in flight, and **5 of the 30
+     resident wakes in the five official runs (`220613`, `013746`, `225203`, `012802`, `030701`) had a
+     request stuck 1.1–4.4 s** (SD Express 09-11 `resident_0`,
+     09-12 `resident_continuous_0`; SSD 09-13 `resident_0`, `resident_continuous_1`, top-up `resident_1`).
+     Under steady traffic the next request releases them within seconds, which is why fio's 30 s windows
+     never caught one. Same correction for finding 1 below (done in this file).
+   - the provenance says the SSD benchmark's raw samples were never committed — they now are.
+   - **Decision for Kfir, not made yet:** the page's SD Express wake figures (11.26 s, 84.9 J) are the
+     median of `bench_20260911_220613`'s three reps, which include the stalled `resident_0` (15.12 s,
+     stuck 3.8 s) — kept at the time because it did not move the median. Under the void rule used since
+     2026-09-13 it would be excluded: clean-only median **11.18 s, 84.4 J**, so the SSD's per-wake advantage
+     becomes 0.94 s / 6.8 J instead of 1.02 s / 7.3 J, "nine percent" becomes ~8%, and the energy
+     break-even moves slightly. No claim changes direction. Ask whether to apply the rule retroactively;
+     if yes, update every place those four numbers appear (page, this file, `REPORT_SOURCES.md`).
+4. **The graph Kfir asked for:** MB/s over time per method per drive, 5 s before the trigger to 5 s after
+   the verdict, counted reps only. Ask him: new artifact, or onto "One Lane Against Four". Do it after
+   step 2 so the SD Express continuous arm has 3 reps. All data is in git.
+5. **Parked discussion — Kfir found it confusing on 2026-09-13, so re-explain simply, one step at a time,
+   and build nothing before he agrees.** His goal is to show that bursts help the SD Express. None of the
+   three methods ever delivered a burst to the drive: the page cache turns every read, 64 MB or not, into
+   ≤ 128 KB requests, 1–5 in flight (`READ_STRATEGIES.md` section 9). fio shows the SD Express itself is
+   much faster with large queued requests (871 MB/s at 1 MB × 8). Ways to actually send it bursts: a larger
+   `read_ahead_kb` (sudo, no code) or an O_DIRECT loader (code). Proposed first: a ~10 min probe on the real
+   `fused_state.pt` — buffered vs O_DIRECT 64 MB reads, readahead 128 KB / 4 MB / 16 MB — to see whether
+   either moves the SD Express from ~420 toward ~870 MB/s. Caveats to state plainly: the SSD would gain too
+   (probably more), the stall bug likes bunched completions, and a new wake method means both drives run it
+   again (another swap). The goal must stay "test whether it helps", not "show that it helps".
+
+**How Kfir works (additions from 2026-09-13):** explain mechanisms as numbered step-by-step walk-throughs
+of one concrete thing, with numbers — dense tables of mechanisms read as "too vague"; one topic per message
+when he is about to act, park the rest. He wants 3 counted reps per configuration and prefers a top-up with
+fixed rules to a full re-run. The rest of how he works is at the end of this file.
 
 ## What this is for
 
@@ -143,8 +213,10 @@ SMART clean (0 media errors, 0 error-log entries), PCIe link clean.
    completion polled` — the card had already finished; the host only noticed when the timeout
    polled. A 4K read on the same queue once a second releases every stall within ~1 s. Not the
    cause: the sampler's temperature reads (A/B tested), PCIe ASPM (off), thermal (below
-   WCTEMP), link errors (none), media errors (none). 128K/256K at QD1 and anything at QD8+ is
-   fine. Suspect: kernel cmdline `nvme.use_threaded_interrupts=1` with edge-triggered MSI.
+   WCTEMP), link errors (none), media errors (none). 128K/256K at QD1 and anything at QD8+ showed no
+   stall in fio's 30 s windows — **but CORRECTED 2026-09-13: stalls do hit ≤ 128 KB requests with 1–5 in
+   flight.** 5 of the 30 resident wakes in the five official 2026-09-11..13 runs had one request stuck 1.1–4.4 s, released
+   by the next request on the queue (see "START HERE"). Suspect: kernel cmdline `nvme.use_threaded_interrupts=1` with edge-triggered MSI.
    **Not yet proven which side drops the interrupt** — the card not raising it vs the host
    missing it. The SSD in the same slot and kernel decides: run `stall_probe.py` and compare
    verdicts. If the SSD stalls too, it is the board and must not be counted against the card;
