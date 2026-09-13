@@ -21,6 +21,8 @@ def rep_checks(d, rec):
     excess_s = max(ms - n * typical for ms, n in bins) / 1000
     read_end = marks.get("preread_end", marks["sd_read_end"])
     rd = [s for s in samples if marks["wake_sent"] <= s["t"] <= read_end]
+    rd_bytes = rd[-1]["disk_read_bytes"] - rd[0]["disk_read_bytes"]
+    at = lambda f: next(s["t"] for s in rd if s["disk_read_bytes"] - rd[0]["disk_read_bytes"] >= f * rd_bytes)
     w = rec["wake_reply"]
     trig = near(marks["trigger"])
     verdict = "ok"
@@ -32,7 +34,7 @@ def rep_checks(d, rec):
         "tag": tag, "arm": rec["arm"], "t2v": rec["trigger_to_verdict_seconds"],
         "wake_s": w["wake_seconds"], "read_s": w["sd_read_seconds"],
         "pre_s": w.get("preread_seconds") or w.get("prefetch_seconds"), "gb": w["bytes_read"] / 1e9,
-        "read_mbs": (rd[-1]["disk_read_bytes"] - rd[0]["disk_read_bytes"]) / 1e6 / (rd[-1]["t"] - rd[0]["t"]),
+        "read_mbs": 0.98 * rd_bytes / 1e6 / (at(0.99) - at(0.01)),
         "inflight_md": statistics.median(s["disk_io_in_flight"] for s in rd),
         "excess_s": excess_s, "wake_j": wake_j, "wake_w": wake_j / (pw[-1][0] - pw[0][0]),
         "gate_c": rec.get("card_start_c"), "trig_c": trig.get("temp_card_c"),

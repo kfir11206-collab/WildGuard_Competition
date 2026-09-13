@@ -51,12 +51,15 @@ def window_stats(samples, t0, t1):
     tj = [s["temp_tj_c"] for s in inside if "temp_tj_c" in s]
     card = [s["temp_card_c"] for s in inside if "temp_card_c" in s]
     avail = [s["mem_available_mb"] for s in inside if "mem_available_mb" in s]
+    at = lambda f: next(s["t"] for s in inside if s["disk_read_bytes"] - inside[0]["disk_read_bytes"] >= f * rd)
+    reading_s = at(0.99) - at(0.01) if rd > 0 else 0
     return {
         "seconds": round(span, 3),
         "energy_j": energy_j,
         "mean_power_w": mean_w,
         "sd_read_mb": round(rd / 1e6, 1),
         "sd_read_mb_s": round(rd / 1e6 / span, 1) if span > 0 else None,
+        "sd_read_mb_s_while_reading": round(0.98 * rd / 1e6 / reading_s, 1) if reading_s > 0 else None,
         "swap_in_mb": round((inside[-1].get("pswpin_bytes", 0)
                              - inside[0].get("pswpin_bytes", 0)) / 1e6, 1),
         "swap_out_mb": round((inside[-1].get("pswpout_bytes", 0)
@@ -119,7 +122,7 @@ def main():
               f"{str(r['trigger_to_verdict_s']):>8}{str(w.get('energy_j')):>9}"
               f"{str(w.get('mean_power_w')):>8}"
               f"{str(rd.get('seconds')):>7}{str(rd.get('energy_j')):>7}"
-              f"{str(rd.get('sd_read_mb_s')):>8}"
+              f"{str(rd.get('sd_read_mb_s_while_reading')):>8}"
               f"{str(w.get('sd_read_mb')):>8}"
               f"{str(w.get('sd_read_mb_s')):>8}{str(w.get('swap_in_mb')):>8}"
               f"{str(w.get('sd_max_stall_ms')):>9}"
