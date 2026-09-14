@@ -1,9 +1,0 @@
-{
-  "pmode": "pmode:0001",
-  "pmode_name": "25W",
-  "nvpmodel_service": "failed",
-  "cpu_online": "0-5",
-  "cpu_max_khz": "1344000",
-  "cpu_governor": "schedutil",
-  "gpu_max_hz": "918000000"
-}

@@ -1,6 +1,0 @@
-{"t": 0.0, "state": "SLEEPING", "event": "listening", "sock": "fire_watcher/watcher.sock", "wake_mode": "compose"}
-{"t": 1.964, "state": "SLEEPING", "event": "confidence", "value": 0.9, "smoothed": 0.9}
-{"t": 1.964, "state": "WAKING", "event": "wake_start", "confidence": 0.9, "from_state": "SLEEPING"}
-{"t": 10.451, "state": "AWAKE", "event": "awake", "wake_seconds": 8.49, "loader": {"compose_up_seconds": 0.98, "first_output_seconds": null}}
-{"t": 18.093, "state": "AWAKE", "event": "shutdown", "signal": 15}
-{"t": 28.552, "state": "AWAKE", "event": "stack_stopped", "seconds": 10.46}

@@ -1,6 +1,0 @@
-Traceback (most recent call last):
-  File "/home/student/Documents/projects/wildfire_detection/fire_watcher/mht_live.py", line 99, in <module>
-    main()
-  File "/home/student/Documents/projects/wildfire_detection/fire_watcher/mht_live.py", line 56, in main
-    s.connect(args.sock)
-ConnectionRefusedError: [Errno 111] Connection refused

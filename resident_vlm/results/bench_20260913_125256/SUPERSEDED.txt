@@ -1,9 +1,0 @@
-SUPERSEDED 2026-09-13 - NOT USED
-
-This run belongs to the wake read-strategy load-time test (demand / burst /
-continuous, run with bench.py). On 2026-09-13 Kfir decided not to use that
-test: the demand arm is dropped and a shorter burst-vs-continuous wake test
-replaces it. The measurements here were not faulty; they are kept as raw
-data only. Do not quote them.
-
-See the STATUS block at the top of mmap_sandbox/card_eval/HANDOFF.md.

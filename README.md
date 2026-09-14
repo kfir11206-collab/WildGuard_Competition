@@ -1,4 +1,131 @@
+# WildGuard — Wildfire Detection on a Jetson Orin Nano
+
+WildGuard detects wildfire smoke on a single NVIDIA Jetson Orin Nano, within the board's
+thermal and memory limits, by splitting the work across two tiers:
+
+- an **always-on tracking tier** that watches the camera cheaply and continuously, and
+- an **on-demand verification tier** — a vision-language model and text classifier — that
+  is stored on a microSD Express card and started only when the tracker's confidence
+  crosses a threshold.
+
+The tracking tier separates smoke from cloud by behaviour over time rather than appearance
+in one frame: a plume stays anchored to its source, rises and grows, while a cloud drifts
+rigidly. Fragmented detections are grouped and classified by a kinematic and texture
+classifier over Multiple Hypothesis Tracking.
+
+Keeping the heavy tier asleep instead of resident cuts system energy by 29%, and holding
+it as a resident daemon rather than starting a container on demand returns a verdict about
+ten times faster for about nine times less energy per event.
+
+This repository was prepared for the **2026 SD Association Student Competition**. It
+contains the system, the measurement harnesses, and the results behind every figure and
+table in the submitted report.
+
+**Authors:** Kfir Shauly, Ori Cohen — Technion, Israel Institute of Technology.
+Supervised by Harel Yadid, VISL.
+
+---
+
+## Relationship to EmberEye
+
+WildGuard builds on **EmberEye**, an earlier Technion project by Roy Cohen and Itay Hovav,
+whose documentation is preserved at the end of this file.
+
+EmberEye ran a vision-language model continuously on the camera feed. That works, but a
+permanently loaded model leaves nothing for the rest of the system on an 8 GB board and
+holds the device at its thermal ceiling, which rules out unattended off-grid deployment.
+
+WildGuard keeps EmberEye's vision-language model and classifier **unmodified, as a fixed
+black-box workload**, and changes when and how they run: a cheap tracker decides when the
+expensive tier is needed, and that tier's weights live on the SD Express card rather than
+in memory. Everything measured in the report follows from that change.
+
+---
+
+## Repository layout
+
+- `nano_llm/` and `classifier/` — the EmberEye vision-language model and text classifier,
+  used unmodified.
+- `fire_watcher/` — the wake service. Tracker confidence drives a state machine that
+  pre-warms, wakes and sleeps the verification tier. Contains the daemon, the loaders and
+  an MHT simulator for testing without a fire.
+- `resident_vlm/` — the resident VLM daemon and the full-system benchmark
+  (`bench.py`, `sampler.py`, `analyze.py`). See `resident_vlm/RUNBOOK.txt` for how to run
+  it and the conditions that must hold.
+- `mmap_sandbox/` — storage experiments.
+- `mmap_sandbox/card_eval/` — drive evaluation with standard tools (fio, iostat, gdsio)
+  and the stall probe. SD Express versus SSD testing closed on 2026-09-13.
+- `important commands` — operational runbook: starting, monitoring, tearing down and
+  recovering the system, plus the platform gotchas worth knowing before you hit them.
+
+---
+
+## Where the report's numbers come from
+
+`REPORT_SOURCES.md` maps each claim to its data. For detail on the drive comparison, read
+`mmap_sandbox/card_eval/HANDOFF.md`, which also records the caveats and the runs that must
+not be quoted.
+
+| Result | Data |
+|---|---|
+| Drive characterisation (fio / gdsio) | `mmap_sandbox/results/card_eval/sd_express_20260911_211324`, `ssd_20260912_004218` |
+| Platform stall, both drives | `mmap_sandbox/results/card_eval/stall_probe_*` |
+| Drive identity, link width, power states, thermals | `mmap_sandbox/results/card_eval/nvme_diag_*` |
+| Resident wake vs cold start | `resident_vlm/results/bench_20260911_220613` (card), `bench_20260912_013746` (SSD) |
+| Burst vs streaming reads | `resident_vlm/results/waketest_20260913_150739` (card), `waketest_20260913_154137` (SSD) |
+| Gated vs always-on power | `mmap_sandbox/results/perf_burst_vs_continuous` |
+
+---
+
+## Hardware
+
+- NVIDIA Jetson Orin Nano Super Developer Kit, 25 W power mode
+- SanDisk microSD Express 512 GB (`SDSQXFN-512G-GN4NN`) via the supplied M.2 adapter,
+  carrying the operating system, container images, model weights and results
+- USB or CSI camera at `/dev/video0`
+- Display connected for `display://0`
+
+The comparison drive used in the report is a Crucial P5 Plus 1 TB NVMe SSD
+(`CT1000P5PSSD8`).
+
+---
+
+## Running the system
+
+Prerequisites, installation and troubleshooting are covered in the EmberEye documentation
+below and still apply. Once the environment is set up, the fused system managed by the
+wake service is started with:
+
+```bash
+cd /path/to/wildfire_detection
+xhost +local:root
+docker compose -f docker-compose_fused_system.yaml --profile watcher up -d fire_watcher
+```
+
+To stop it:
+
+```bash
+docker compose -f docker-compose_fused_system.yaml --profile watcher stop fire_watcher
+```
+
+To watch what it is doing:
+
+```bash
+docker logs -f fire_watcher_fused
+tail -f fire_watcher/watch.jsonl
+```
+
+`important commands` has the rest, including how to force a wake by hand, how to run the
+tracker alone against the camera or a recorded clip, and how to recover if a run is
+interrupted.
+
+---
+---
+
 # EmberEye — Real-Time Wildfire Detection System
+
+*The documentation below is from the EmberEye project by Roy Cohen and Itay Hovav, on
+which WildGuard is built. Its setup and troubleshooting sections still apply.*
 
 EmberEye is a real-time wildfire detection system designed to run on NVIDIA Jetson edge devices.  
 The system uses a camera feed, a Vision-Language Model (VLM), and a semantic classifier to detect possible wildfire or smoke events in real time.
@@ -148,34 +275,6 @@ This must be done once per login/session before starting the container.
 
 ---
 
-## Project Structure
-
-Expected project structure:
-
-```text
-wildfire_detection/
-│
-├── docker-compose_complete_system.yaml
-│
-├── classifier/
-│   └── classifier.py
-│
-├── nano_llm/
-│   └── video.py
-│
-├── data/
-│   ├── out_txt
-│   └── classifier_out/
-│
-├── hf-cache/
-│
-└── README.md
-```
-
-Make sure you run all commands from inside the project directory.
-
----
-
 ## Before Running
 
 Go into the project directory:
@@ -184,29 +283,17 @@ Go into the project directory:
 cd /path/to/wildfire_detection
 ```
 
-Example:
-
-```bash
-cd ~/projects/wildfire_detection
-```
-
 ---
 
 ## Step 1 — Allow Docker to Use the Display
-
-Run:
 
 ```bash
 xhost +local:root
 ```
 
-This allows the Docker container to open the display window.
-
 ---
 
 ## Step 2 — Set Camera FPS
-
-Set the camera frame rate to 15 FPS:
 
 ```bash
 v4l2-ctl -d /dev/video0 --set-parm=15
@@ -218,52 +305,8 @@ This reduces processing load and makes the real-time pipeline more stable.
 
 ## Step 3 — Run the System with the Camera
 
-From inside the project directory, run:
-
 ```bash
 docker compose -f docker-compose_complete_system.yaml run --rm -e VIDEO_INPUT="/dev/video0" -e VIDEO_OUTPUT="display://0" wildfire_detection
-```
-
-This command runs the `wildfire_detection` service using the live camera at `/dev/video0`.
-
----
-
-## Full Run Sequence
-
-Use this exact sequence:
-
-```bash
-xhost +local:root
-v4l2-ctl -d /dev/video0 --set-parm=15
-docker compose -f docker-compose_complete_system.yaml run --rm -e VIDEO_INPUT="/dev/video0" -e VIDEO_OUTPUT="display://0" wildfire_detection
-```
-
----
-
-## Running the Full Compose System
-
-If you want to start all services defined in the compose file, use:
-
-```bash
-docker compose -f docker-compose_complete_system.yaml up
-```
-
-To run in the background:
-
-```bash
-docker compose -f docker-compose_complete_system.yaml up -d
-```
-
-To stop:
-
-```bash
-docker compose -f docker-compose_complete_system.yaml down
-```
-
-To see logs:
-
-```bash
-docker compose -f docker-compose_complete_system.yaml logs -f
 ```
 
 ---
@@ -298,32 +341,12 @@ data/classifier_out/clips/
 ls /dev/video*
 ```
 
-If `/dev/video0` does not exist, try another camera index, for example:
-
-```bash
-/dev/video1
-```
-
-Then run with:
-
-```bash
-docker compose -f docker-compose_complete_system.yaml run --rm -e VIDEO_INPUT="/dev/video1" -e VIDEO_OUTPUT="display://0" wildfire_detection
-```
-
----
+If `/dev/video0` does not exist, try another camera index, for example `/dev/video1`.
 
 ### Check camera formats
 
 ```bash
 v4l2-ctl -d /dev/video0 --list-formats-ext
-```
-
----
-
-### Set FPS again
-
-```bash
-v4l2-ctl -d /dev/video0 --set-parm=15
 ```
 
 ---
@@ -342,46 +365,19 @@ Also check:
 echo $DISPLAY
 ```
 
-The compose file usually expects:
-
-```text
-DISPLAY=:1
-```
-
-If your Jetson uses another display value, update the compose file or override the variable.
+The compose file usually expects `DISPLAY=:1`. If your Jetson uses another display value,
+update the compose file or override the variable.
 
 ---
 
 ## Docker Troubleshooting
 
-### Pull image manually
-
 ```bash
-docker pull dustynv/nano_llm:r36.4.0
-```
-
-### Check running containers
-
-```bash
-docker ps
-```
-
-### Check all containers
-
-```bash
-docker ps -a
-```
-
-### Stop all compose services
-
-```bash
-docker compose -f docker-compose_complete_system.yaml down
-```
-
-### View logs
-
-```bash
-docker compose -f docker-compose_complete_system.yaml logs -f
+docker pull dustynv/nano_llm:r36.4.0    # pull image manually
+docker ps                                # running containers
+docker ps -a                             # all containers
+docker compose -f docker-compose_complete_system.yaml down    # stop all
+docker compose -f docker-compose_complete_system.yaml logs -f # logs
 ```
 
 ---
@@ -396,24 +392,7 @@ docker compose -f docker-compose_complete_system.yaml logs -f
 
 ---
 
-## Main Command
-
-The most important command is:
-
-```bash
-docker compose -f docker-compose_complete_system.yaml run --rm -e VIDEO_INPUT="/dev/video0" -e VIDEO_OUTPUT="display://0" wildfire_detection
-```
-
-Run it only after:
-
-```bash
-xhost +local:root
-v4l2-ctl -d /dev/video0 --set-parm=15
-```
-
----
-
-## Authors
+## EmberEye Authors
 
 - Roy Cohen
 - Itay Hovav

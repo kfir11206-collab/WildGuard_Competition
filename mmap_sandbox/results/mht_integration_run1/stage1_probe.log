@@ -1,5 +1,0 @@
-{"event": "listening", "sock": "mmap_sandbox/mht_integration/probe.sock"}
-{"event": "window", "t": 15.2, "n": 24, "last": 0.663, "window_max": 0.717, "window_mean": 0.282}
-{"event": "window", "t": 30.4, "n": 52, "last": 0.0, "window_max": 0.998, "window_mean": 0.468}
-{"event": "window", "t": 45.5, "n": 81, "last": 0.0, "window_max": 0.0, "window_mean": 0.0}
-{"event": "summary", "seconds": 59.7, "samples": 108, "min": 0.0, "max": 0.998, "mean": 0.181, "median": 0.0}

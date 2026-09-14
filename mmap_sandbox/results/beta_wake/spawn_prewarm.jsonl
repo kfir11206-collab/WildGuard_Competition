@@ -1,8 +1,0 @@
-{"t": 0.0, "state": "SLEEPING", "event": "listening", "sock": "watcher.sock", "wake_mode": "spawn"}
-{"t": 0.471, "state": "SLEEPING", "event": "confidence", "value": 0.3}
-{"t": 1.471, "state": "SLEEPING", "event": "confidence", "value": 0.65}
-{"t": 5.315, "state": "PREWARMED", "event": "prewarm_done", "mb": 2814, "seconds": 3.84}
-{"t": 6.471, "state": "PREWARMED", "event": "confidence", "value": 0.9}
-{"t": 6.472, "state": "WAKING", "event": "wake_start", "confidence": 0.9, "from_state": "PREWARMED"}
-{"t": 7.397, "state": "AWAKE", "event": "awake", "wake_seconds": 0.92, "loader": {"mb": 2814, "load_seconds": 0.87}}
-{"t": 14.471, "state": "AWAKE", "event": "shutdown"}
