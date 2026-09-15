@@ -46,7 +46,9 @@ nano_llm/vision/*
 .venv/
 venv/
 jetson-containers/
-MHT_TOP/
+
+!MHT_TOP/MHT1/captures/
+!MHT_TOP/MHT1/captures/**
 
 !mmap_sandbox/results/
 !mmap_sandbox/results/**
