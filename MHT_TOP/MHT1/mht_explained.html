@@ -1,0 +1,1575 @@
+<!doctype html>
+<html lang="he">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>מעבדת MHT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Assistant:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+*{margin:0}
+
+/* ── tokens ───────────────────────────────────────────────────────────── */
+:root{
+  --paper:      #E9ECF0;
+  --surface:    #FDFDFE;
+  --surface-2:  #F2F4F7;
+  --ink:        #14181F;
+  --ink-soft:   #59646F;
+  --ink-faint:  #8A94A0;
+  --line:       #D2D8DF;
+  --line-soft:  #E3E7EC;
+
+  --ember:      #BE4E1B;   /* מדידות · עשן · העולם */
+  --ember-dim:  #E0895C;
+  --steel:      #1F6E90;   /* חיזוי · מודל · קלמן */
+  --steel-dim:  #6FAEC6;
+  --moss:       #2F6B49;   /* מסלול מאושר */
+  --plum:       #6B4A82;   /* ענפי השערה */
+  --alarm:      #A32B2B;   /* נגזם · שגיאה */
+
+  --shadow: 0 1px 2px rgba(20,24,31,.05), 0 8px 24px -14px rgba(20,24,31,.22);
+
+  --f-display: "Frank Ruhl Libre", "Times New Roman", serif;
+  --f-body: "Assistant", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "Courier New", monospace;
+
+  --measure: 68ch;
+  --wide: 1120px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:     #0E1218;
+    --surface:   #161B23;
+    --surface-2: #1D242E;
+    --ink:       #E4E8EE;
+    --ink-soft:  #9AA5B3;
+    --ink-faint: #6C7786;
+    --line:      #2A323E;
+    --line-soft: #222933;
+
+    --ember:     #F2915A;
+    --ember-dim: #A85D33;
+    --steel:     #5FB4D6;
+    --steel-dim: #3A748C;
+    --moss:      #6FC194;
+    --plum:      #B195C9;
+    --alarm:     #E2706B;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -18px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:     #0E1218;
+  --surface:   #161B23;
+  --surface-2: #1D242E;
+  --ink:       #E4E8EE;
+  --ink-soft:  #9AA5B3;
+  --ink-faint: #6C7786;
+  --line:      #2A323E;
+  --line-soft: #222933;
+  --ember:     #F2915A;
+  --ember-dim: #A85D33;
+  --steel:     #5FB4D6;
+  --steel-dim: #3A748C;
+  --moss:      #6FC194;
+  --plum:      #B195C9;
+  --alarm:     #E2706B;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -18px rgba(0,0,0,.8);
+}
+
+*{ box-sizing: border-box; }
+
+body{
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.72;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page{ direction: rtl; }
+
+.ltr{ direction: ltr; unicode-bidi: isolate; }
+
+/* ── layout ───────────────────────────────────────────────────────────── */
+.wrap{
+  max-width: var(--wide);
+  margin-inline: auto;
+  padding-inline: clamp(16px, 4vw, 40px);
+}
+.col{
+  max-width: var(--measure);
+  display: flex;
+  flex-direction: column;
+  gap: 1.1em;
+}
+section{ padding-block: clamp(44px, 6vw, 76px); }
+section + section{ border-top: 1px solid var(--line-soft); }
+
+/* ── type ─────────────────────────────────────────────────────────────── */
+h1,h2,h3{ font-family: var(--f-display); font-weight: 700; text-wrap: balance; margin: 0; line-height: 1.24; }
+h1{ font-size: clamp(2.3rem, 6vw, 3.9rem); font-weight: 900; letter-spacing: -.01em; }
+h2{ font-size: clamp(1.55rem, 3.2vw, 2.1rem); }
+h3{ font-size: 1.16rem; font-weight: 700; font-family: var(--f-body); }
+p{ margin: 0; }
+a{ color: var(--steel); }
+
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: .72rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 .9em;
+  display: flex; align-items: center; gap: .7em;
+}
+.eyebrow::after{ content:""; flex:1; height:1px; background: var(--line); }
+
+.lead{ font-size: 1.18rem; color: var(--ink-soft); }
+.small{ font-size: .93rem; color: var(--ink-soft); }
+code, .mono{ font-family: var(--f-mono); font-size: .88em; direction: ltr; unicode-bidi: isolate; }
+code{
+  background: var(--surface-2);
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  padding: .08em .34em;
+  color: var(--ink);
+}
+strong{ font-weight: 700; }
+em{ font-style: normal; color: var(--ember); font-weight: 600; }
+
+/* ── hero ─────────────────────────────────────────────────────────────── */
+.hero{
+  border-bottom: 1px solid var(--line);
+  background:
+    radial-gradient(120% 90% at 88% -10%, color-mix(in oklab, var(--ember) 12%, transparent), transparent 62%),
+    radial-gradient(90% 80% at 12% 0%, color-mix(in oklab, var(--steel) 12%, transparent), transparent 60%);
+}
+.hero .wrap{ padding-block: clamp(52px, 9vw, 104px) clamp(40px, 6vw, 68px); }
+.hero-grid{ display: grid; gap: clamp(28px, 4vw, 52px); grid-template-columns: minmax(0,1fr); align-items: end; }
+@media (min-width: 900px){ .hero-grid{ grid-template-columns: 1.25fr .85fr; } }
+.hero h1 span{ color: var(--ember); }
+.hero .lead{ max-width: 46ch; margin-top: 1.1em; }
+.hero-meta{
+  font-family: var(--f-mono); font-size: .78rem; line-height: 2.1;
+  color: var(--ink-soft);
+  border-inline-start: 2px solid var(--ember);
+  padding-inline-start: 1em;
+}
+.hero-meta b{ color: var(--ink); font-weight: 500; }
+
+/* ── panels (instrument cards) ────────────────────────────────────────── */
+.panel{
+  margin: 2.2em 0 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.panel-head{
+  display: flex; align-items: baseline; gap: .8em; flex-wrap: wrap;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--surface-2);
+}
+.panel-head .tag{
+  font-family: var(--f-mono); font-size: .68rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--ink-faint);
+  border: 1px solid var(--line); border-radius: 2px; padding: .15em .5em;
+}
+.panel-head h3{ font-size: 1rem; }
+.panel-head .hint{ font-size: .85rem; color: var(--ink-soft); margin-inline-start: auto; }
+.canvas-wrap{ position: relative; background: var(--surface); }
+canvas{ display: block; width: 100%; height: auto; }
+.panel-foot{
+  padding: 12px 18px 16px;
+  border-top: 1px solid var(--line-soft);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.ctl-row{ display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
+.ctl{ display: flex; align-items: center; gap: .55em; font-size: .85rem; color: var(--ink-soft); }
+.ctl label{ white-space: nowrap; }
+.ctl output{ font-family: var(--f-mono); font-size: .82rem; color: var(--ink); min-width: 3.2em; text-align: start; font-variant-numeric: tabular-nums; }
+input[type=range]{
+  -webkit-appearance: none; appearance: none;
+  width: 120px; height: 3px; background: var(--line); border-radius: 2px; outline: none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+  background: var(--steel); cursor: pointer; border: 2px solid var(--surface);
+}
+input[type=range]::-moz-range-thumb{
+  width: 12px; height: 12px; border-radius: 50%; background: var(--steel); cursor: pointer; border: 2px solid var(--surface);
+}
+input[type=range]:focus-visible{ outline: 2px solid var(--ember); outline-offset: 4px; }
+button{
+  font-family: var(--f-body); font-size: .85rem; font-weight: 600;
+  color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 3px;
+  padding: .38em .95em; cursor: pointer;
+  transition: background .13s, border-color .13s;
+}
+button:hover{ background: var(--surface-2); border-color: var(--ink-faint); }
+button:focus-visible{ outline: 2px solid var(--ember); outline-offset: 2px; }
+button.primary{ background: var(--ink); color: var(--surface); border-color: var(--ink); }
+button.primary:hover{ background: var(--ink-soft); border-color: var(--ink-soft); }
+
+.readout{
+  font-family: var(--f-mono); font-size: .78rem; line-height: 1.9;
+  color: var(--ink-soft);
+  display: flex; flex-wrap: wrap; gap: .35em 1.6em;
+  font-variant-numeric: tabular-nums;
+}
+.readout b{ color: var(--ink); font-weight: 500; }
+.readout .k{ color: var(--ink-faint); }
+
+.legend{ display: flex; flex-wrap: wrap; gap: .4em 1.3em; font-size: .8rem; color: var(--ink-soft); }
+.legend span{ display: inline-flex; align-items: center; gap: .45em; }
+.legend i{ width: 11px; height: 11px; border-radius: 50%; display: inline-block; flex: none; }
+
+/* ── steps ────────────────────────────────────────────────────────────── */
+.steps{ display: grid; gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); margin-top: 1.8em; }
+@media (min-width: 720px){ .steps{ grid-template-columns: repeat(5, 1fr); } }
+.step{ background: var(--surface); padding: 18px 16px 20px; display: flex; flex-direction: column; gap: .5em; }
+.step .n{ font-family: var(--f-mono); font-size: .72rem; color: var(--ember); letter-spacing: .1em; }
+.step h3{ font-size: .98rem; }
+.step p{ font-size: .87rem; color: var(--ink-soft); line-height: 1.6; }
+
+/* ── tables ───────────────────────────────────────────────────────────── */
+.table-scroll{ overflow-x: auto; margin-top: 1.6em; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); }
+table{ border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td{ text-align: start; padding: 10px 14px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+thead th{ background: var(--surface-2); font-weight: 600; font-size: .8rem; color: var(--ink-soft); white-space: nowrap; }
+tbody tr:last-child td{ border-bottom: none; }
+td .mono{ color: var(--ember); white-space: nowrap; }
+td.num{ font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ── callout ──────────────────────────────────────────────────────────── */
+.note{
+  border-inline-start: 3px solid var(--steel);
+  background: var(--surface);
+  padding: 14px 18px;
+  font-size: .92rem;
+  color: var(--ink-soft);
+  border-radius: 0 3px 3px 0;
+}
+.note b{ color: var(--ink); }
+.note.warm{ border-inline-start-color: var(--ember); }
+
+/* ── tier diagram chips ───────────────────────────────────────────────── */
+.tiers{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line-soft); }
+@media (max-width: 700px){ .tiers{ grid-template-columns: repeat(2, 1fr); } }
+.tier{ background: var(--surface); padding: 14px 14px 16px; min-height: 124px; }
+.tier .th{ display:flex; align-items: baseline; gap:.5em; margin-bottom: .7em; }
+.tier .th b{ font-family: var(--f-mono); font-size: .74rem; letter-spacing: .12em; }
+.tier .th .cnt{ font-family: var(--f-mono); font-size: .74rem; color: var(--ink-faint); margin-inline-start: auto; font-variant-numeric: tabular-nums; direction: ltr; }
+.chips{ display: flex; flex-wrap: wrap; gap: 3px; }
+.chip{ width: 11px; height: 11px; border-radius: 2px; background: var(--ink-faint); }
+.chip.conf{ background: var(--moss); }
+.chip.tent{ background: var(--ember-dim); }
+.chip.warm{ background: var(--steel-dim); }
+.chip.cold{ background: var(--plum); }
+
+.formula{
+  font-family: var(--f-mono); direction: ltr; unicode-bidi: isolate;
+  background: var(--surface-2); border: 1px solid var(--line-soft);
+  border-radius: 3px; padding: 14px 16px; font-size: .88rem; line-height: 1.9;
+  overflow-x: auto; white-space: pre;
+}
+
+footer{ border-top: 1px solid var(--line); padding-block: 34px 50px; color: var(--ink-faint); font-size: .85rem; }
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+</style>
+</head>
+<body>
+
+
+<div class="page" dir="rtl">
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <p class="eyebrow">Multiple Hypothesis Tracking</p>
+        <h1>האלגוריתם ש<span>מסרב להחליט</span></h1>
+        <p class="lead">
+          כל עוקב פשוט חייב לענות על שאלה אחת בכל פריים: לְמי שייכת התצפית הזאת?
+          MHT עונה "בוא נחכה ונראה" — ושומר את כל התשובות האפשריות עד שהעתיד יכריע.
+          חמש מעבדות אינטראקטיביות, בנויות סביב <span class="ltr mono">mht_tracker.py</span> שבפרויקט שלך.
+        </p>
+      </div>
+      <div class="hero-meta">
+        <b>מקור:</b> MHT1 / mht_tracker.py<br>
+        <b>סוג:</b> Track-oriented MHT<br>
+        <b>גיזום:</b> N-scan = 5, max_hyps = 4<br>
+        <b>שיוך:</b> Greedy gated (לא Murty)<br>
+        <b>זיכרון:</b> HOT → WARM → COLD<br>
+        <b>יעד:</b> Jetson Orin Nano · 15W
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════ 1 · המחזור ═══════════════════════════ -->
+<section>
+  <div class="wrap">
+    <div class="col">
+      <p class="eyebrow">המחזור</p>
+      <h2>חמישה שלבים, פעם בכל פריים</h2>
+      <p>
+        אלה באמת חמישה שלבים בסדר קבוע — לא רשימה שרירותית. כל שלב מקבל את הפלט של הקודם,
+        ושלב 5 הוא היחיד שמונע מהמערכת לקרוס. סדר הפעולות למטה הוא בדיוק זה שב־<code>MHTTracker.update()</code>.
+      </p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <span class="n">01</span><h3>Predict</h3>
+        <p>כל השערה מקדמת את מסנן קלמן שלה פריים אחד קדימה. המיקום נע לפי המהירות, וה־covariance תופח: אי־הוודאות גדלה כשאין מידע חדש.</p>
+      </div>
+      <div class="step">
+        <span class="n">02</span><h3>Gate</h3>
+        <p>מרחק מהלנוביס בין כל תצפית לכל חיזוי. מעל <span class="ltr mono">9.21</span> (חי־בריבוע, 2 דרגות חופש, 99%) — נפסל מיד. חוסך את רוב החישוב.</p>
+      </div>
+      <div class="step">
+        <span class="n">03</span><h3>Branch</h3>
+        <p>תצפית שנכנסה לשער של יותר ממסלול אחד היא <em>עמומה</em>. במקום להכריע — המסלול מתפצל לשתי השערות מתחרות.</p>
+      </div>
+      <div class="step">
+        <span class="n">04</span><h3>Score</h3>
+        <p>כל השערה צוברת ציון בסגנון log-likelihood: התאמה טובה מוסיפה, פספוס מוריד. חיבור, לא כפל — כדי שלא יהיה underflow.</p>
+      </div>
+      <div class="step">
+        <span class="n">05</span><h3>Prune</h3>
+        <p>N-scan מקפל כל משפחה לענף אחד אחרי 5 פריימים, ותקרת רוחב שומרת 4 השערות לכל היותר. בלי זה — פיצוץ קומבינטורי.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ 2 · קלמן + שער ═══════════════════════════ -->
+<section>
+  <div class="wrap">
+    <div class="col">
+      <p class="eyebrow">מעבדה א׳ · שלבים 1–2</p>
+      <h2>החיזוי, האליפסה, והרעש</h2>
+      <p>
+        האליפסה היא לב העניין. היא לא "טווח חיפוש" שבחרת ביד — היא נגזרת ישירות מ־<code>S = HPHᵀ + R</code>,
+        כלומר מאי־הוודאות של המסנן ועוצמת רעש החיישן. כל עוד המטרה נראית, האליפסה מתכווצת.
+        לחץ על <b>הסתר מטרה</b> וראה מה קורה כשאין מדידות: האליפסה תופחת פריים אחרי פריים, כי המסנן מודה שהוא מאבד את המטרה.
+      </p>
+      <p class="small">
+        נקודה שקל לפספס: השער נמדד ב־<em>מהלנוביס</em>, לא בפיקסלים. תצפית רחוקה בכיוון שבו המסנן בטוח בעצמו — נפסלת;
+        תצפית באותו מרחק בדיוק, בכיוון שבו הוא לא בטוח — מתקבלת. לכן זו אליפסה ולא עיגול.
+      </p>
+    </div>
+
+    <figure class="panel">
+      <div class="panel-head">
+        <span class="tag">Gating</span>
+        <h3>מסנן קלמן וסינון ראשוני</h3>
+        <span class="hint">גרור את הסליידרים תוך כדי ריצה</span>
+      </div>
+      <div class="canvas-wrap"><canvas id="cv-gate" height="380"></canvas></div>
+      <div class="panel-foot">
+        <div class="ctl-row">
+          <button id="gate-play" class="primary">השהה</button>
+          <button id="gate-occlude">הסתר מטרה</button>
+          <button id="gate-reset">אתחל</button>
+          <div class="ctl">
+            <label for="s-gate">סף שער χ²</label>
+            <input type="range" id="s-gate" min="1" max="25" step="0.01" value="9.21">
+            <output id="o-gate">9.21</output>
+          </div>
+          <div class="ctl">
+            <label for="s-clutter">רעש (clutter)</label>
+            <input type="range" id="s-clutter" min="0" max="14" step="1" value="5">
+            <output id="o-clutter">5</output>
+          </div>
+          <div class="ctl">
+            <label for="s-q">רעש תהליך q</label>
+            <input type="range" id="s-q" min="0.2" max="8" step="0.1" value="2">
+            <output id="o-q">2.0</output>
+          </div>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--steel)"></i>חיזוי + אליפסת שער</span>
+          <span><i style="background:var(--ember)"></i>תצפית בתוך השער</span>
+          <span><i style="background:var(--ink-faint)"></i>תצפית שנפסלה</span>
+          <span><i style="background:var(--moss)"></i>מסלול המסנן</span>
+        </div>
+        <div class="readout" id="r-gate"></div>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ 3 · NN מול MHT ═══════════════════════════ -->
+<section>
+  <div class="wrap">
+    <div class="col">
+      <p class="eyebrow">מעבדה ב׳ · למה בכלל MHT</p>
+      <h2>הרגע שבו Nearest-Neighbor נשבר</h2>
+      <p>
+        שני הפאנלים רואים <b>בדיוק את אותן תצפיות</b> — אותו זרע אקראי, אותו רעש, אותה הסתרה.
+        ההבדל היחיד הוא מה כל אלגוריתם עושה ברגע העמום.
+      </p>
+      <p>
+        התסריט מוכר לך מה־README: שני גופים מתקרבים, המסכה ממזגת אותם לכתם אחד למשך כמה פריימים ("smoke fused with cloud"), ואז הם נפרדים.
+        <b>NN</b> חייב להכריע בזמן אמת ובוחר את הקרוב ביותר. <b>MHT</b> מחזיק במקביל את כל השיוכים הגלובליים החוקיים —
+        כולל האילוץ שתצפית אחת יכולה להאכיל מסלול אחד בלבד — וממתין. אחרי ההפרדה, ההשערה שלא החליפה זהויות מסבירה
+        את המדידות טוב יותר בכל פריים, וה־N-scan מקפל את המשפחה סביבה. הזהות נשמרת <em>בדיעבד</em>.
+      </p>
+      <p>
+        <b>הרצה בודדת לא מוכיחה כלום</b>, ולכן הפאנל סופר. כל הרצה מסתיימת אחרי 150 פריימים, הזהויות נבדקות מול האמת,
+        והמונה למטה מצטבר. לחץ <b>60 הרצות מהירות</b> כמה פעמים כדי לקבל מספר יציב. בברירת המחדל היחס נוחת סביב
+        <b>NN ~27% החלפות מול MHT ~17%</b>; עם N-scan = 12 זה יורד ל־<b>~13%</b>. שיפור אמיתי של פי 1.5 עד 2 —
+        לא פתרון מושלם. זה המספר שיוצא, לא הבטחה שיווקית.
+      </p>
+    </div>
+
+    <figure class="panel">
+      <div class="panel-head">
+        <span class="tag">A/B</span>
+        <h3>אותו קלט, שתי מדיניות שיוך</h3>
+        <span class="hint">מונה החלפות ה־ID מתאפס בכל הרצה</span>
+      </div>
+      <div class="canvas-wrap"><canvas id="cv-ab" height="360"></canvas></div>
+      <div class="panel-foot">
+        <div class="ctl-row">
+          <button id="ab-play" class="primary">השהה</button>
+          <button id="ab-step">פריים בודד</button>
+          <button id="ab-batch">60 הרצות מהירות</button>
+          <button id="ab-reset">אפס סטטיסטיקה</button>
+          <div class="ctl">
+            <label for="s-merge">אורך המיזוג (פריימים)</label>
+            <input type="range" id="s-merge" min="0" max="14" step="2" value="4">
+            <output id="o-merge">4</output>
+          </div>
+          <div class="ctl">
+            <label for="s-nscan">N-scan</label>
+            <input type="range" id="s-nscan" min="2" max="20" step="1" value="5">
+            <output id="o-nscan">5</output>
+          </div>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--moss)"></i>מסלול T1</span>
+          <span><i style="background:var(--plum)"></i>מסלול T2</span>
+          <span><i style="background:var(--ember)"></i>תצפית אמת</span>
+          <span><i style="background:var(--ink-faint)"></i>התראת שווא</span>
+          <span>עיגולים חלולים בפאנל השמאלי = השערות מתחרות</span>
+        </div>
+        <div class="readout" id="r-ab"></div>
+      </div>
+    </figure>
+
+    <div class="col" style="margin-top:1.6em">
+      <div class="note warm">
+        <b>שני דברים שכדאי לנסות בעצמך.</b>
+        גרור את <b>N-scan</b> מ־2 ל־12 והרץ 60 הרצות בכל ערך: אחוז ההחלפות של MHT יורד, כי ההכרעה נדחית מעבר לרגע העמום.
+        זה בדיוק מה ש־N-scan קונה, וזה מה שהוא עולה בזיכרון.
+        אחר כך גרור את <b>אורך המיזוג</b> ל־14 והרץ שוב: <em>שני</em> האלגוריתמים קורסים לאותו אחוז.
+        כשהגלאי מספק תצפית אחת במקום שתיים, אין שתי היפותזות לשמור — ושום מדיניות שיוך לא תמציא מידע שלא הגיע.
+        זה בדיוק מה שכתוב אצלך ב־README תחת "Needs finer segmentation": הכשל הזה לא נמצא בעוקב, ולכן גם לא ייפתר בו.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ 4 · עץ ההשערות ═══════════════════════════ -->
+<section>
+  <div class="wrap">
+    <div class="col">
+      <p class="eyebrow">מעבדה ג׳ · שלבים 3 ו־5</p>
+      <h2>הפיצוץ הקומבינטורי, ומה עוצר אותו</h2>
+      <p>
+        בכל פריים כל השערה קיימת יכולה להסתעף לשלוש: התצפית שייכת לי, לא ראיתי כלום (miss), או שזו תצפית של מישהו אחר.
+        זה גורם הסתעפות 3 — כלומר <span class="ltr mono">3ᵏ</span> עלים אחרי k פריימים. אחרי 20 פריימים זה כ־3.5 מיליארד השערות למסלול בודד.
+      </p>
+      <p>
+        שני מנגנונים חותכים את זה, ושניהם בקוד שלך. <b>תקרת רוחב</b> (<code>max_hyps=4</code>) זורקת בכל פריים את כל מה שמתחת לארבע הראשונות בציון.
+        <b>N-scan</b> (<code>n_scan=5</code>) הוא העיקרי: ברגע שענף בן 5 פריימים, ההחלטה נחשבת בשלה — המשפחה כולה מתקפלת לענף הטוב ביותר,
+        והעומק מתאפס. זה בדיוק ה"דחיית ההחלטה" ב־MHT: לא ויתור על ההכרעה, אלא <em>דחייה בחמישה פריימים</em>.
+      </p>
+    </div>
+
+    <figure class="panel">
+      <div class="panel-head">
+        <span class="tag">Tree</span>
+        <h3>עץ ההשערות של מסלול אחד</h3>
+        <span class="hint">אפור מקווקו = נגזם</span>
+      </div>
+      <div class="canvas-wrap"><canvas id="cv-tree" height="360"></canvas></div>
+      <div class="panel-foot">
+        <div class="ctl-row">
+          <button id="tree-play" class="primary">השהה</button>
+          <button id="tree-step">פריים בודד</button>
+          <button id="tree-reset">אתחל</button>
+          <div class="ctl">
+            <label for="s-tnscan">N-scan</label>
+            <input type="range" id="s-tnscan" min="2" max="10" step="1" value="5">
+            <output id="o-tnscan">5</output>
+          </div>
+          <div class="ctl">
+            <label for="s-maxhyps">max_hyps</label>
+            <input type="range" id="s-maxhyps" min="1" max="12" step="1" value="4">
+            <output id="o-maxhyps">4</output>
+          </div>
+          <div class="ctl">
+            <label><input type="checkbox" id="c-prune" checked> גיזום פעיל</label>
+          </div>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--moss)"></i>assign · הכי טוב</span>
+          <span><i style="background:var(--plum)"></i>ענף מתחרה</span>
+          <span><i style="background:var(--ember-dim)"></i>miss</span>
+          <span><i style="background:var(--ink-faint)"></i>נגזם</span>
+        </div>
+        <div class="readout" id="r-tree"></div>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ 5 · הציון ════════════════════════════════ -->
+<section>
+  <div class="wrap">
+    <div class="col">
+      <p class="eyebrow">מעבדה ד׳ · שלב 4</p>
+      <h2>הציון שאתה מחשב, והציון שהתאוריה מבקשת</h2>
+      <p>
+        זה הקוד שלך, מתוך <code>Track.update()</code> ו־<code>Track.mark_missed()</code>:
+      </p>
+      <div class="formula">h.score += 2.0 - 0.5 * d2      # התאמה
+b.score -= 1.0                 # ענף מתחרה (תצפית לא מוסברת)
+h.score -= 1.5                 # פספוס</div>
+      <p>
+        ה־<span class="ltr mono">-0.5·d²</span> הוא <b>בדיוק</b> האיבר הנכון — זה הליבה של log-likelihood גאוסי.
+        מה שחסר הוא הקבועים: הנרמול <span class="ltr mono">-½ln|2πS|</span> ויחס ההסתברויות <span class="ltr mono">ln(P_D / λ_fa)</span>.
+        אצלך הם מקובצים לקבוע יחיד <span class="ltr mono">+2.0</span>. הזז את הסליידרים וראה איפה שתי העקומות נפגשות ואיפה הן מתפצלות.
+      </p>
+    </div>
+
+    <figure class="panel">
+      <div class="panel-head">
+        <span class="tag">Score</span>
+        <h3>ציון כפונקציה של מרחק מהלנוביס</h3>
+        <span class="hint">הקו האנכי = סף השער</span>
+      </div>
+      <div class="canvas-wrap"><canvas id="cv-score" height="320"></canvas></div>
+      <div class="panel-foot">
+        <div class="ctl-row">
+          <div class="ctl">
+            <label for="s-d2">d² נוכחי</label>
+            <input type="range" id="s-d2" min="0" max="16" step="0.05" value="2.5">
+            <output id="o-d2">2.50</output>
+          </div>
+          <div class="ctl">
+            <label for="s-pd">P_D</label>
+            <input type="range" id="s-pd" min="0.5" max="0.99" step="0.01" value="0.9">
+            <output id="o-pd">0.90</output>
+          </div>
+          <div class="ctl">
+            <label for="s-lam">λ_fa (צפיפות רעש)</label>
+            <input type="range" id="s-lam" min="0.0002" max="0.05" step="0.0002" value="0.004">
+            <output id="o-lam">0.0040</output>
+          </div>
+          <div class="ctl">
+            <label for="s-app">משקל מראה w·ln(sim)</label>
+            <input type="range" id="s-app" min="0" max="3" step="0.1" value="0">
+            <output id="o-app">0.0</output>
+          </div>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--ember)"></i>הקוד שלך: 2 − 0.5d²</span>
+          <span><i style="background:var(--steel)"></i>log-likelihood מלא</span>
+          <span><i style="background:var(--plum)"></i>+ איבר מראה</span>
+        </div>
+        <div class="readout" id="r-score"></div>
+      </div>
+    </figure>
+
+    <div class="col" style="margin-top:1.8em">
+      <h3>מה ההפרש הזה עושה בפועל</h3>
+      <p class="small">
+        אצלך הציון מתאפס ב־<span class="ltr mono">d² = 4</span> — כלומר תצפית שעברה את השער (עד 9.21) עדיין יכולה <b>להוריד</b> את ציון ההשערה.
+        זה לא באג; זה אומר ש"התאמה גרועה" נענשת. אבל כשהיחס בין <span class="ltr mono">P_D</span> ל־<span class="ltr mono">λ_fa</span> משתנה —
+        למשל בסצנה עמוסת עננים, שבה צפיפות ההתראות השווא גבוהה — הקבוע הנכון זז, והקבוע הקבוע <span class="ltr mono">2.0</span> כבר לא מייצג אותו.
+        זה בדיוק המקום שבו שווה להפוך אותו לפרמטר.
+      </p>
+      <h3 style="margin-top:.8em">איפה המראה נכנסת</h3>
+      <p class="small">
+        בפרויקט שלך יש כבר שני מקורות ראייה: <code>AppanaScorer</code> (SVM על טקסטורת Gabor/wavelet, מחזיר הסתברות ב־<span class="ltr mono">[0,1]</span>)
+        ו־<code>iso_ema</code> (איזוטרופיית Gabor לכל מסלול). שניהם מוזנים היום ל<b>מסווג</b>, אחרי העוקב.
+        להזין אותם גם ל<b>ציון ההשערה</b> יעזור בדיוק ברגע העמום ממעבדה ב׳: כששני מועמדים קינמטית שקולים,
+        דמיון המראה הוא מה שמכריע. סליידר "משקל מראה" למעלה מדגים את הצורה — <span class="ltr mono">score += w · ln(sim)</span>,
+        חיבור בעולם הלוגריתמי, כלומר מכפלת הסתברויות בעולם הרגיל.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ 6 · זיכרון ═══════════════════════════════ -->
+<section>
+  <div class="wrap">
+    <div class="col">
+      <p class="eyebrow">מעבדה ה׳ · ההנדסה האמיתית</p>
+      <h2>שלוש שכבות, וכל אחת חסומה</h2>
+      <p>
+        זה החלק שבו המימוש שלך מעניין יותר מהתאוריה. גיזום השערות פותר את הפיצוץ <b>בתוך</b> מסלול;
+        הוא לא פותר את מה שקורה כשמסכת ה־HSV מתפצלת לעשרות קונטורים ונולדים 40 מסלולים חדשים בפריים אחד.
+        לכן יש מחזור חיים בן שלוש שכבות, כשלכל מיכל יש תקרה קשיחה.
+      </p>
+      <p class="small">
+        לחץ <b>סופת רעש</b> כדי לדמות מסכה מתפצלת. שים לב שמסלולים <span class="ltr mono">TENTATIVE</span> מתים אחרי
+        <span class="ltr mono">2</span> פספוסים ו<b>אף פעם</b> לא מגיעים לאחסון — זה FIX 5 בקוד שלך, וזה מה שמונע את מפולת ה־pickle.
+      </p>
+    </div>
+
+    <figure class="panel">
+      <div class="panel-head">
+        <span class="tag">Lifecycle</span>
+        <h3>HOT · WARM · COLD</h3>
+        <span class="hint">כל ריבוע = משפחת מסלולים אחת</span>
+      </div>
+      <div class="tiers" id="tiers">
+        <div class="tier">
+          <div class="th"><i class="chip conf"></i><b>CONFIRMED</b><span class="cnt" id="c-conf">0 / 24</span></div>
+          <div class="chips" id="ch-conf"></div>
+        </div>
+        <div class="tier">
+          <div class="th"><i class="chip tent"></i><b>TENTATIVE</b><span class="cnt" id="c-tent">0 / 24</span></div>
+          <div class="chips" id="ch-tent"></div>
+        </div>
+        <div class="tier">
+          <div class="th"><i class="chip warm"></i><b>WARM</b><span class="cnt" id="c-warm">0 / 16</span></div>
+          <div class="chips" id="ch-warm"></div>
+        </div>
+        <div class="tier">
+          <div class="th"><i class="chip cold"></i><b>COLD</b><span class="cnt" id="c-cold">0 / 64</span></div>
+          <div class="chips" id="ch-cold"></div>
+        </div>
+      </div>
+      <div class="panel-foot">
+        <div class="ctl-row">
+          <button id="mem-play" class="primary">השהה</button>
+          <button id="mem-storm">סופת רעש</button>
+          <button id="mem-reset">אתחל</button>
+        </div>
+        <div class="readout" id="r-mem"></div>
+      </div>
+    </figure>
+
+    <div class="col" style="margin-top:1.8em">
+      <h3>המסלול המלא של מסלול</h3>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>מצב</th><th>מתי נכנסים אליו</th><th>מה קורה למשפחת ההשערות</th><th>יציאה</th></tr></thead>
+        <tbody>
+          <tr><td><span class="mono">TENTATIVE</span></td><td>תצפית שלא שויכה לאף מסלול</td><td>השערה אחת, טרייה</td><td>‎3 hits ← CONFIRMED · ‎2 misses ← נמחק</td></tr>
+          <tr><td><span class="mono">CONFIRMED</span></td><td>‎<span class="ltr mono">hits ≥ min_hits</span></td><td>עד 4 השערות, N-scan פעיל</td><td>‎<span class="ltr mono">misses ≥ 4</span> ← WARM</td></tr>
+          <tr><td><span class="mono">WARM</span></td><td>התחיל לפספס, עדיין ב־RAM</td><td>מתקפל להשערה אחת, שובל מ־30 ל־8</td><td>שיוך ← CONFIRMED · ‎<span class="ltr mono">misses &gt; 8</span> ← COLD</td></tr>
+          <tr><td><span class="mono">COLD</span></td><td>עבר את סף הפספוסים או גלש מהתקרה</td><td>‎<span class="ltr mono">pickle</span> לאחסון; ‎<span class="ltr mono">DormantRecord</span> של ~120B נשאר ב־RAM</td><td>תצפית בשער מורחב ← החייאה · ‎TTL 90 פריימים ← נמחק</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col" style="margin-top:1.6em">
+      <div class="note">
+        <b>למה השער של ההחייאה מתרחב.</b> תחת מודל מהירות קבועה עם רעש תהליך, אי־הוודאות במיקום גדלה בערך לינארית בזמן —
+        ולכן <code>_revive_gate_r2</code> מחשב <span class="ltr mono">var = pos_var + 2·dt</span> ומכפיל ב־<span class="ltr mono">1.5²</span>,
+        עם תקרה של 160 פיקסלים כדי שמסלול ישן לא "יתפוס" את כל הפריים. אותה מתמטיקה בדיוק שמנפחת את האליפסה במעבדה א׳ כשמסתירים את המטרה.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ 7 · השוואה ═══════════════════════════════ -->
+<section>
+  <div class="wrap">
+    <div class="col">
+      <p class="eyebrow">מיקום</p>
+      <h2>מה שיש לך, ומה שלא — במכוון</h2>
+      <p>
+        ה־docstring שלך אומר את זה מפורשות: זה <b>track-oriented</b> MHT, לא Reid/Kurien המלא.
+        ההבדל הוא לא בקטנה, וכדאי שיהיה ברור מה בדיוק ויתרת עליו וכמה זה עולה.
+      </p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th></th><th>MHT קלאסי (Reid / Kurien)</th><th>המימוש שלך</th></tr></thead>
+        <tbody>
+          <tr><td><b>יחידת ההשערה</b></td><td>השערה גלובלית: שיוך שלם של כל התצפיות לכל המסלולים</td><td>משפחה לכל מסלול, בנפרד</td></tr>
+          <tr><td><b>יצירת שיוכים</b></td><td>אלגוריתם Murty ל־k השיוכים הטובים ביותר, לכל פריים</td><td>Greedy ממוין לפי עלות, עם דגל <span class="ltr mono">ambiguous</span></td></tr>
+          <tr><td><b>אילוץ בלעדיות</b></td><td>נאכף גלובלית: תצפית אחת ← מסלול אחד</td><td>נאכף רק בשיוך ה־greedy, לא בין ההשערות</td></tr>
+          <tr><td><b>עלות פריים</b></td><td>‎<span class="ltr mono">O(k · n!)</span> בגרוע; דורש NP-hard solver</td><td>‎<span class="ltr mono">O(tracks × dets × hyps)</span>, חסום קשיח</td></tr>
+          <tr><td><b>מה מפסידים</b></td><td>—</td><td>שיוכים שנכונים רק בהסתכלות גלובלית; בעיקר במטרות צפופות</td></tr>
+          <tr><td><b>למה זה נכון כאן</b></td><td>עשרות־מאות מטרות (מכ״ם)</td><td>‎1–10 כתמי עשן איטיים על 15W — הקומבינטוריקה הגלובלית כמעט לא קונה כלום</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col" style="margin-top:2em">
+      <h3>הפרמטרים, ומה כל אחד באמת שולט בו</h3>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>פרמטר</th><th class="num">ברירת מחדל</th><th>מה קורה אם מגדילים</th></tr></thead>
+        <tbody>
+          <tr><td><span class="mono">gate_thresh</span></td><td class="num">9.21</td><td>יותר תצפיות נכנסות לשער → יותר עמימות → יותר ענפים. χ² עם 2 דרגות חופש: 5.99 = 95%, 9.21 = 99%, 13.8 = 99.9%</td></tr>
+          <tr><td><span class="mono">n_scan</span></td><td class="num">5</td><td>ההחלטה נדחית לעוד פריימים — דיוק טוב יותר בחציות, אך זיכרון ועומק גדלים</td></tr>
+          <tr><td><span class="mono">max_hyps_per_track</span></td><td class="num">4</td><td>יותר הסברים מתחרים בו־זמנית; העלות לינארית בזמן הריצה של ה־gating</td></tr>
+          <tr><td><span class="mono">min_hits</span></td><td class="num">3</td><td>אישור איטי יותר → פחות התראות שווא, אבל פלומה אמיתית מאושרת מאוחר</td></tr>
+          <tr><td><span class="mono">max_misses</span></td><td class="num">8</td><td>מסלולים שורדים הסתרה ארוכה יותר לפני מעבר ל־COLD</td></tr>
+          <tr><td><span class="mono">tentative_max_misses</span></td><td class="num">2</td><td>רעש לא־מאושר חי יותר — זה בדיוק מה ש־FIX 5 בא לחסום</td></tr>
+          <tr><td><span class="mono">dormant_ttl_frames</span></td><td class="num">90</td><td>‎~3 שניות ב־30fps. ארוך יותר = יותר החייאות, יותר תפוסה באחסון</td></tr>
+          <tr><td><span class="mono">revive_gate_scale</span></td><td class="num">1.5</td><td>שער החייאה רחב יותר → יותר החייאות שגויות של מסלול לא נכון</td></tr>
+          <tr><td><span class="mono">q</span> / <span class="mono">r</span></td><td class="num">2.0 / 4.0</td><td>‎q גבוה = המסנן "מאמין" יותר למדידות ופחות למודל; אליפסה תופחת מהר</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="col">
+      <p>
+        כל הסימולציות בעמוד מריצות מסנן קלמן אמיתי (מהירות קבועה, 4 מצבים, <span class="ltr mono">q=2, r=4</span>),
+        שער מהלנוביס אמיתי ואת אריתמטיקת הציון מתוך <span class="ltr mono">mht_tracker.py</span>. אין כאן אנימציה מבוימת.
+      </p>
+    </div>
+  </div>
+</footer>
+
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════ palette bridge (canvas needs literal colors) ══════════ */
+const P = {};
+const KEYS = ['ink','ink-soft','ink-faint','line','line-soft','surface','surface-2',
+              'ember','ember-dim','steel','steel-dim','moss','plum','alarm','paper'];
+function refreshPalette(){
+  const cs = getComputedStyle(document.querySelector('.page'));
+  KEYS.forEach(k => { P[k] = (cs.getPropertyValue('--'+k) || '').trim() || '#888888'; });
+}
+refreshPalette();
+
+/* ═══════════════ tiny linear algebra ═══════════════════════════════════ */
+function mm(A,B){
+  const n=A.length, m=B[0].length, k=B.length, C=new Array(n);
+  for(let i=0;i<n;i++){ const row=new Array(m);
+    for(let j=0;j<m;j++){ let s=0; for(let t=0;t<k;t++) s+=A[i][t]*B[t][j]; row[j]=s; }
+    C[i]=row; }
+  return C;
+}
+function transpose(A){
+  const n=A.length,m=A[0].length,C=new Array(m);
+  for(let j=0;j<m;j++){ const row=new Array(n); for(let i=0;i<n;i++) row[i]=A[i][j]; C[j]=row; }
+  return C;
+}
+
+/* ═══════════════ constant-velocity Kalman (mirrors CVKalman) ═══════════ */
+const F4 = [[1,0,1,0],[0,1,0,1],[0,0,1,0],[0,0,0,1]];
+function kfNew(cx,cy,q,r){
+  return { x:[cx,cy,0,0],
+           P:[[10,0,0,0],[0,10,0,0],[0,0,100,0],[0,0,0,100]],
+           q:(q===undefined?2:q), r:(r===undefined?4:r) };
+}
+function kfClone(k){ return {x:k.x.slice(), P:k.P.map(r=>r.slice()), q:k.q, r:k.r}; }
+function kfPredict(k){
+  const x=k.x;
+  k.x=[x[0]+x[2], x[1]+x[3], x[2], x[3]];
+  const Pn = mm(mm(F4,k.P), transpose(F4));
+  Pn[0][0]+=0.25*k.q; Pn[1][1]+=0.25*k.q; Pn[2][2]+=k.q; Pn[3][3]+=k.q;
+  k.P=Pn;
+}
+function kfS(k){ return [[k.P[0][0]+k.r, k.P[0][1]],[k.P[1][0], k.P[1][1]+k.r]]; }
+function det2(S){ let d=S[0][0]*S[1][1]-S[0][1]*S[1][0]; return Math.abs(d)<1e-12?1e-12:d; }
+function mahal(k,z){
+  const S=kfS(k), d=det2(S), y0=z[0]-k.x[0], y1=z[1]-k.x[1];
+  return (S[1][1]*y0*y0 - (S[0][1]+S[1][0])*y0*y1 + S[0][0]*y1*y1)/d;
+}
+function kfUpdate(k,z){
+  const S=kfS(k), d=det2(S);
+  const Si=[[S[1][1]/d, -S[0][1]/d],[-S[1][0]/d, S[0][0]/d]];
+  const PH=[[k.P[0][0],k.P[0][1]],[k.P[1][0],k.P[1][1]],
+            [k.P[2][0],k.P[2][1]],[k.P[3][0],k.P[3][1]]];
+  const K=mm(PH,Si);
+  const y0=z[0]-k.x[0], y1=z[1]-k.x[1];
+  const d2=mahal(k,z);
+  for(let i=0;i<4;i++) k.x[i]+= K[i][0]*y0 + K[i][1]*y1;
+  const top=[k.P[0].slice(), k.P[1].slice()];
+  for(let i=0;i<4;i++) for(let j=0;j<4;j++)
+    k.P[i][j] -= K[i][0]*top[0][j] + K[i][1]*top[1][j];
+  return d2;
+}
+
+/* ═══════════════ rng, canvas, drawing helpers ══════════════════════════ */
+function mulberry32(a){ return function(){
+  a|=0; a=a+0x6D2B79F5|0;
+  let t=Math.imul(a^a>>>15, 1|a);
+  t=t+Math.imul(t^t>>>7, 61|t)^t;
+  return ((t^t>>>14)>>>0)/4294967296; }; }
+function gauss(rng){
+  let u=0,v=0; while(u===0)u=rng(); while(v===0)v=rng();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+function fit(cv){
+  const dpr=Math.min(2, window.devicePixelRatio||1);
+  const w=cv.clientWidth||600, h=parseInt(cv.getAttribute('height'),10)||300;
+  cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr);
+  cv.style.height=h+'px';
+  const ctx=cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,w,h};
+}
+function grid(ctx,w,h,step){
+  ctx.save(); ctx.strokeStyle=P['line-soft']; ctx.lineWidth=1;
+  ctx.beginPath();
+  for(let x=step;x<w;x+=step){ ctx.moveTo(x+.5,0); ctx.lineTo(x+.5,h); }
+  for(let y=step;y<h;y+=step){ ctx.moveTo(0,y+.5); ctx.lineTo(w,y+.5); }
+  ctx.stroke(); ctx.restore();
+}
+function gateEllipse(ctx,cx,cy,S,gate){
+  const a=S[0][0], b=(S[0][1]+S[1][0])/2, d=S[1][1];
+  const tr=a+d, dt=a*d-b*b;
+  const disc=Math.sqrt(Math.max(0,tr*tr/4-dt));
+  const l1=Math.max(1e-6,tr/2+disc), l2=Math.max(1e-6,tr/2-disc);
+  const ang = Math.abs(b)<1e-9 ? (a>=d?0:Math.PI/2) : Math.atan2(l1-a,b);
+  ctx.beginPath();
+  ctx.ellipse(cx,cy,Math.sqrt(gate*l1),Math.sqrt(gate*l2),ang,0,Math.PI*2);
+}
+function label(ctx,txt,x,y,color,size,align){
+  ctx.save();
+  ctx.fillStyle=color; ctx.font=(size||11)+'px "IBM Plex Mono", monospace';
+  ctx.direction='ltr';
+  ctx.textAlign=align||'left'; ctx.textBaseline='middle';
+  ctx.fillText(txt,x,y); ctx.restore();
+}
+function dot(ctx,x,y,r,fill,stroke){
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+  if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+  if(stroke){ ctx.strokeStyle=stroke; ctx.lineWidth=1.4; ctx.stroke(); }
+}
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* a shared clock: each sim registers {interval, tick, draw} */
+const sims=[];
+function register(s){ s._acc=0; s._last=performance.now(); sims.push(s); }
+function loop(now){
+  for(const s of sims){
+    const dt=now-s._last; s._last=now;
+    if(s.running && !reduced){
+      s._acc+=dt;
+      let guard=0;
+      while(s._acc>=s.interval && guard++<4){ s._acc-=s.interval; s.tick(); }
+    }
+    s.draw();
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   LAB A — Kalman prediction + Mahalanobis gating
+   ═══════════════════════════════════════════════════════════════════════ */
+const A = (function(){
+  const cv=document.getElementById('cv-gate');
+  let g=fit(cv), ctx=g.ctx, W=g.w, H=g.h;
+  const el={ gate:document.getElementById('s-gate'), clut:document.getElementById('s-clutter'),
+             q:document.getElementById('s-q'), oGate:document.getElementById('o-gate'),
+             oClut:document.getElementById('o-clutter'), oQ:document.getElementById('o-q'),
+             read:document.getElementById('r-gate') };
+  const SC=3;                       // display zoom: the filter works in world units
+  let rng, kf, t, truth, trail, meas, chosen, occlude, occFrames, stat, Ww, Hw;
+
+  function reset(){
+    Ww=W/SC; Hw=H/SC;
+    rng=mulberry32(20260822);
+    t=0; occlude=false; occFrames=0;
+    truth=truthAt(0);
+    kf=kfNew(truth.x,truth.y,parseFloat(el.q.value),4);
+    trail=[]; meas=[]; chosen=null;
+    stat={missed:0};
+  }
+  function truthAt(tt){
+    return { x: 14 + tt*1.8,
+             y: Hw*0.5 + Math.sin(tt*0.030)*Hw*0.26 + Math.sin(tt*0.011)*Hw*0.10 };
+  }
+  function tick(){
+    t++;
+    truth=truthAt(t);
+    if(truth.x>Ww-14){ reset(); return; }
+    kf.q=parseFloat(el.q.value);
+    kfPredict(kf);
+    if(occlude){ occFrames--; if(occFrames<=0) occlude=false; }
+
+    const gate=parseFloat(el.gate.value), nClut=parseInt(el.clut.value,10);
+    meas=[];
+    if(!occlude && rng()>0.06)
+      meas.push({x:truth.x+gauss(rng)*2.0, y:truth.y+gauss(rng)*2.0, real:true});
+    for(let i=0;i<nClut;i++)
+      meas.push({x:8+rng()*(Ww-16), y:6+rng()*(Hw-12), real:false});
+
+    let best=null;
+    for(const m of meas){
+      m.d2=mahal(kf,[m.x,m.y]);
+      m.in = m.d2<=gate;
+      if(m.in && (best===null || m.d2<best.d2)) best=m;
+    }
+    chosen=best;
+    if(best) kfUpdate(kf,[best.x,best.y]); else stat.missed++;
+    trail.push([kf.x[0],kf.x[1]]); if(trail.length>110) trail.shift();
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle=P['surface']; ctx.fillRect(0,0,W,H);
+    grid(ctx,W,H,34);
+    const X=v=>v*SC, Y=v=>v*SC;
+
+    ctx.save(); ctx.strokeStyle=P['line']; ctx.lineWidth=1.2; ctx.setLineDash([3,4]);
+    ctx.beginPath();
+    for(let i=0;i<=t+60;i+=2){ const p=truthAt(i); if(p.x>Ww-14) break;
+      i===0?ctx.moveTo(X(p.x),Y(p.y)):ctx.lineTo(X(p.x),Y(p.y)); }
+    ctx.stroke(); ctx.restore();
+
+    if(trail.length>1){
+      ctx.save(); ctx.strokeStyle=P['moss']; ctx.lineWidth=1.8;
+      ctx.beginPath(); trail.forEach((p,i)=> i?ctx.lineTo(X(p[0]),Y(p[1])):ctx.moveTo(X(p[0]),Y(p[1])));
+      ctx.stroke(); ctx.restore();
+    }
+
+    const gate=parseFloat(el.gate.value);
+    const S=kfS(kf);
+    const cx=X(kf.x[0]), cy=Y(kf.x[1]);
+    ctx.save();
+    ctx.translate(cx,cy); ctx.scale(SC,SC);
+    ctx.strokeStyle=P['steel']; ctx.lineWidth=1.4/SC; ctx.setLineDash([5/SC,4/SC]);
+    gateEllipse(ctx,0,0,S,gate);
+    ctx.globalAlpha=.09; ctx.fillStyle=P['steel']; ctx.fill();
+    ctx.globalAlpha=.9; ctx.stroke();
+    ctx.restore();
+
+    ctx.save(); ctx.strokeStyle=P['steel']; ctx.lineWidth=1.6;
+    ctx.beginPath();
+    ctx.moveTo(cx-7,cy); ctx.lineTo(cx+7,cy);
+    ctx.moveTo(cx,cy-7); ctx.lineTo(cx,cy+7);
+    ctx.stroke();
+    ctx.globalAlpha=.55; ctx.beginPath();
+    ctx.moveTo(cx,cy); ctx.lineTo(cx+kf.x[2]*SC*7, cy+kf.x[3]*SC*7); ctx.stroke();
+    ctx.restore();
+
+    if(!occlude) dot(ctx,X(truth.x),Y(truth.y),3.4,null,P['ink-faint']);
+
+    for(const m of meas){
+      const mx=X(m.x), my=Y(m.y);
+      if(m.in) dot(ctx,mx,my,4.2,P['ember']); else dot(ctx,mx,my,3,null,P['ink-faint']);
+      if(m.d2<60) label(ctx, m.d2.toFixed(1), mx+7, my-9, m.in?P['ember']:P['ink-faint'], 10);
+    }
+    if(chosen){
+      ctx.save(); ctx.strokeStyle=P['ember']; ctx.lineWidth=1; ctx.setLineDash([2,3]);
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(X(chosen.x),Y(chosen.y)); ctx.stroke();
+      ctx.restore();
+    }
+    if(occlude) label(ctx,'המטרה מוסתרת · '+occFrames+' פריימים', W-14, 18, P['alarm'], 12, 'right');
+
+    el.read.innerHTML =
+      '<span><span class="k">frame</span> <b>'+t+'</b></span>'+
+      '<span><span class="k">gate χ²</span> <b>'+gate.toFixed(2)+'</b></span>'+
+      '<span><span class="k">תצפיות</span> <b>'+meas.length+'</b></span>'+
+      '<span><span class="k">בתוך השער</span> <b>'+meas.filter(m=>m.in).length+'</b></span>'+
+      '<span><span class="k">d² נבחר</span> <b>'+(chosen?chosen.d2.toFixed(2):'—')+'</b></span>'+
+      '<span><span class="k">σx</span> <b>'+Math.sqrt(S[0][0]).toFixed(2)+'</b></span>'+
+      '<span><span class="k">σy</span> <b>'+Math.sqrt(S[1][1]).toFixed(2)+'</b></span>'+
+      '<span><span class="k">מהירות</span> <b>'+Math.hypot(kf.x[2],kf.x[3]).toFixed(2)+'</b></span>'+
+      '<span><span class="k">פספוסים</span> <b>'+stat.missed+'</b></span>';
+  }
+
+  reset();
+  const self={running:true, interval:105, tick, draw,
+              resize(){ g=fit(cv); ctx=g.ctx; W=g.w; H=g.h; reset(); }};
+  document.getElementById('gate-play').addEventListener('click',function(){
+    self.running=!self.running; this.textContent=self.running?'השהה':'הפעל';
+  });
+  document.getElementById('gate-occlude').addEventListener('click',()=>{ occlude=true; occFrames=16; });
+  document.getElementById('gate-reset').addEventListener('click',reset);
+  el.gate.addEventListener('input',()=> el.oGate.textContent=parseFloat(el.gate.value).toFixed(2));
+  el.clut.addEventListener('input',()=> el.oClut.textContent=el.clut.value);
+  el.q.addEventListener('input',()=> el.oQ.textContent=parseFloat(el.q.value).toFixed(1));
+  return self;
+})();
+
+/* ════════════════════════════════════════════════════════════════════════
+   LAB B — Nearest-Neighbour vs track-oriented MHT, identical measurements
+   ═══════════════════════════════════════════════════════════════════════ */
+const B = (function(){
+  const cv=document.getElementById('cv-ab');
+  let g=fit(cv), ctx=g.ctx, W=g.w, H=g.h;
+  const el={ merge:document.getElementById('s-merge'), nscan:document.getElementById('s-nscan'),
+             oMerge:document.getElementById('o-merge'), oNscan:document.getElementById('o-nscan'),
+             read:document.getElementById('r-ab') };
+  const GATE=9.21, MAXG=16, T_CROSS=64, SIGMA=2.5, T_END=150;
+  let seed=7331, live, agg={runs:0, nn:0, mht:0};
+
+  function truthAt(tt,i,h){
+    const vy=0.52*h/(2*T_CROSS);
+    return { x: 46 + tt*2.35, y: h*(i?0.76:0.24) + tt*(i?-vy:vy) };
+  }
+  function newRun(sd,w,h){
+    const p0=truthAt(0,0,h), p1=truthAt(0,1,h);
+    return { rng:mulberry32(sd), t:0, w, h, done:false,
+             nn:[{kf:kfNew(p0.x,p0.y,2,4), trail:[]},{kf:kfNew(p1.x,p1.y,2,4), trail:[]}],
+             mht:{depth:0, hyps:[{ks:[kfNew(p0.x,p0.y,2,4), kfNew(p1.x,p1.y,2,4)], score:0}]},
+             mhtTrail:[[],[]], truthTrails:[[],[]], meas:[], collapses:0, merging:false };
+  }
+  function measure(R,mergeLen){
+    const a=truthAt(R.t,0,R.h), b=truthAt(R.t,1,R.h);
+    R.truthTrails[0].push([a.x,a.y]); R.truthTrails[1].push([b.x,b.y]);
+    const merging = mergeLen>0 && R.t>=T_CROSS-mergeLen/2 && R.t<=T_CROSS+mergeLen/2;
+    R.merging=merging;
+    const out=[];
+    if(merging){
+      // the mask fuses both bodies into one contour whose centroid is pulled
+      // toward the larger one — README: "smoke fused with cloud"
+      out.push({x:0.35*a.x+0.65*b.x+gauss(R.rng)*SIGMA,
+                y:0.35*a.y+0.65*b.y+gauss(R.rng)*SIGMA, merged:true});
+    }else{
+      if(R.rng()>0.03) out.push({x:a.x+gauss(R.rng)*SIGMA, y:a.y+gauss(R.rng)*SIGMA});
+      if(R.rng()>0.03) out.push({x:b.x+gauss(R.rng)*SIGMA, y:b.y+gauss(R.rng)*SIGMA});
+    }
+    out.push({x:60+R.rng()*(R.w-110), y:24+R.rng()*(R.h-70), clutter:true});
+    return out;
+  }
+  function stepNN(R,list){
+    R.nn.forEach(tk=>kfPredict(tk.kf));
+    const pairs=[];
+    R.nn.forEach((tk,ti)=> list.forEach((m,mi)=>{
+      const d2=mahal(tk.kf,[m.x,m.y]); if(d2<=GATE) pairs.push({ti,mi,d2}); }));
+    pairs.sort((p,q)=>p.d2-q.d2);
+    const uT=new Set(), uM=new Set();
+    for(const p of pairs){
+      if(uT.has(p.ti)||uM.has(p.mi)) continue;
+      uT.add(p.ti); uM.add(p.mi);
+      kfUpdate(R.nn[p.ti].kf,[list[p.mi].x, list[p.mi].y]);
+    }
+    R.nn.forEach(tk=>{ tk.trail.push([tk.kf.x[0],tk.kf.x[1]]); if(tk.trail.length>90) tk.trail.shift(); });
+  }
+  /* joint (global) hypotheses over BOTH tracks, with the exclusivity constraint:
+     one detection may feed at most one track. */
+  function stepMHT(R,list,nscan){
+    const kids=[];
+    for(const gh of R.mht.hyps){
+      const base=gh.ks.map(kfClone); base.forEach(kfPredict);
+      const opt=[[],[]];
+      for(let ti=0;ti<2;ti++){
+        for(let mi=0;mi<list.length;mi++)
+          if(mahal(base[ti],[list[mi].x,list[mi].y])<=GATE) opt[ti].push(mi);
+        opt[ti].push(-1);                                  // "none of these is mine"
+      }
+      for(const o0 of opt[0]) for(const o1 of opt[1]){
+        if(o0>=0 && o0===o1) continue;                     // exclusivity
+        const ks=[kfClone(base[0]), kfClone(base[1])];
+        let sc=gh.score;
+        [o0,o1].forEach((o,ti)=>{
+          if(o<0) sc -= 1.5;                               // mark_missed()
+          else sc += 2.0 - 0.5*kfUpdate(ks[ti],[list[o].x,list[o].y]);   // Track.update()
+        });
+        kids.push({ks,score:sc});
+      }
+    }
+    if(!kids.length) return;
+    kids.sort((a,b)=>b.score-a.score);
+    if(kids.length>MAXG) kids.length=MAXG;
+    R.mht.hyps=kids; R.mht.depth++;
+    if(R.mht.depth>=nscan){ R.mht.hyps=[kids[0]]; R.mht.depth=0; R.collapses++; }
+    const b=R.mht.hyps[0];
+    for(let i=0;i<2;i++){
+      R.mhtTrail[i].push([b.ks[i].x[0], b.ks[i].x[1]]);
+      if(R.mhtTrail[i].length>90) R.mhtTrail[i].shift();
+    }
+  }
+  function advance(R,mergeLen,nscan){
+    R.t++;
+    const list=measure(R,mergeLen);
+    R.meas=list;
+    stepNN(R,list); stepMHT(R,list,nscan);
+    if(R.t>=T_END) R.done=true;
+  }
+  function verdict(R){
+    const a=truthAt(R.t,0,R.h), b=truthAt(R.t,1,R.h);
+    const id=(px,py)=> Math.hypot(px-a.x,py-a.y)<=Math.hypot(px-b.x,py-b.y)?0:1;
+    const gb=R.mht.hyps[0];
+    return { nn: [0,1].some(i=>id(R.nn[i].kf.x[0],R.nn[i].kf.x[1])!==i),
+             mht:[0,1].some(i=>id(gb.ks[i].x[0],gb.ks[i].x[1])!==i) };
+  }
+  function finish(R){
+    const v=verdict(R);
+    agg.runs++; if(v.nn) agg.nn++; if(v.mht) agg.mht++;
+    return v;
+  }
+  function batch(n){
+    const mergeLen=parseInt(el.merge.value,10), nscan=parseInt(el.nscan.value,10);
+    for(let i=0;i<n;i++){
+      seed=(seed*1664525+1013904223)>>>0;
+      const R=newRun(seed, W/2, H);
+      while(!R.done) advance(R,mergeLen,nscan);
+      finish(R);
+    }
+  }
+  function restart(fresh){
+    if(fresh) seed=(seed*1664525+1013904223)>>>0;
+    live=newRun(seed, W/2, H);
+  }
+  function tick(){
+    const mergeLen=parseInt(el.merge.value,10), nscan=parseInt(el.nscan.value,10);
+    advance(live,mergeLen,nscan);
+    if(live.done){ finish(live); restart(true); }
+  }
+  function panel(ox,title,isMHT){
+    const PW=W/2, R=live;
+    ctx.save(); ctx.beginPath(); ctx.rect(ox,0,PW,H); ctx.clip();
+    ctx.fillStyle=P['surface']; ctx.fillRect(ox,0,PW,H);
+    grid(ctx,W,H,34);
+    ctx.save(); ctx.translate(ox,0);
+
+    ctx.strokeStyle=P['line']; ctx.lineWidth=1.2; ctx.setLineDash([3,4]);
+    R.truthTrails.forEach(tr=>{ ctx.beginPath();
+      tr.forEach((p,i)=> i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); });
+    ctx.setLineDash([]);
+    for(const m of R.meas)
+      dot(ctx,m.x,m.y, m.merged?5.5:3.6, m.clutter?null:P['ember'], m.clutter?P['ink-faint']:null);
+
+    for(let i=0;i<2;i++){
+      const col = i===0 ? P['moss'] : P['plum'];
+      let k, trail;
+      if(isMHT){
+        const gb=R.mht.hyps[0]; k=gb.ks[i]; trail=R.mhtTrail[i];
+        R.mht.hyps.slice(1,7).forEach(h=>{                 // competing explanations
+          ctx.save(); ctx.globalAlpha=.4;
+          dot(ctx,h.ks[i].x[0],h.ks[i].x[1],3,null,col); ctx.restore(); });
+      }else{ k=R.nn[i].kf; trail=R.nn[i].trail; }
+      ctx.strokeStyle=col; ctx.lineWidth=2;
+      ctx.beginPath(); trail.forEach((p,j)=> j?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+      ctx.stroke();
+      dot(ctx,k.x[0],k.x[1],4.5,col);
+      label(ctx,'T'+(i+1), k.x[0]+8, k.x[1]+10, col, 11);
+    }
+    ctx.restore();
+
+    ctx.fillStyle=P['surface-2']; ctx.fillRect(ox,0,PW,26);
+    ctx.fillStyle=P['line-soft']; ctx.fillRect(ox,26,PW,1);
+    label(ctx,title, ox+12, 13, P['ink'], 12);
+    if(R.t>T_CROSS+8){
+      const v=verdict(R), bad=isMHT?v.mht:v.nn;
+      label(ctx, bad?'◆ ID הוחלף':'◆ ID נשמר', ox+PW-12, 13,
+            bad?P['alarm']:P['moss'], 12, 'right');
+    }
+    ctx.restore();
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const narrow = W<640;
+    panel(W/2, narrow?'Nearest-Neighbor':'Nearest-Neighbor · הכרעה מיידית', false);
+    panel(0, narrow?'MHT':'MHT · הכרעה נדחית', true);
+    ctx.strokeStyle=P['line']; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(W/2+.5,0); ctx.lineTo(W/2+.5,H); ctx.stroke();
+
+    const pct=n=> agg.runs? (100*n/agg.runs).toFixed(0)+'%' : '—';
+    el.read.innerHTML=
+      '<span><span class="k">frame</span> <b>'+live.t+'/'+T_END+'</b></span>'+
+      '<span><span class="k">מצב</span> <b>'+(live.merging?'הכתמים מאוחדים':(live.t<T_CROSS?'התקרבות':'הפרדה'))+'</b></span>'+
+      '<span><span class="k">השערות גלובליות</span> <b>'+live.mht.hyps.length+'</b></span>'+
+      '<span><span class="k">עומק מאז קיפול</span> <b>'+live.mht.depth+'/'+el.nscan.value+'</b></span>'+
+      '<span><span class="k">הרצות שהסתיימו</span> <b>'+agg.runs+'</b></span>'+
+      '<span><span class="k">NN החליף ID</span> <b style="color:'+P['alarm']+'">'+agg.nn+' ('+pct(agg.nn)+')</b></span>'+
+      '<span><span class="k">MHT החליף ID</span> <b style="color:'+P['moss']+'">'+agg.mht+' ('+pct(agg.mht)+')</b></span>';
+  }
+  restart(false);
+  const self={running:true, interval:80, tick, draw,
+              resize(){ g=fit(cv); ctx=g.ctx; W=g.w; H=g.h; restart(false); }};
+  document.getElementById('ab-play').addEventListener('click',function(){
+    self.running=!self.running; this.textContent=self.running?'השהה':'הפעל';
+  });
+  document.getElementById('ab-step').addEventListener('click',()=>tick());
+  document.getElementById('ab-batch').addEventListener('click',()=>{ batch(60); draw(); });
+  document.getElementById('ab-reset').addEventListener('click',()=>{
+    agg={runs:0,nn:0,mht:0}; restart(true); });
+  el.merge.addEventListener('input',()=>{ el.oMerge.textContent=el.merge.value;
+    agg={runs:0,nn:0,mht:0}; restart(false); });
+  el.nscan.addEventListener('input',()=>{ el.oNscan.textContent=el.nscan.value;
+    agg={runs:0,nn:0,mht:0}; restart(false); });
+  return self;
+})();
+
+/* ════════════════════════════════════════════════════════════════════════
+   LAB C — the hypothesis tree: growth, breadth cap, N-scan collapse
+   ═══════════════════════════════════════════════════════════════════════ */
+const C = (function(){
+  const cv=document.getElementById('cv-tree');
+  let g=fit(cv), ctx=g.ctx, W=g.w, H=g.h;
+  const el={ nscan:document.getElementById('s-tnscan'), maxh:document.getElementById('s-maxhyps'),
+             prune:document.getElementById('c-prune'), oN:document.getElementById('o-tnscan'),
+             oM:document.getElementById('o-maxhyps'), read:document.getElementById('r-tree') };
+  const VISIBLE=8;
+  let rng, nodes, nextId, depth, sinceCollapse, unpruned, stats, truncated=false;
+
+  function reset(){
+    rng=mulberry32(4242);
+    nextId=1; depth=0; sinceCollapse=0; unpruned=1; truncated=false;
+    stats={pruned:0, collapses:0, peak:1};
+    nodes=[{id:nextId++, parent:null, depth:0, score:0, kind:'root', alive:true, fade:1}];
+  }
+  const leaves=()=> nodes.filter(n=>n.alive && n.depth===depth);
+  function tick(){
+    const maxh=parseInt(el.maxh.value,10), nscan=parseInt(el.nscan.value,10);
+    const doPrune=el.prune.checked;
+    const parents=leaves();
+    if(!parents.length){ reset(); return; }
+    depth++; sinceCollapse++;
+    const kids=[];
+    for(const p of parents){
+      const d2=Math.abs(gauss(rng))*1.9;
+      if(d2<=9.21) kids.push(mk(p,'assign', p.score + 2.0 - 0.5*d2, d2));
+      kids.push(mk(p,'miss', p.score-1.5, null));
+      if(rng()<0.45) kids.push(mk(p,'branch', p.score-1.0, null));
+    }
+    unpruned = Math.pow(3, depth);
+    truncated=false;
+    if(!doPrune && kids.length>300){ kids.length=300; truncated=true; }
+    nodes=nodes.concat(kids);
+
+    if(doPrune){
+      let live=kids.slice().sort((a,b)=>b.score-a.score);
+      if(sinceCollapse>=nscan){
+        live.slice(1).forEach(n=>{ n.alive=false; n.deadAt=depth; stats.pruned++; });
+        sinceCollapse=0; stats.collapses++;
+      }else if(live.length>maxh){
+        live.slice(maxh).forEach(n=>{ n.alive=false; n.deadAt=depth; stats.pruned++; });
+      }
+    }
+    stats.peak=Math.max(stats.peak, kids.filter(n=>n.alive).length);
+    nodes=nodes.filter(n=> n.depth > depth-VISIBLE &&
+                          (n.alive || (n.deadAt!==undefined && depth-n.deadAt<=2)));
+    if(!leaves().length) reset();
+  }
+  function mk(p,kind,score,d2){
+    return {id:nextId++, parent:p.id, depth:p.depth+1, score, kind, d2, alive:true};
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle=P['surface']; ctx.fillRect(0,0,W,H);
+
+    const byId=new Map(nodes.map(n=>[n.id,n]));
+    nodes.forEach(n=> n.kids=[]);
+    nodes.forEach(n=>{ const p=byId.get(n.parent); if(p) p.kids.push(n); });
+    // keep surviving branches near the middle: dead children split to both sides
+    nodes.forEach(n=>{
+      if(n.kids.length<2) return;
+      const al=n.kids.filter(k=>k.alive), de=n.kids.filter(k=>!k.alive);
+      const h=Math.ceil(de.length/2);
+      n.kids=de.slice(0,h).concat(al, de.slice(h));
+    });
+    const roots=nodes.filter(n=>!byId.has(n.parent));
+    let slot=0;
+    (function assign(list){ list.forEach(n=>{
+      if(!n.kids.length){ const w=n.alive?1:0.5; n.ux=slot+w/2; slot+=w; }
+      else { assign(n.kids); n.ux=(n.kids[0].ux+n.kids[n.kids.length-1].ux)/2; }
+    });})(roots);
+    const total=Math.max(1,slot);
+    const padX=26, padT=34, padB=16;
+    const minD=Math.min.apply(null,nodes.map(n=>n.depth));
+    const rows=Math.max(1,depth-minD);
+    const rowH=(H-padT-padB)/rows;
+    const X=n=> padX + (n.ux/total)*(W-2*padX);
+    const Y=n=> padT + (n.depth-minD)*rowH;
+
+    // edges
+    nodes.forEach(n=>{ const p=byId.get(n.parent); if(!p) return;
+      ctx.save();
+      const dead=!n.alive;
+      ctx.strokeStyle = dead ? P['ink-faint'] : (n.kind==='assign'?P['moss']: n.kind==='miss'?P['ember-dim']:P['plum']);
+      ctx.globalAlpha = dead?.28:.85;
+      ctx.lineWidth = dead?1:1.6;
+      if(dead) ctx.setLineDash([2,3]);
+      ctx.beginPath(); ctx.moveTo(X(p),Y(p)); ctx.lineTo(X(n),Y(n)); ctx.stroke();
+      ctx.restore();
+    });
+    // nodes
+    const best=leaves().sort((a,b)=>b.score-a.score)[0];
+    nodes.forEach(n=>{
+      const dead=!n.alive;
+      const col = dead ? P['ink-faint'] : (n.kind==='assign'?P['moss']: n.kind==='miss'?P['ember-dim']: n.kind==='branch'?P['plum']:P['steel']);
+      ctx.save(); ctx.globalAlpha=dead?.3:1;
+      dot(ctx,X(n),Y(n), n===best?5:3.2, col);
+      ctx.restore();
+      if(n.depth===depth && n.alive){
+        label(ctx, n.score.toFixed(1), X(n), Y(n)+13, n===best?P['ink']:P['ink-soft'], 10, 'center');
+      }
+    });
+    // axis
+    label(ctx,'הזמן זורם כלפי מטה · שורה = פריים', W-12, 16, P['ink-faint'], 11, 'right');
+
+    const live=leaves().length;
+    const un = unpruned>=1e6 ? unpruned.toExponential(2) : Math.round(unpruned).toLocaleString('en-US');
+    el.read.innerHTML=
+      '<span><span class="k">פריים</span> <b>'+depth+'</b></span>'+
+      '<span><span class="k">השערות חיות</span> <b>'+live+'</b></span>'+
+      '<span><span class="k">ללא גיזום (3^k)</span> <b style="color:'+P['alarm']+'">'+un+'</b></span>'+
+      (truncated?'<span><span class="k">מוצגים 300 עלים בלבד</span></span>':'')+
+      '<span><span class="k">נגזמו</span> <b>'+stats.pruned+'</b></span>'+
+      '<span><span class="k">קיפולי N-scan</span> <b>'+stats.collapses+'</b></span>'+
+      '<span><span class="k">עומק מאז קיפול</span> <b>'+sinceCollapse+'/'+el.nscan.value+'</b></span>'+
+      '<span><span class="k">ציון מוביל</span> <b>'+(best?best.score.toFixed(2):'—')+'</b></span>';
+  }
+  reset();
+  const self={running:true, interval:750, tick, draw,
+              resize(){ g=fit(cv); ctx=g.ctx; W=g.w; H=g.h; }};
+  document.getElementById('tree-play').addEventListener('click',function(){
+    self.running=!self.running; this.textContent=self.running?'השהה':'הפעל';
+  });
+  document.getElementById('tree-step').addEventListener('click',()=>tick());
+  document.getElementById('tree-reset').addEventListener('click',reset);
+  el.nscan.addEventListener('input',()=> el.oN.textContent=el.nscan.value);
+  el.maxh.addEventListener('input',()=> el.oM.textContent=el.maxh.value);
+  el.prune.addEventListener('change',reset);
+  return self;
+})();
+
+/* ════════════════════════════════════════════════════════════════════════
+   LAB D — score curves: the heuristic vs the full log-likelihood
+   ═══════════════════════════════════════════════════════════════════════ */
+const D = (function(){
+  const cv=document.getElementById('cv-score');
+  let g=fit(cv), ctx=g.ctx, W=g.w, H=g.h;
+  const el={ d2:document.getElementById('s-d2'), pd:document.getElementById('s-pd'),
+             lam:document.getElementById('s-lam'), app:document.getElementById('s-app'),
+             o1:document.getElementById('o-d2'), o2:document.getElementById('o-pd'),
+             o3:document.getElementById('o-lam'), o4:document.getElementById('o-app'),
+             read:document.getElementById('r-score') };
+  const SIGMA2=6.0;                    // typical S diagonal: P≈2 + r=4
+  const LOGDET = 2*Math.log(2*Math.PI*SIGMA2);   // ln|2πS| for S = σ²I (2×2)
+  const SIM_GOOD=0.90, SIM_BAD=0.30;
+  const X0=0, X1=16, GATE=9.21;
+
+  const yours = d2 => 2.0 - 0.5*d2;
+  const ll = d2 => { const pd=parseFloat(el.pd.value), lam=parseFloat(el.lam.value);
+                     return -0.5*d2 - 0.5*LOGDET + Math.log(pd/lam); };
+  const app = (d2,sim) => ll(d2) + parseFloat(el.app.value)*Math.log(sim/0.5);
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle=P['surface']; ctx.fillRect(0,0,W,H);
+    const L=52, R=16, T=18, Bm=32;
+    const yMin=-9, yMax=9;
+    const px = d2 => L + (d2-X0)/(X1-X0)*(W-L-R);
+    const py = v  => T + (yMax-v)/(yMax-yMin)*(H-T-Bm);
+
+    // grid + axes
+    ctx.save(); ctx.strokeStyle=P['line-soft']; ctx.lineWidth=1; ctx.beginPath();
+    for(let v=yMin;v<=yMax;v+=3){ ctx.moveTo(L,py(v)); ctx.lineTo(W-R,py(v)); }
+    for(let d=0;d<=X1;d+=2){ ctx.moveTo(px(d),T); ctx.lineTo(px(d),H-Bm); }
+    ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.strokeStyle=P['line']; ctx.lineWidth=1.2;
+    ctx.beginPath(); ctx.moveTo(L,py(0)); ctx.lineTo(W-R,py(0)); ctx.stroke(); ctx.restore();
+    for(let v=yMin;v<=yMax;v+=3) label(ctx, String(v), L-8, py(v), P['ink-faint'],10,'right');
+    for(let d=0;d<=X1;d+=2) label(ctx, String(d), px(d), H-Bm+14, P['ink-faint'],10,'center');
+    label(ctx,'d²  (Mahalanobis²)', (L+W-R)/2, H-10, P['ink-soft'],11,'center');
+
+    // gate line
+    ctx.save(); ctx.strokeStyle=P['alarm']; ctx.setLineDash([4,4]); ctx.lineWidth=1.3;
+    ctx.beginPath(); ctx.moveTo(px(GATE),T); ctx.lineTo(px(GATE),H-Bm); ctx.stroke(); ctx.restore();
+    label(ctx,'gate 9.21', px(GATE)-6, T+8, P['alarm'],10,'right');
+
+    function curve(fn,color,width,dash){
+      ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=width||2;
+      if(dash) ctx.setLineDash(dash);
+      ctx.beginPath();
+      for(let i=0;i<=200;i++){ const d=X0+(X1-X0)*i/200; const v=Math.max(yMin,Math.min(yMax,fn(d)));
+        i?ctx.lineTo(px(d),py(v)):ctx.moveTo(px(d),py(v)); }
+      ctx.stroke(); ctx.restore();
+    }
+    if(parseFloat(el.app.value)>0){
+      curve(d=>app(d,SIM_GOOD), P['plum'], 2);
+      curve(d=>app(d,SIM_BAD), P['plum'], 1.4, [4,3]);
+    }
+    curve(ll, P['steel'], 2);
+    curve(yours, P['ember'], 2.4);
+
+    // marker
+    const d2=parseFloat(el.d2.value);
+    ctx.save(); ctx.strokeStyle=P['ink-faint']; ctx.setLineDash([2,3]); ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(px(d2),T); ctx.lineTo(px(d2),H-Bm); ctx.stroke(); ctx.restore();
+    const vy1=Math.max(yMin,Math.min(yMax,yours(d2))), vy2=Math.max(yMin,Math.min(yMax,ll(d2)));
+    if(Math.abs(vy1-vy2)>0.35){
+      ctx.save(); ctx.strokeStyle=P['ink-faint']; ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.moveTo(px(d2),py(vy1)); ctx.lineTo(px(d2),py(vy2)); ctx.stroke();
+      ctx.restore();
+      label(ctx,(vy1-vy2>0?'+':'')+(vy1-vy2).toFixed(2), px(d2)+8, (py(vy1)+py(vy2))/2,
+            P['ink-soft'], 11);
+    }
+    dot(ctx,px(d2),py(vy1),4.5,P['ember']);
+    dot(ctx,px(d2),py(vy2),4.5,P['steel']);
+
+    const inGate = d2<=GATE;
+    el.read.innerHTML=
+      '<span><span class="k">d²</span> <b>'+d2.toFixed(2)+'</b></span>'+
+      '<span><span class="k">בשער</span> <b style="color:'+(inGate?P['moss']:P['alarm'])+'">'+(inGate?'כן':'לא')+'</b></span>'+
+      '<span><span class="k">הקוד שלך</span> <b>'+yours(d2).toFixed(2)+'</b></span>'+
+      '<span><span class="k">log-likelihood</span> <b>'+ll(d2).toFixed(2)+'</b></span>'+
+      '<span><span class="k">הפרש</span> <b>'+(yours(d2)-ll(d2)).toFixed(2)+'</b></span>'+
+      '<span><span class="k">+מראה sim=0.9</span> <b>'+app(d2,SIM_GOOD).toFixed(2)+'</b></span>'+
+      '<span><span class="k">sim=0.3</span> <b>'+app(d2,SIM_BAD).toFixed(2)+'</b></span>'+
+      '<span><span class="k">הציון שלך מתאפס ב־</span> <b>d²=4.00</b></span>';
+  }
+  ['d2','pd','lam','app'].forEach((k,i)=>{
+    el[k].addEventListener('input',()=>{
+      el.o1.textContent=parseFloat(el.d2.value).toFixed(2);
+      el.o2.textContent=parseFloat(el.pd.value).toFixed(2);
+      el.o3.textContent=parseFloat(el.lam.value).toFixed(4);
+      el.o4.textContent=parseFloat(el.app.value).toFixed(1);
+      draw();
+    });
+  });
+  return {running:false, interval:1000, tick(){}, draw,
+          resize(){ g=fit(cv); ctx=g.ctx; W=g.w; H=g.h; draw(); }};
+})();
+
+/* ════════════════════════════════════════════════════════════════════════
+   LAB E — the three-tier memory lifecycle
+   ═══════════════════════════════════════════════════════════════════════ */
+const E = (function(){
+  const CAP={conf:24, tent:24, warm:16, cold:64};
+  const RULES={minHits:3, tentMiss:2, maxMiss:8, ttl:90};
+  const box={conf:document.getElementById('ch-conf'), tent:document.getElementById('ch-tent'),
+             warm:document.getElementById('ch-warm'), cold:document.getElementById('ch-cold')};
+  const cnt={conf:document.getElementById('c-conf'), tent:document.getElementById('c-tent'),
+             warm:document.getElementById('c-warm'), cold:document.getElementById('c-cold')};
+  const read=document.getElementById('r-mem');
+  let rng, frame, id, tracks, cold, stats, storm;
+
+  function reset(warm){
+    rng=mulberry32(99); frame=0; id=1; tracks=[]; cold=[]; storm=0;
+    stats={spawned:0, reaped:0, toWarm:0, toCold:0, revived:0, ttl:0, evicted:0, dropped:0};
+    if(warm) for(let i=0;i<90;i++) tick();
+  }
+  function spawn(n){ for(let i=0;i<n;i++){
+    tracks.push({id:id++, st:'tent', hits:1, miss:0, score:0}); stats.spawned++; } }
+  function tick(){
+    frame++;
+    spawn(storm>0 ? 14 : (rng()<0.55?1:0));
+    if(storm>0) storm--;
+
+    for(const t of tracks){
+      const pd = t.st==='conf'?0.86 : t.st==='tent'?0.5 : 0.22;
+      if(rng()<pd){ t.hits++; t.miss=0; t.score+=2; }
+      else { t.miss++; t.score-=1.5; }
+    }
+    // cold ageing + TTL
+    for(let i=cold.length-1;i>=0;i--){
+      cold[i].age++;
+      if(cold[i].age>RULES.ttl){ cold.splice(i,1); stats.ttl++; }
+      else if(rng()<0.012){ // an unmatched detection landed in the widened gate
+        const c=cold.splice(i,1)[0];
+        tracks.push({id:c.id, st:'conf', hits:RULES.minHits, miss:0, score:c.score});
+        stats.revived++;
+      }
+    }
+    // lifecycle (mirrors _manage_memory)
+    const conf=[], tent=[], warm=[];
+    for(const t of tracks){
+      if(t.st==='tent'){
+        if(t.miss>=RULES.tentMiss){ stats.reaped++; continue; }
+        if(t.hits>=RULES.minHits){ t.st='conf'; conf.push(t); } else tent.push(t);
+        continue;
+      }
+      if(t.st==='warm'){
+        if(t.miss>RULES.maxMiss){ goCold(t); } else warm.push(t);
+        continue;
+      }
+      if(t.miss>=Math.max(1,RULES.maxMiss>>1)){ t.st='warm'; stats.toWarm++; warm.push(t); }
+      else conf.push(t);
+    }
+    if(conf.length>CAP.conf){ conf.sort((a,b)=>b.score-a.score);
+      conf.splice(CAP.conf).forEach(t=>{ t.st='warm'; stats.toWarm++; warm.push(t); }); }
+    if(tent.length>CAP.tent){ tent.sort((a,b)=>b.score-a.score);
+      stats.dropped += tent.length-CAP.tent; tent.length=CAP.tent; }
+    if(warm.length>CAP.warm){ warm.sort((a,b)=>b.score-a.score);
+      warm.splice(CAP.warm).forEach(goCold); }
+    if(cold.length>CAP.cold){ cold.sort((a,b)=>b.score-a.score);
+      stats.evicted += cold.length-CAP.cold; cold.length=CAP.cold; }
+    tracks=conf.concat(tent, warm);
+  }
+  function goCold(t){ cold.push({id:t.id, score:t.score, age:0}); stats.toCold++; }
+  function chips(node,n,cls){
+    const want=Math.min(n,120);
+    while(node.children.length>want) node.removeChild(node.lastChild);
+    while(node.children.length<want){ const d=document.createElement('i'); d.className='chip '+cls; node.appendChild(d); }
+  }
+  function draw(){
+    const conf=tracks.filter(t=>t.st==='conf').length;
+    const tent=tracks.filter(t=>t.st==='tent').length;
+    const warm=tracks.filter(t=>t.st==='warm').length;
+    chips(box.conf,conf,'conf'); chips(box.tent,tent,'tent');
+    chips(box.warm,warm,'warm'); chips(box.cold,cold.length,'cold');
+    cnt.conf.textContent=conf+' / '+CAP.conf; cnt.tent.textContent=tent+' / '+CAP.tent;
+    cnt.warm.textContent=warm+' / '+CAP.warm; cnt.cold.textContent=cold.length+' / '+CAP.cold;
+    read.innerHTML=
+      '<span><span class="k">frame</span> <b>'+frame+'</b></span>'+
+      '<span><span class="k">נולדו</span> <b>'+stats.spawned+'</b></span>'+
+      '<span><span class="k">TENTATIVE שנקצרו</span> <b>'+stats.reaped+'</b></span>'+
+      '<span><span class="k">נזרקו בגלישה</span> <b>'+stats.dropped+'</b></span>'+
+      '<span><span class="k">→WARM</span> <b>'+stats.toWarm+'</b></span>'+
+      '<span><span class="k">→COLD</span> <b>'+stats.toCold+'</b></span>'+
+      '<span><span class="k">הוחייאו</span> <b style="color:'+P['moss']+'">'+stats.revived+'</b></span>'+
+      '<span><span class="k">פגי TTL</span> <b>'+stats.ttl+'</b></span>'+
+      '<span><span class="k">אחסון ≈</span> <b>'+(cold.length*0.26).toFixed(1)+' KB</b></span>';
+  }
+  reset();
+  for(let i=0;i<90;i++) tick();          // warm up so the tiers are populated on arrival
+  const self={running:true, interval:420, tick, draw, resize(){}};
+  document.getElementById('mem-play').addEventListener('click',function(){
+    self.running=!self.running; this.textContent=self.running?'השהה':'הפעל';
+  });
+  document.getElementById('mem-storm').addEventListener('click',()=>{ storm=10; });
+  document.getElementById('mem-reset').addEventListener('click',()=>reset(true));
+  return self;
+})();
+
+/* ═══════════════ wire everything up ════════════════════════════════════ */
+[A,B,C,D,E].forEach(register);
+D.draw();
+requestAnimationFrame(loop);
+
+let rt;
+window.addEventListener('resize',()=>{
+  clearTimeout(rt);
+  rt=setTimeout(()=>{ refreshPalette(); [A,B,C,D,E].forEach(s=>s.resize&&s.resize()); },160);
+});
+const mq=window.matchMedia('(prefers-color-scheme: dark)');
+(mq.addEventListener?mq.addEventListener.bind(mq,'change'):mq.addListener.bind(mq))(()=>{
+  refreshPalette(); D.draw();
+});
+new MutationObserver(()=>{ refreshPalette(); D.draw(); })
+  .observe(document.documentElement,{attributes:true, attributeFilter:['data-theme','class','style']});
+
+if(reduced){
+  document.querySelectorAll('#gate-play,#ab-play,#tree-play,#mem-play')
+    .forEach(b=>{ b.textContent='הפעל'; });
+}
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+numpy>=1.23
+opencv-python>=4.6      # or opencv-python-headless on a headless box / Jetson
+scikit-learn>=1.1
+PyWavelets>=1.3
+joblib>=1.2
+tqdm>=4.64
+scipy>=1.9
